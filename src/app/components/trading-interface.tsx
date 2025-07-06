@@ -9,12 +9,12 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Coins, Package } from 'lucide-react';
 
 interface TradingInterfaceProps {
   items: Item[];
-  onTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
+  onInitiateTrade: (item: Item, type: 'buy' | 'sell') => void;
 }
 
 type SortKey = keyof Item | 'value';
 
-export default function TradingInterface({ items, onTrade }: TradingInterfaceProps) {
+export default function TradingInterface({ items, onInitiateTrade }: TradingInterfaceProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -79,8 +79,8 @@ export default function TradingInterface({ items, onTrade }: TradingInterfacePro
                   <TableCell className="font-mono text-rose-300">{item.demand}</TableCell>
                   <TableCell className="font-mono">{item.owned}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => onTrade(item.name, 'buy', 1)} className="text-green-400 hover:bg-green-500/10 hover:text-green-300">Buy</Button>
-                    <Button variant="ghost" size="sm" onClick={() => onTrade(item.name, 'sell', 1)} disabled={item.owned === 0} className="text-red-400 hover:bg-red-500/10 hover:text-red-300">Sell</Button>
+                    <Button variant="ghost" size="sm" onClick={() => onInitiateTrade(item, 'buy')} className="text-green-400 hover:bg-green-500/10 hover:text-green-300">Buy</Button>
+                    <Button variant="ghost" size="sm" onClick={() => onInitiateTrade(item, 'sell')} disabled={item.owned === 0} className="text-red-400 hover:bg-red-500/10 hover:text-red-300">Sell</Button>
                   </TableCell>
                 </TableRow>
               ))}

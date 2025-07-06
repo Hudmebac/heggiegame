@@ -18,6 +18,7 @@ import MarketChart from './market-chart';
 import Leaderboard from './leaderboard';
 import PirateEncounter from './pirate-encounter';
 import GalaxyMap from './galaxy-map';
+import TradeDialog from './trade-dialog';
 import { Loader2 } from 'lucide-react';
 
 
@@ -68,6 +69,9 @@ export default function Dashboard() {
   const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
   const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
   const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
+  
+  // State for trade dialog
+  const [tradeDetails, setTradeDetails] = useState<{item: Item, type: 'buy' | 'sell'} | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -148,6 +152,11 @@ export default function Dashboard() {
       return { ...prev, playerStats: newPlayerStats, items: newItems };
     });
   };
+
+  const handleInitiateTrade = (item: Item, type: 'buy' | 'sell') => {
+    setTradeDetails({ item, type });
+  };
+
 
   const handleSimulateMarket = () => {
     startMarketTransition(async () => {
@@ -273,7 +282,7 @@ export default function Dashboard() {
       <main className="mt-8 grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
-          <TradingInterface items={gameState.items} onTrade={handleTrade} />
+          <TradingInterface items={gameState.items} onInitiateTrade={handleInitiateTrade} />
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <MarketChart 
               priceHistory={gameState.priceHistory} 
@@ -325,6 +334,15 @@ export default function Dashboard() {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      <TradeDialog
+        isOpen={!!tradeDetails}
+        onOpenChange={(open) => !open && setTradeDetails(null)}
+        item={tradeDetails?.item ?? null}
+        tradeType={tradeDetails?.type ?? 'buy'}
+        playerStats={gameState.playerStats}
+        onTrade={handleTrade}
+      />
 
       <Toaster />
     </div>
