@@ -261,6 +261,71 @@ export default function ShipCodex() {
 
             <Card>
                 <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Clipboard className="text-primary"/>Ship Blueprint: Leviathan Super-Freighter</CardTitle>
+                    <CardDescription>Detailed schematics and profile for the Leviathan Super-Freighter.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="bg-black/30 p-4 rounded-lg border border-border/50">
+                        <Image
+                            src="https://placehold.co/956x669.png"
+                            alt="Leviathan Super-Freighter Blueprint"
+                            width={956}
+                            height={669}
+                            className="rounded-md w-full h-auto"
+                            data-ai-hint="freighter blueprint"
+                        />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Vessel Profile</h4>
+                        <div className="space-y-2 text-sm border p-4 rounded-lg bg-background/30">
+                            <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>Super-Freighter</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Designation</span><span>Leviathan</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Manufacturer</span><span className="text-right">HEGGIE Heavy Transport Division (Originally licensed by Kessler & Holt)</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Length</span><span>428 meters</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Crew Capacity</span><span>22</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Cargo Bay</span><span className="text-right">1,800 tons (multi-deck vault-to-vault pods)</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Primary Use</span><span className="text-right">High-value commodity transfers, multi-faction logistics, orbital export</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">HEGGIE Clearance</span><span>Tier IV</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Layout Overview</h4>
+                        <pre className="p-4 bg-black/50 rounded-lg text-xs font-mono text-cyan-300 overflow-x-auto">
+{`+-----------------------------------------------------------------------+
+|   COMMAND BRIDGE & DIPLOMATIC CHAMBER                                | ← Multi-tier ops deck with HEGGIE secure channels
+|-----------------------------------------------------------------------|
+|   CREW CITADEL                                                        | ← Living quarters, command bunks, internal transit rail
+|-----------------------------------------------------------------------|
+|   CARGO SUPERSTRUCTURE BAY                                            | ← Triple-deck modular container grid with magnetic anchors
+|-----------------------------------------------------------------------|
+|   TRADE CONTROL TERMINAL                                              | ← Integrated holo-pads, trader ID scanner & vault channel uplinks
+|-----------------------------------------------------------------------|
+|   DEFENSE CORE ARRAY                                                  | ← Dual plasma shield belts, HEGGIE registry flux armor
+|-----------------------------------------------------------------------|
+|   ENGINE BLOCK: MagDrive-TitanCore                                    | ← Energy-intensive warp-capable drive cluster
+|-----------------------------------------------------------------------|
+|   HANGAR BAY (Optional Modules)                                       | ← External skiff slots, drone deployment cradles
++-----------------------------------------------------------------------+`}
+                        </pre>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Visual Description</h4>
+                        <div className="border p-4 rounded-lg bg-background/30">
+                            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                <li><span className="font-semibold text-foreground">Color Scheme:</span> Embossed silver alloy hull with wide HEGGIE-orange cargo lattice, crimson identifier rings across vault port seals.</li>
+                                <li><span className="font-semibold text-foreground">Markings:</span> Tier IV access glyph near primary airlock; HEGGIE platinum crest emblazoned across dorsal command dome.</li>
+                                <li><span className="font-semibold text-foreground">Shape:</span> Towering fuselage structure layered with strut architecture; octagonal midsection shaped for cargo layering.</li>
+                                <li><span className="font-semibold text-foreground">Underside:</span> Quad landing gear arrays, shield emitter cradles, and stabilizing anchor hatches for orbital suspension.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2"><Rocket className="text-primary"/>Core Ship Anatomy</CardTitle>
                     <CardDescription>An overview of the key areas and components of a typical starship.</CardDescription>
                 </CardHeader>
