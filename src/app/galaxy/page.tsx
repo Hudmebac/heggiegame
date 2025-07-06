@@ -1,3 +1,4 @@
+
 'use client';
 import GalaxyMap from "@/app/components/galaxy-map";
 import { useGame } from "@/app/components/game-provider";
@@ -11,9 +12,10 @@ export default function GalaxyPage() {
     if (!gameState) return null;
 
     const currentSystemInfo = gameState.systems.find(s => s.name === gameState.currentSystem);
-    const currentPlanetInfo = currentSystemInfo?.planets.find(p => p.name === gameState.currentPlanet);
     
     if (!currentSystemInfo) return null;
+
+    const currentPlanetInfo = currentSystemInfo.planets.find(p => p.name === gameState.currentPlanet);
 
     const securityConfig = {
         'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4"/>, activity: 'Low' },
