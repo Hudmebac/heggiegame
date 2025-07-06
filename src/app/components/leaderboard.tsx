@@ -1,7 +1,7 @@
 import type { LeaderboardEntry } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trophy } from 'lucide-react';
+import { Trophy, Ship } from 'lucide-react';
 
 interface LeaderboardProps {
   data: LeaderboardEntry[];
@@ -16,15 +16,16 @@ export default function Leaderboard({ data, playerName }: LeaderboardProps) {
             <Trophy className="text-primary"/>
             Global Leaderboard
         </CardTitle>
-        <CardDescription>Top traders by net worth.</CardDescription>
+        <CardDescription>Top traders by net worth and fleet size.</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]">Rank</TableHead>
+              <TableHead className="w-[50px] text-center">Rank</TableHead>
               <TableHead>Trader</TableHead>
               <TableHead className="text-right">Net Worth</TableHead>
+              <TableHead className="text-right w-[100px]">Fleet Size</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -34,6 +35,10 @@ export default function Leaderboard({ data, playerName }: LeaderboardProps) {
                 <TableCell>{entry.trader}</TableCell>
                 <TableCell className="text-right font-mono text-amber-300">
                   {new Intl.NumberFormat('en-US').format(entry.netWorth)} ¢
+                </TableCell>
+                <TableCell className="text-right font-mono text-sky-300 flex items-center justify-end gap-2">
+                  <Ship className="h-4 w-4" />
+                  {entry.fleetSize}
                 </TableCell>
               </TableRow>
             ))}
