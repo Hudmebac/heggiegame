@@ -12,11 +12,11 @@ import { Loader2 } from 'lucide-react';
 import PirateEncounter from './pirate-encounter';
 
 const systems: System[] = [
-    { name: 'Sol', x: 20, y: 30 },
-    { name: 'Kepler-186f', x: 45, y: 65 },
-    { name: 'Sirius', x: 75, y: 25 },
-    { name: 'Proxima Centauri', x: 80, y: 80 },
-    { name: 'TRAPPIST-1', x: 5, y: 85 },
+    { name: 'Sol', x: 20, y: 30, security: 'High', economy: 'Industrial' },
+    { name: 'Kepler-186f', x: 45, y: 65, security: 'Medium', economy: 'Agricultural' },
+    { name: 'Sirius', x: 75, y: 25, security: 'High', economy: 'High-Tech' },
+    { name: 'Proxima Centauri', x: 80, y: 80, security: 'Low', economy: 'Extraction' },
+    { name: 'TRAPPIST-1', x: 5, y: 85, security: 'Anarchy', economy: 'Refinery' },
 ];
 
 const routes: Route[] = [

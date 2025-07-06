@@ -43,6 +43,8 @@ export interface System {
   name: string;
   x: number;
   y: number;
+  security: 'High' | 'Medium' | 'Low' | 'Anarchy';
+  economy: 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';
 }
 
 export interface Route {
