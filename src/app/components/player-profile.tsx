@@ -28,7 +28,6 @@ export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAva
   
   const handleNameSave = () => {
       onNameChange(name);
-      onGenerateBio(name);
       setIsEditingName(false);
   }
 
