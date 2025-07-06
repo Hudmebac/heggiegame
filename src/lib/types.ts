@@ -25,6 +25,18 @@ export interface InventoryItem {
     owned: number;
 }
 
+export interface BarPartner {
+  name: string;
+  percentage: number;
+  investment: number;
+}
+
+export interface BarContract {
+  currentMarketValue: number;
+  valueHistory: number[];
+  partners: BarPartner[];
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -48,6 +60,7 @@ export interface PlayerStats {
   barLevel: number;
   autoClickerBots: number;
   establishmentLevel: number;
+  barContract?: BarContract;
 }
 
 export interface PriceHistory {

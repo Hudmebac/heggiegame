@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Martini, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
+import BarContracts from './bar-contracts';
 
 export default function BarClicker() {
-    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment } = useGame();
+    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment, handleSellBar } = useGame();
     const [feedbackMessages, setFeedbackMessages] = useState<{ id: number, x: number, y: number, amount: number }[]>([]);
 
     if (!gameState) {
@@ -117,59 +118,66 @@ export default function BarClicker() {
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline text-lg flex items-center gap-2">
-                        <ChevronsUp className="text-primary"/>
-                        Establishment Upgrades
-                    </CardTitle>
-                    <CardDescription>Invest in your establishment to increase your earnings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Current Bar Level</span>
-                        <span className="font-mono">{playerStats.barLevel} / 25</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
-                        <span className="font-mono text-amber-300">{incomePerClick}¢</span>
-                    </div>
-                     <Button className="w-full" onClick={handleUpgradeBar} disabled={!canAffordUpgrade}>
-                        {isBarLevelMaxed ? 'Max Bar Level' : `Upgrade Bar (${upgradeCost.toLocaleString()}¢)`}
-                    </Button>
-                    
-                    <div className="pt-4 border-t border-border/50"></div>
-
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Auto-Clicker Bots</span>
-                        <span className="font-mono">{playerStats.autoClickerBots} / 25</span>
-                    </div>
-                     <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground flex items-center gap-1.5"><Bot className="h-4 w-4"/> Income Per Second</span>
-                        <span className="font-mono text-amber-300">{incomePerSecond.toLocaleString()}¢</span>
-                    </div>
-                    
-                    {!isBotLimitReached ? (
-                        <Button className="w-full" onClick={handleUpgradeAutoClicker} disabled={!canAffordBot}>
-                            Buy Bot ({botCost.toLocaleString()}¢)
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <ChevronsUp className="text-primary"/>
+                            Internal Upgrades
+                        </CardTitle>
+                        <CardDescription>Invest in your establishment to increase your earnings.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Current Bar Level</span>
+                            <span className="font-mono">{playerStats.barLevel} / 25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
+                            <span className="font-mono text-amber-300">{incomePerClick}¢</span>
+                        </div>
+                        <Button className="w-full" onClick={handleUpgradeBar} disabled={!canAffordUpgrade}>
+                            {isBarLevelMaxed ? 'Max Bar Level' : `Upgrade Bar (${upgradeCost.toLocaleString()}¢)`}
                         </Button>
-                    ) : (
+                        
                         <div className="pt-4 border-t border-border/50"></div>
-                    )}
-                    
-                    {isBotLimitReached && (
-                        <>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground flex items-center gap-1.5"><Building2 className="h-4 w-4"/> Establishment Level</span>
-                                <span className="font-mono">{getEstablishmentLevelLabel(currentEstablishmentLevel)}</span>
-                            </div>
-                            <Button className="w-full" onClick={expansionHandler} disabled={!canAffordExpansion || !nextExpansionTier}>
+
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Auto-Clicker Bots</span>
+                            <span className="font-mono">{playerStats.autoClickerBots} / 25</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground flex items-center gap-1.5"><Bot className="h-4 w-4"/> Income Per Second</span>
+                            <span className="font-mono text-amber-300">{incomePerSecond.toLocaleString()}¢</span>
+                        </div>
+                        
+                        {!isBotLimitReached ? (
+                            <Button className="w-full" onClick={handleUpgradeAutoClicker} disabled={!canAffordBot}>
+                                Buy Bot ({botCost.toLocaleString()}¢)
+                            </Button>
+                        ) : (
+                            <div className="pt-4 border-t border-border/50"></div>
+                        )}
+                        
+                        {isBotLimitReached && playerStats.establishmentLevel === 0 && (
+                            <Button className="w-full" onClick={expansionHandler} disabled={!canAffordExpansion}>
                                 {expansionButtonLabel}
                             </Button>
-                        </>
-                    )}
-                </CardContent>
-            </Card>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {playerStats.establishmentLevel > 0 && playerStats.barContract && (
+                    <BarContracts 
+                        playerStats={playerStats} 
+                        onSell={handleSellBar} 
+                        onExpand={expansionHandler}
+                        canAffordExpansion={canAffordExpansion}
+                        expansionButtonLabel={expansionButtonLabel}
+                        nextExpansionTier={!!nextExpansionTier}
+                    />
+                )}
+            </div>
         </div>
     );
 }

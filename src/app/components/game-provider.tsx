@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -151,6 +151,7 @@ interface GameContextType {
   handleUpgradeAutoClicker: () => void;
   handlePurchaseEstablishment: () => void;
   handleExpandEstablishment: () => void;
+  handleSellBar: () => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -747,6 +748,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
               fuel: prev.playerStats.fuel - fuelCost,
               pirateRisk: scannedPirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05)
           };
+          
+          if (newPlayerStats.barContract) {
+            const oldValue = newPlayerStats.barContract.currentMarketValue;
+            const changePercent = (Math.random() - 0.5) * 0.1; // -5% to +5% change
+            const newValue = Math.round(oldValue * (1 + changePercent));
+            newPlayerStats.barContract.currentMarketValue = newValue;
+            newPlayerStats.barContract.valueHistory = [...newPlayerStats.barContract.valueHistory, newValue].slice(-20);
+          }
+
 
           const newPriceHistory = { ...prev.priceHistory };
           newMarketItems.forEach(item => {
@@ -1219,10 +1229,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
             return prev;
         }
 
-        const newPlayerStats = {
+        const initialValue = cost * (Math.random() * 0.4 + 0.8);
+
+        const newPlayerStats: PlayerStats = {
             ...prev.playerStats,
             netWorth: prev.playerStats.netWorth - cost,
             establishmentLevel: 1,
+            barContract: {
+                currentMarketValue: initialValue,
+                valueHistory: [initialValue],
+                partners: [],
+            }
         };
 
         toast({ title: "Establishment Purchased!", description: `You are now the proud owner of this fine establishment.` });
@@ -1268,6 +1285,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return { ...prev, playerStats: newPlayerStats };
     });
   };
+  
+  const handleSellBar = () => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.barContract) return prev;
+
+        const salePrice = prev.playerStats.barContract.currentMarketValue;
+        
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth + salePrice,
+            barLevel: 1,
+            autoClickerBots: 0,
+            establishmentLevel: 0,
+        };
+        delete newPlayerStats.barContract;
+
+        toast({ title: "Establishment Sold!", description: `You sold the bar for ${salePrice.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+};
 
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
@@ -1312,6 +1349,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleUpgradeAutoClicker,
     handlePurchaseEstablishment,
     handleExpandEstablishment,
+    handleSellBar,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
