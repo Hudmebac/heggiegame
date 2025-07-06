@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -152,6 +152,7 @@ interface GameContextType {
   handlePurchaseEstablishment: () => void;
   handleExpandEstablishment: () => void;
   handleSellBar: () => void;
+  handleSellStake: () => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -275,7 +276,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 };
                 mergedPlayerStats.cargo = calculateCurrentCargo(savedProgress.inventory || baseState.inventory);
                 
-                const currentPlanetName = savedProgress.currentPlanet || currentSystem.planets[0].name;
+                const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
                 setGameState({
                     ...baseState, // Use fresh static data
@@ -389,8 +390,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
             const zoneType = currentSystem?.zoneType;
             const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
+            
+            const totalPartnerShare = (prev.playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
             const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
-            const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick;
+            const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
 
             const newPlayerStats = {
                 ...prev.playerStats,
@@ -402,7 +405,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel]);
+  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel, gameState?.playerStats.barContract]);
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
     setGameState(prev => {
@@ -1253,7 +1256,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   
   const handleExpandEstablishment = () => {
     setGameState(prev => {
-        if (!prev || !prev.playerStats.barContract) return null;
+        if (!prev || !prev.playerStats.barContract) return prev;
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
         const zoneType = currentSystem?.zoneType;
         const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
@@ -1316,7 +1319,43 @@ export function GameProvider({ children }: { children: ReactNode }) {
         toast({ title: "Establishment Sold!", description: `You sold the bar for ${salePrice.toLocaleString()}¢.` });
         return { ...prev, playerStats: newPlayerStats };
     });
-};
+  };
+
+    const handleSellStake = () => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.barContract || prev.playerStats.establishmentLevel === 0) {
+                toast({ variant: "destructive", title: "Action Failed", description: "You must own the establishment first." });
+                return prev;
+            }
+
+            const totalPartnerShare = prev.playerStats.barContract.partners.reduce((acc, p) => acc + p.percentage, 0);
+            if (totalPartnerShare > 0) {
+                toast({ variant: "destructive", title: "Action Failed", description: "You have already sold a stake in this establishment." });
+                return prev;
+            }
+            
+            const stakePercentage = 0.10; // 10%
+            const cashInjection = Math.round(prev.playerStats.barContract.currentMarketValue * stakePercentage);
+
+            const newPartner: BarPartner = {
+                name: 'The Syndicate',
+                percentage: stakePercentage,
+                investment: cashInjection,
+            };
+
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + cashInjection,
+                barContract: {
+                    ...prev.playerStats.barContract,
+                    partners: [...prev.playerStats.barContract.partners, newPartner],
+                }
+            };
+
+            toast({ title: "Deal Made!", description: `You sold a ${stakePercentage * 100}% stake for ${cashInjection.toLocaleString()}¢. Your future income from this bar will be reduced.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
 
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
@@ -1362,6 +1401,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handlePurchaseEstablishment,
     handleExpandEstablishment,
     handleSellBar,
+    handleSellStake,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,

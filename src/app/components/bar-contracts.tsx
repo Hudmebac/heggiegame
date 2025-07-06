@@ -12,6 +12,7 @@ interface BarContractsProps {
     playerStats: PlayerStats;
     onSell: () => void;
     onExpand: () => void;
+    onSellStake: () => void;
     canAffordExpansion: boolean;
     expansionButtonLabel: string;
     nextExpansionTier: boolean;
@@ -24,8 +25,9 @@ const getEstablishmentLevelLabel = (level: number) => {
     return `Expansion Level ${level - 1}`;
 };
 
-export default function BarContracts({ playerStats, onSell, onExpand, canAffordExpansion, expansionButtonLabel, nextExpansionTier }: BarContractsProps) {
+export default function BarContracts({ playerStats, onSell, onExpand, onSellStake, canAffordExpansion, expansionButtonLabel, nextExpansionTier }: BarContractsProps) {
     if (!playerStats.barContract) return null;
+    const hasPartners = playerStats.barContract.partners.length > 0;
 
     return (
         <Card>
@@ -79,10 +81,37 @@ export default function BarContracts({ playerStats, onSell, onExpand, canAffordE
                  
                  <div>
                     <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><Handshake className="text-primary"/> Partnerships</h4>
-                    <div className="p-4 rounded-lg bg-background/50 text-center text-muted-foreground text-sm">
-                        <p>You are the sole proprietor.</p>
-                        <Button variant="link" disabled>Float to Partners (Coming Soon)</Button>
-                    </div>
+                    {hasPartners ? (
+                        <div className="p-4 rounded-lg bg-background/50 text-sm space-y-2">
+                            {playerStats.barContract.partners.map(partner => (
+                                <div key={partner.name} className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">{partner.name}</span>
+                                    <span className="font-mono text-primary">{partner.percentage * 100}% Stake</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-4 rounded-lg bg-background/50 text-center text-muted-foreground text-sm">
+                             <p>You are the sole proprietor.</p>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="outline" className="mt-2" size="sm">Float to Partners</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Sell a Stake to The Syndicate?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            The Syndicate offers to buy a 10% stake in your establishment for 10% of its current market value. This will provide an immediate cash injection, but they will take 10% of all future income from this bar. This action is irreversible.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Decline</AlertDialogCancel>
+                                        <AlertDialogAction onClick={onSellStake}>Accept Deal</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    )}
                  </div>
 
             </CardContent>

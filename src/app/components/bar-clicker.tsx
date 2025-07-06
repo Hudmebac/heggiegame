@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +10,7 @@ import { barThemes } from '@/lib/bar-themes';
 import BarContracts from './bar-contracts';
 
 export default function BarClicker() {
-    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment, handleSellBar } = useGame();
+    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment, handleSellBar, handleSellStake } = useGame();
     const [feedbackMessages, setFeedbackMessages] = useState<{ id: number, x: number, y: number, amount: number }[]>([]);
 
     if (!gameState) {
@@ -21,14 +22,20 @@ export default function BarClicker() {
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
     
-    const incomePerClick = theme.baseIncome * playerStats.barLevel;
+    const totalPartnerShare = (playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+
+    const rawIncomePerClick = theme.baseIncome * playerStats.barLevel;
+    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
+
     const upgradeCost = Math.round(100 * Math.pow(playerStats.barLevel, 2.5));
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
     const botCost = Math.round(1000 * Math.pow(1.15, playerStats.autoClickerBots));
     const canAffordBot = playerStats.netWorth >= botCost;
-    const incomePerSecond = playerStats.autoClickerBots * incomePerClick;
+    
+    const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;
+    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare));
     const isBotLimitReached = playerStats.autoClickerBots >= 25;
 
     // Establishment upgrade logic
@@ -172,6 +179,7 @@ export default function BarClicker() {
                         playerStats={playerStats} 
                         onSell={handleSellBar} 
                         onExpand={expansionHandler}
+                        onSellStake={handleSellStake}
                         canAffordExpansion={canAffordExpansion}
                         expansionButtonLabel={expansionButtonLabel}
                         nextExpansionTier={!!nextExpansionTier}

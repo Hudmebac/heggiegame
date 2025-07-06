@@ -1,3 +1,5 @@
+'use client';
+
 import type { Pirate } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
