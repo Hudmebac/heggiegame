@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import TradeDialog from './trade-dialog';
 import { Loader2 } from 'lucide-react';
+import PirateEncounter from './pirate-encounter';
 
 const systems: System[] = [
     { name: 'Sol', x: 20, y: 30 },
@@ -175,14 +176,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [gameState, isClient]);
 
-  if (!gameState) {
-    return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
-    );
-  }
-
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
     setGameState(prev => {
       if (!prev) return null;
@@ -229,6 +222,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSimulateMarket = () => {
+    if (!gameState) return;
     startSimulationTransition(async () => {
       try {
         const eventResult = await runEventGeneration();
@@ -269,7 +263,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const handlePirateAction = (action: 'fight' | 'evade' | 'bribe' | 'scan') => {
-    if (!gameState.pirateEncounter) return;
+    if (!gameState || !gameState.pirateEncounter) return;
 
     if (action === 'scan') {
         startScanTransition(async () => {
@@ -347,6 +341,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const handleGenerateBio = () => {
+    if (!gameState) return;
     startBioGenerationTransition(async () => {
         try {
             const result = await runBioGeneration({ name: gameState.playerStats.name });
@@ -380,7 +375,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const handleInitiateTravel = (systemName: string) => {
-    if (systemName === gameState.currentSystem) return;
+    if (!gameState || systemName === gameState.currentSystem) return;
     const destination = gameState.systems.find(s => s.name === systemName);
     if (destination) {
         setTravelDestination(destination);
@@ -388,7 +383,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const handleConfirmTravel = () => {
-      if (!travelDestination) return;
+      if (!gameState || !travelDestination) return;
 
       const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
       if (!currentSystem) return;
@@ -411,7 +406,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       startSimulationTransition(async () => {
         const stateBeforeTravel = gameState;
         
-        const travelledState = {
+        const travelledState: GameState = {
             ...stateBeforeTravel,
             playerStats: {
                 ...stateBeforeTravel.playerStats,
@@ -466,7 +461,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const travelFuelCost = travelDestination ? Math.round(Math.hypot(travelDestination.x - (gameState.systems.find(s => s.name === gameState.currentSystem)?.x || 0), travelDestination.y - (gameState.systems.find(s => s.name === gameState.currentSystem)?.y || 0)) / 5) : 0;
+  const travelFuelCost = gameState && travelDestination ? Math.round(Math.hypot(travelDestination.x - (gameState.systems.find(s => s.name === gameState.currentSystem)?.x || 0), travelDestination.y - (gameState.systems.find(s => s.name === gameState.currentSystem)?.y || 0)) / 5) : 0;
 
   const value: GameContextType = {
     gameState,
@@ -491,68 +486,70 @@ export function GameProvider({ children }: { children: ReactNode }) {
   return (
     <GameContext.Provider value={value}>
         {children}
-        {gameState.pirateEncounter && (
-            <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm">
-                <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter || isScanning} />
-            </div>
-        )}
-        {encounterResult && (
-            <AlertDialog open={!!encounterResult} onOpenChange={handleCloseEncounterDialog}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                <AlertDialogTitle>{`Encounter with ${gameState.pirateEncounter?.name || 'Pirate'} Resolved`}</AlertDialogTitle>
-                <AlertDialogDescription>
-                    {encounterResult.narrative}
-                </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="text-sm space-y-2">
-                    <p><strong>Outcome:</strong> <span className="font-mono">{encounterResult.outcome.replace('_', ' ')}</span></p>
-                    <p><strong>Credits Lost:</strong> <span className="font-mono text-amber-400">{encounterResult.creditsLost} ¢</span></p>
-                    <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} t</span></p>
-                    <p><strong>Ship Damage:</strong> <span className="font-mono text-destructive">{encounterResult.damageTaken}</span></p>
+        {gameState && <>
+            {gameState.pirateEncounter && (
+                <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm">
+                    <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter || isScanning} />
                 </div>
-                <AlertDialogFooter>
-                <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-            </AlertDialog>
-        )}
+            )}
+            {encounterResult && (
+                <AlertDialog open={!!encounterResult} onOpenChange={handleCloseEncounterDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>{`Encounter with ${gameState.pirateEncounter?.name || 'Pirate'} Resolved`}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {encounterResult.narrative}
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="text-sm space-y-2">
+                        <p><strong>Outcome:</strong> <span className="font-mono">{encounterResult.outcome.replace('_', ' ')}</span></p>
+                        <p><strong>Credits Lost:</strong> <span className="font-mono text-amber-400">{encounterResult.creditsLost} ¢</span></p>
+                        <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} t</span></p>
+                        <p><strong>Ship Damage:</strong> <span className="font-mono text-destructive">{encounterResult.damageTaken}</span></p>
+                    </div>
+                    <AlertDialogFooter>
+                    <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialog>
+            )}
 
-        {travelDestination && (
-            <AlertDialog open={!!travelDestination} onOpenChange={() => setTravelDestination(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Interstellar Travel</AlertDialogTitle>
-                <AlertDialogDescription>
-                    You are about to travel to the <span className="font-bold text-primary">{travelDestination.name}</span> system.
-                </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="text-sm space-y-2">
-                    <p><strong>Destination:</strong> <span className="font-mono">{travelDestination.name}</span></p>
-                    <p><strong>Estimated Fuel Cost:</strong> <span className="font-mono text-amber-400">{travelFuelCost} SU</span></p>
-                    <p className={gameState.playerStats.fuel - travelFuelCost < 0 ? 'text-destructive' : ''}>
-                    <strong>Remaining Fuel:</strong> <span className="font-mono">{gameState.playerStats.fuel - travelFuelCost} SU</span>
-                    </p>
-                </div>
-                <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleConfirmTravel} disabled={isSimulating || gameState.playerStats.fuel < travelFuelCost}>
-                    {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Engage Warp Drive
-                </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-            </AlertDialog>
-        )}
+            {travelDestination && (
+                <AlertDialog open={!!travelDestination} onOpenChange={() => setTravelDestination(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Interstellar Travel</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        You are about to travel to the <span className="font-bold text-primary">{travelDestination.name}</span> system.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="text-sm space-y-2">
+                        <p><strong>Destination:</strong> <span className="font-mono">{travelDestination.name}</span></p>
+                        <p><strong>Estimated Fuel Cost:</strong> <span className="font-mono text-amber-400">{travelFuelCost} SU</span></p>
+                        <p className={gameState.playerStats.fuel - travelFuelCost < 0 ? 'text-destructive' : ''}>
+                        <strong>Remaining Fuel:</strong> <span className="font-mono">{gameState.playerStats.fuel - travelFuelCost} SU</span>
+                        </p>
+                    </div>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmTravel} disabled={isSimulating || gameState.playerStats.fuel < travelFuelCost}>
+                        {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Engage Warp Drive
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+                </AlertDialog>
+            )}
 
-        <TradeDialog
-            isOpen={!!tradeDetails}
-            onOpenChange={(open) => !open && setTradeDetails(null)}
-            item={tradeDetails?.item ?? null}
-            tradeType={tradeDetails?.type ?? 'buy'}
-            playerStats={gameState.playerStats}
-            onTrade={handleTrade}
-        />
+            <TradeDialog
+                isOpen={!!tradeDetails}
+                onOpenChange={(open) => !open && setTradeDetails(null)}
+                item={tradeDetails?.item ?? null}
+                tradeType={tradeDetails?.type ?? 'buy'}
+                playerStats={gameState.playerStats}
+                onTrade={handleTrade}
+            />
+        </>}
         <Toaster />
     </GameContext.Provider>
   );
