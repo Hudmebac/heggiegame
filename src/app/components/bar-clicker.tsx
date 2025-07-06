@@ -59,7 +59,7 @@ export default function BarClicker() {
                     <div className="relative w-full max-w-sm">
                         <Button 
                             onClick={handleClick}
-                            className="w-full h-24 text-xl font-bold bg-black border-2 border-primary text-primary shadow-[0_0_15px] shadow-primary/50 hover:bg-primary/10 hover:shadow-[0_0_25px] hover:shadow-primary/70 transition-all duration-300 relative overflow-hidden"
+                            className="w-full h-24 text-xl font-bold bg-black border-2 border-primary text-primary hover:bg-primary/10 hover:shadow-[0_0_25px] hover:shadow-primary/70 transition-all duration-300 relative overflow-hidden animate-pulse-glow"
                         >
                             {theme.buttonText} (+{incomePerClick}¢)
                             {feedbackMessages.map(msg => (
