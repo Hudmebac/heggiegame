@@ -171,3 +171,17 @@ export const GenerateCommercePartnershipOffersOutputSchema = z.object({
     offers: z.array(CommercePartnershipOfferSchema).describe("An array of generated partnership offers for the commerce hub."),
 });
 export type GenerateCommercePartnershipOffersOutput = z.infer<typeof GenerateCommercePartnershipOffersOutputSchema>;
+
+// Schemas for generate-industry-partnership-offers
+export const GenerateIndustryPartnershipOffersInputSchema = z.object({
+  marketValue: z.number().describe("The current market value of the player's industrial facility."),
+});
+export type GenerateIndustryPartnershipOffersInput = z.infer<typeof GenerateIndustryPartnershipOffersInputSchema>;
+
+export const IndustryPartnershipOfferSchema = PartnershipOfferSchema;
+export type IndustryPartnershipOffer = z.infer<typeof IndustryPartnershipOfferSchema>;
+
+export const GenerateIndustryPartnershipOffersOutputSchema = z.object({
+    offers: z.array(IndustryPartnershipOfferSchema).describe("An array of generated partnership offers for the industrial facility."),
+});
+export type GenerateIndustryPartnershipOffersOutput = z.infer<typeof GenerateIndustryPartnershipOffersOutputSchema>;

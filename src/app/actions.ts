@@ -11,6 +11,7 @@ import { generateTraders } from '@/ai/flows/generate-traders';
 import { generatePartnershipOffers } from '@/ai/flows/generate-partnership-offers';
 import { generateResidencePartnershipOffers } from '@/ai/flows/generate-residence-partnership-offers';
 import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-partnership-offers';
+import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-partnership-offers';
 import { z } from 'zod';
 
 import {
@@ -41,6 +42,9 @@ import {
   GenerateCommercePartnershipOffersInputSchema,
   type GenerateCommercePartnershipOffersInput,
   type GenerateCommercePartnershipOffersOutput,
+  GenerateIndustryPartnershipOffersInputSchema,
+  type GenerateIndustryPartnershipOffersInput,
+  type GenerateIndustryPartnershipOffersOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -182,5 +186,19 @@ export async function runCommercePartnershipOfferGeneration(input: GenerateComme
             throw new Error(`Invalid input for commerce partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate commerce partnership offers.');
+    }
+}
+
+export async function runIndustryPartnershipOfferGeneration(input: GenerateIndustryPartnershipOffersInput): Promise<GenerateIndustryPartnershipOffersOutput> {
+    try {
+        const validatedInput = GenerateIndustryPartnershipOffersInputSchema.parse(input);
+        const result = await generateIndustryPartnershipOffers(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running industry partnership offer generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for industry partnership offer generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate industry partnership offers.');
     }
 }

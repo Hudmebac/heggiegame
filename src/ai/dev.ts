@@ -12,3 +12,4 @@ import '@/ai/flows/generate-traders.ts';
 import '@/ai/flows/generate-partnership-offers.ts';
 import '@/ai/flows/generate-residence-partnership-offers.ts';
 import '@/ai/flows/generate-commerce-partnership-offers.ts';
+import '@/ai/flows/generate-industry-partnership-offers.ts';
