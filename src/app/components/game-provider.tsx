@@ -258,8 +258,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const baseState: GameState = {
             ...initialGameState,
-            systems: SYSTEMS, 
-            routes: ROUTES, 
             marketItems: calculateMarketDataForSystem(SYSTEMS.find(s => s.name === initialGameState.currentSystem) || SYSTEMS[0]),
         };
 
@@ -271,9 +269,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     ...savedProgress.playerStats,
                 };
                 mergedPlayerStats.cargo = calculateCurrentCargo(savedProgress.inventory || baseState.inventory);
-
+                
                 const currentSystemName = savedProgress.currentSystem || baseState.currentSystem;
                 const currentSystem = SYSTEMS.find(s => s.name === currentSystemName) || SYSTEMS[0];
+                const currentPlanetName = savedProgress.currentPlanet || currentSystem.planets[0].name;
 
                 setGameState({
                     ...baseState,
@@ -282,14 +281,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     priceHistory: savedProgress.priceHistory || baseState.priceHistory,
                     leaderboard: savedProgress.leaderboard || baseState.leaderboard,
                     currentSystem: currentSystemName,
-                    currentPlanet: savedProgress.currentPlanet || currentSystem.planets[0].name,
+                    currentPlanet: currentPlanetName,
                     quests: savedProgress.quests || baseState.quests,
                     crew: savedProgress.crew || baseState.crew,
                     marketItems: calculateMarketDataForSystem(currentSystem),
                 });
             } catch (error) {
                 console.error("Failed to parse saved game state, starting fresh:", error);
-                // Fallback to generating a fresh state
                 generateNewGameState();
             }
         } else {
@@ -353,6 +351,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isClient && gameState) {
       try {
+        // Only save dynamic player progress, not static world data
         const stateToSave = {
             playerStats: gameState.playerStats,
             inventory: gameState.inventory,
@@ -1161,6 +1160,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleUpgradeBar = () => {
     setGameState(prev => {
       if (!prev) return null;
+
+      if (prev.playerStats.barLevel >= 25) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: "Bar level is already at maximum." });
+        return prev;
+      }
+      
       const upgradeCost = Math.round(100 * Math.pow(prev.playerStats.barLevel, 2.5));
       if (prev.playerStats.netWorth < upgradeCost) {
         toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -23,7 +22,8 @@ export default function BarClicker() {
     
     const incomePerClick = theme.baseIncome * playerStats.barLevel;
     const upgradeCost = Math.round(100 * Math.pow(playerStats.barLevel, 2.5));
-    const canAffordUpgrade = playerStats.netWorth >= upgradeCost;
+    const isBarLevelMaxed = playerStats.barLevel >= 25;
+    const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
     const botCost = Math.round(1000 * Math.pow(1.15, playerStats.autoClickerBots));
     const canAffordBot = playerStats.netWorth >= botCost;
@@ -128,14 +128,14 @@ export default function BarClicker() {
                 <CardContent className="space-y-4">
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Current Bar Level</span>
-                        <span className="font-mono">{playerStats.barLevel}</span>
+                        <span className="font-mono">{playerStats.barLevel} / 25</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
                         <span className="font-mono text-amber-300">{incomePerClick}¢</span>
                     </div>
                      <Button className="w-full" onClick={handleUpgradeBar} disabled={!canAffordUpgrade}>
-                        Upgrade Bar ({upgradeCost.toLocaleString()}¢)
+                        {isBarLevelMaxed ? 'Max Bar Level' : `Upgrade Bar (${upgradeCost.toLocaleString()}¢)`}
                     </Button>
                     
                     <div className="pt-4 border-t border-border/50"></div>
