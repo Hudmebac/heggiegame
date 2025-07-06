@@ -3,13 +3,14 @@
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
 import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration } from '@/app/actions';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { barThemes } from '@/lib/bar-themes';
+import { residenceThemes } from '@/lib/residence-themes';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -105,6 +106,9 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     barLevel: 1,
     autoClickerBots: 0,
     establishmentLevel: 0,
+    residenceLevel: 1,
+    residenceAutoClickerBots: 0,
+    residenceEstablishmentLevel: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -153,6 +157,13 @@ interface GameContextType {
   handleExpandEstablishment: () => void;
   handleSellBar: () => void;
   handleAcceptPartnerOffer: (offer: PartnershipOffer) => void;
+  handleResidenceClick: (income: number) => void;
+  handleUpgradeResidence: () => void;
+  handleUpgradeResidenceAutoClicker: () => void;
+  handlePurchaseResidence: () => void;
+  handleExpandResidence: () => void;
+  handleSellResidence: () => void;
+  handleAcceptResidencePartnerOffer: (offer: PartnershipOffer) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -406,6 +417,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(intervalId);
   }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel, gameState?.playerStats.barContract]);
+
+  useEffect(() => {
+    if (!gameState || (gameState.playerStats.residenceAutoClickerBots || 0) === 0) {
+        return;
+    }
+
+    const intervalId = setInterval(() => {
+        setGameState(prev => {
+            if (!prev || (prev.playerStats.residenceAutoClickerBots || 0) === 0) {
+                clearInterval(intervalId);
+                return prev;
+            }
+
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const zoneType = currentSystem?.zoneType;
+            const theme = (zoneType && residenceThemes[zoneType]) ? residenceThemes[zoneType] : residenceThemes['Default'];
+            
+            const totalPartnerShare = (prev.playerStats.residenceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+            const incomePerClick = theme.baseIncome * prev.playerStats.residenceLevel;
+            const incomePerSecond = (prev.playerStats.residenceAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + incomePerSecond,
+            };
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, 1000); // every second
+
+    return () => clearInterval(intervalId);
+  }, [gameState?.playerStats.residenceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.residenceLevel, gameState?.playerStats.residenceContract]);
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
     setGameState(prev => {
@@ -762,6 +805,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const newValue = Math.round(oldValue * (1 + changePercent));
             newPlayerStats.barContract.currentMarketValue = newValue;
             newPlayerStats.barContract.valueHistory = [...newPlayerStats.barContract.valueHistory, newValue].slice(-20);
+          }
+          if (newPlayerStats.residenceContract) {
+            const oldValue = newPlayerStats.residenceContract.currentMarketValue;
+            const changePercent = (Math.random() - 0.5) * 0.1; // -5% to +5% change
+            const newValue = Math.round(oldValue * (1 + changePercent));
+            newPlayerStats.residenceContract.currentMarketValue = newValue;
+            newPlayerStats.residenceContract.valueHistory = [...newPlayerStats.residenceContract.valueHistory, newValue].slice(-20);
           }
 
 
@@ -1352,6 +1402,166 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const handleResidenceClick = (income: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + income,
+            };
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handleUpgradeResidence = () => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (prev.playerStats.residenceLevel >= 25) {
+                toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." });
+                return prev;
+            }
+            const upgradeCost = Math.round(50 * Math.pow(prev.playerStats.residenceLevel, 2.5));
+            if (prev.playerStats.netWorth < upgradeCost) {
+                toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+                return prev;
+            }
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - upgradeCost,
+                residenceLevel: prev.playerStats.residenceLevel + 1,
+            };
+            toast({ title: "Residence Upgraded!", description: `Your property is now Level ${newPlayerStats.residenceLevel}.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handleUpgradeResidenceAutoClicker = () => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if ((prev.playerStats.residenceAutoClickerBots || 0) >= 25) {
+                toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 service bots." });
+                return prev;
+            }
+            const cost = Math.round(500 * Math.pow(1.15, prev.playerStats.residenceAutoClickerBots || 0));
+            if (prev.playerStats.netWorth < cost) {
+                toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits to hire a bot. You need ${cost.toLocaleString()}¢.` });
+                return prev;
+            }
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+                residenceAutoClickerBots: (prev.playerStats.residenceAutoClickerBots || 0) + 1,
+            };
+            toast({ title: "Service Bot Hired!", description: "A new bot has been added to your property staff." });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handlePurchaseResidence = () => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const zoneType = currentSystem?.zoneType;
+            const theme = (zoneType && residenceThemes[zoneType]) ? residenceThemes[zoneType] : residenceThemes['Default'];
+            const incomePerClick = theme.baseIncome * prev.playerStats.residenceLevel;
+            const incomePerSecond = (prev.playerStats.residenceAutoClickerBots || 0) * incomePerClick;
+            
+            const cost = incomePerSecond * 1000;
+            if (prev.playerStats.netWorth < cost) {
+                toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+                return prev;
+            }
+            const initialValue = cost * (Math.random() * 0.4 + 0.8);
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+                residenceEstablishmentLevel: 1,
+                residenceContract: {
+                    currentMarketValue: initialValue,
+                    valueHistory: [initialValue],
+                    partners: [],
+                }
+            };
+            toast({ title: "Property Purchased!", description: "You are now the owner of this residence." });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handleExpandResidence = () => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.residenceContract) return prev;
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const zoneType = currentSystem?.zoneType;
+            const theme = (zoneType && residenceThemes[zoneType]) ? residenceThemes[zoneType] : residenceThemes['Default'];
+            const incomePerClick = theme.baseIncome * prev.playerStats.residenceLevel;
+            const incomePerSecond = (prev.playerStats.residenceAutoClickerBots || 0) * incomePerClick;
+
+            const expansionTiers = [10000, 100000, 1000000, 10000000];
+            const currentLevel = prev.playerStats.residenceEstablishmentLevel;
+            if (currentLevel < 1 || currentLevel > 4) return prev;
+
+            const cost = incomePerSecond * expansionTiers[currentLevel - 1];
+            if (prev.playerStats.netWorth < cost) {
+                toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+                return prev;
+            }
+            
+            const investmentValue = cost * (Math.random() * 0.2 + 0.7);
+            const newMarketValue = Math.round(prev.playerStats.residenceContract.currentMarketValue + investmentValue);
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+                residenceEstablishmentLevel: currentLevel + 1,
+                residenceContract: {
+                    ...prev.playerStats.residenceContract,
+                    currentMarketValue: newMarketValue,
+                    valueHistory: [...prev.playerStats.residenceContract.valueHistory, newMarketValue].slice(-20),
+                }
+            };
+            toast({ title: "Property Expanded!", description: `Your residence has grown to Expansion Level ${newPlayerStats.residenceEstablishmentLevel - 1}.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handleSellResidence = () => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.residenceContract) return prev;
+            const salePrice = prev.playerStats.residenceContract.currentMarketValue;
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + salePrice,
+                residenceLevel: 1,
+                residenceAutoClickerBots: 0,
+                residenceEstablishmentLevel: 0,
+            };
+            delete newPlayerStats.residenceContract;
+            toast({ title: "Property Sold!", description: `You sold the residence for ${salePrice.toLocaleString()}¢.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handleAcceptResidencePartnerOffer = (offer: PartnershipOffer) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.residenceContract) return prev;
+            const newPartner: BarPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + offer.cashOffer,
+                residenceContract: {
+                    ...prev.playerStats.residenceContract,
+                    partners: [...prev.playerStats.residenceContract.partners, newPartner],
+                }
+            };
+            const totalPartnerShare = newPlayerStats.residenceContract.partners.reduce((acc, p) => acc + p.percentage, 0);
+            if (totalPartnerShare > 1) {
+                toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your property." });
+                return prev;
+            }
+            toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -1397,6 +1607,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleExpandEstablishment,
     handleSellBar,
     handleAcceptPartnerOffer,
+    handleResidenceClick,
+    handleUpgradeResidence,
+    handleUpgradeResidenceAutoClicker,
+    handlePurchaseResidence,
+    handleExpandResidence,
+    handleSellResidence,
+    handleAcceptResidencePartnerOffer,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
