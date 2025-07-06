@@ -60,7 +60,7 @@ export default function FleetManagement() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: Lvl {ship.cargoLevel} - {cargoInfo?.capacity}t</span></div>
+                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: {isActive ? `${playerStats.cargo.toFixed(2)} / ` : ''}{cargoInfo?.capacity}t (Lvl {ship.cargoLevel})</span></div>
                     <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Hull: Lvl {ship.hullLevel} - {hullInfo?.health}HP</span></div>
                     <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: Lvl {ship.fuelLevel} - {fuelInfo?.capacity} SU</span></div>
                     <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary/70" /> <span>{shieldInfo?.name}</span></div>
