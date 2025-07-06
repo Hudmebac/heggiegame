@@ -353,9 +353,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
           });
 
-          return { ...prev, items: newItems, priceHistory: newPriceHistory };
+          const newLeaderboard = prev.leaderboard.map(entry => {
+              if (entry.trader !== prev.playerStats.name && entry.trader !== 'You') {
+                  const changePercent = (Math.random() - 0.45) * 0.1; // Fluctuation between -4.5% and +5.5%
+                  const newNetWorth = Math.round(entry.netWorth * (1 + changePercent));
+                  return { ...entry, netWorth: newNetWorth > 100000 ? newNetWorth : 100000 };
+              }
+              return entry;
+          });
+
+          return { ...prev, items: newItems, priceHistory: newPriceHistory, leaderboard: newLeaderboard };
         });
-        toast({ title: "Galactic News Flash!", description: eventDescription });
+        toast({ title: "Galactic News Flash!", description: `${eventDescription} The leaderboard has been updated.` });
       } catch (error) {
         console.error(error);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
