@@ -260,12 +260,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const marketItems = calculateMarketDataForSystem(currentSystem);
 
         if (savedState && savedState.playerStats) {
+            const playerStats = {
+                ...initialGameState.playerStats,
+                ...savedState.playerStats,
+            };
+            playerStats.cargo = calculateCurrentCargo(savedState.inventory || initialGameState.inventory);
+
             setGameState({
                 ...initialGameState,
                 ...savedState,
+                playerStats,
                 marketItems,
-                systems: SYSTEMS, 
-                routes: ROUTES,
             });
         } else {
             const [tradersResult, questsResult] = await Promise.all([
@@ -333,13 +338,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [gameState, isClient]);
 
   useEffect(() => {
-    if (!gameState || gameState.playerStats.autoClickerBots === 0) {
+    if (!gameState || (gameState.playerStats.autoClickerBots || 0) === 0) {
         return;
     }
 
     const intervalId = setInterval(() => {
         setGameState(prev => {
-            if (!prev || prev.playerStats.autoClickerBots === 0) {
+            if (!prev || (prev.playerStats.autoClickerBots || 0) === 0) {
                 clearInterval(intervalId);
                 return prev;
             }
@@ -348,7 +353,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const zoneType = currentSystem?.zoneType;
             const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
             const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
-            const incomePerSecond = prev.playerStats.autoClickerBots * incomePerClick;
+            const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick;
 
             const newPlayerStats = {
                 ...prev.playerStats,
@@ -1141,7 +1146,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleUpgradeAutoClicker = () => {
     setGameState(prev => {
         if (!prev) return null;
-        const cost = Math.round(1000 * Math.pow(1.15, prev.playerStats.autoClickerBots));
+        const cost = Math.round(1000 * Math.pow(1.15, prev.playerStats.autoClickerBots || 0));
         if (prev.playerStats.netWorth < cost) {
             toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits to buy a bot. You need ${cost.toLocaleString()}¢.` });
             return prev;
@@ -1149,7 +1154,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const newPlayerStats = {
             ...prev.playerStats,
             netWorth: prev.playerStats.netWorth - cost,
-            autoClickerBots: prev.playerStats.autoClickerBots + 1,
+            autoClickerBots: (prev.playerStats.autoClickerBots || 0) + 1,
         };
         toast({ title: "Auto-Clicker Bot Purchased!", description: "A new bot has been added to your staff." });
         return { ...prev, playerStats: newPlayerStats };
