@@ -1,18 +1,23 @@
 'use client';
 
+import { useState } from 'react';
 import type { PlayerStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface PlayerProfileProps {
   stats: PlayerStats;
-  onGenerateAvatar: () => void;
+  onGenerateAvatar: (description: string) => void;
   isGeneratingAvatar: boolean;
 }
 
 export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAvatar }: PlayerProfileProps) {
+  const [avatarPrompt, setAvatarPrompt] = useState('A futuristic space trader pilot, male, with a cybernetic eye');
+
   return (
     <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
       <CardHeader>
@@ -33,7 +38,19 @@ export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAva
                     className="object-cover"
                 />
             </div>
-            <Button onClick={onGenerateAvatar} disabled={isGeneratingAvatar} size="sm" variant="outline">
+        </div>
+        <div className="space-y-3">
+          <div className='space-y-1'>
+            <Label htmlFor="avatar-prompt" className="text-xs text-muted-foreground">Avatar Description</Label>
+            <Input 
+                id="avatar-prompt"
+                value={avatarPrompt}
+                onChange={(e) => setAvatarPrompt(e.target.value)}
+                placeholder="e.g., grizzled male space pilot"
+                disabled={isGeneratingAvatar}
+            />
+          </div>
+            <Button onClick={() => onGenerateAvatar(avatarPrompt)} disabled={!avatarPrompt.trim() || isGeneratingAvatar} className="w-full">
                 {isGeneratingAvatar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 Generate New Avatar
             </Button>

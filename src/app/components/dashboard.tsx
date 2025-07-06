@@ -238,10 +238,10 @@ export default function Dashboard() {
     });
   };
 
-  const handleGenerateAvatar = () => {
+  const handleGenerateAvatar = (description: string) => {
     startAvatarGenerationTransition(async () => {
       try {
-        const result = await runAvatarGeneration({ description: 'A futuristic space trader pilot, male, with a cybernetic eye' });
+        const result = await runAvatarGeneration({ description });
         setGameState(prev => ({
           ...prev,
           playerStats: {
