@@ -73,6 +73,9 @@ export default function ShipManagement() {
     'Gunner': <Crosshair className="h-4 w-4 text-rose-400" />,
     'Negotiator': <Handshake className="h-4 w-4 text-green-400" />,
   };
+  
+  const hasEngineer = crew.some(c => c.role === 'Engineer');
+  const hasGunner = crew.some(c => c.role === 'Gunner');
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -92,14 +95,21 @@ export default function ShipManagement() {
                 unit="%"
                 progressColorClass="from-rose-500 to-red-500"
             />
-            <StatDisplay 
-                icon={<Fuel className="h-4 w-4 text-amber-400" />}
-                title="Fuel"
-                value={stats.fuel}
-                max={stats.maxFuel}
-                unit=" SU"
-                progressColorClass="from-amber-500 to-orange-500"
-            />
+            <div>
+              <StatDisplay 
+                  icon={<Fuel className="h-4 w-4 text-amber-400" />}
+                  title="Fuel"
+                  value={stats.fuel}
+                  max={stats.maxFuel}
+                  unit=" SU"
+                  progressColorClass="from-amber-500 to-orange-500"
+              />
+              {hasEngineer && (
+                  <p className="text-xs text-green-400 flex items-center gap-1.5 mt-1.5 ml-1">
+                      <Users className="h-3 w-3" /> 5% fuel efficiency bonus from Engineer.
+                  </p>
+              )}
+            </div>
             <StatDisplay 
                 icon={<Warehouse className="h-4 w-4 text-sky-400" />}
                 title="Cargo"
@@ -193,23 +203,30 @@ export default function ShipManagement() {
                           )}
                         </div>
                     </div>
-                     <div className="flex justify-between items-center">
-                        <div>
-                            <p>Weapons System</p>
-                            <p className="text-xs text-muted-foreground">Current: {currentWeaponTier?.name}</p>
+                     <div>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p>Weapons System</p>
+                                <p className="text-xs text-muted-foreground">Current: {currentWeaponTier?.name}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                               {currentWeaponTierIndex > 0 && (
+                                <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('weapon')}>Sell</Button>
+                              )}
+                              {nextWeaponUpgrade ? (
+                                  <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < (nextWeaponUpgrade.cost - currentWeaponTier.cost)}>
+                                      Upgrade ({(nextWeaponUpgrade.cost - currentWeaponTier.cost).toLocaleString()}¢)
+                                  </Button>
+                              ) : (
+                                  <Button disabled>Max Level</Button>
+                              )}
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                           {currentWeaponTierIndex > 0 && (
-                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('weapon')}>Sell</Button>
-                          )}
-                          {nextWeaponUpgrade ? (
-                              <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < (nextWeaponUpgrade.cost - currentWeaponTier.cost)}>
-                                  Upgrade ({(nextWeaponUpgrade.cost - currentWeaponTier.cost).toLocaleString()}¢)
-                              </Button>
-                          ) : (
-                              <Button disabled>Max Level</Button>
-                          )}
-                        </div>
+                        {hasGunner && (
+                           <p className="text-xs text-green-400 flex items-center gap-1.5 mt-1.5 ml-1">
+                                <Users className="h-3 w-3" /> Combat effectiveness increased by Gunner.
+                           </p>
+                        )}
                     </div>
                      <div className="flex justify-between items-center">
                         <div>
@@ -244,6 +261,7 @@ export default function ShipManagement() {
                             <div className="space-y-2">
                                 <h4 className="font-bold text-base">{ship.name}</h4>
                                 <p className="text-xs text-muted-foreground">{ship.manufacturer}</p>
+
                                 <p className="text-sm">{ship.description}</p>
                                 <div className="flex flex-wrap gap-4 text-xs font-mono pt-2">
                                     <span className="flex items-center gap-1.5"><Warehouse className="h-3 w-3" /> {ship.cargo}t</span>

@@ -469,6 +469,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             playerCargo: gameState.playerStats.cargo,
             pirateName: gameState.pirateEncounter!.name,
             pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
+            hasGunner: gameState.crew.some(c => c.role === 'Gunner'),
             shipHealth: gameState.playerStats.shipHealth,
             weaponLevel: gameState.playerStats.weaponLevel,
             shieldLevel: gameState.playerStats.shieldLevel,
@@ -583,6 +584,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       const distance = Math.hypot(travelDestination.x - currentSystem.x, travelDestination.y - currentSystem.y);
       let fuelCost = Math.round(distance / 5);
+      
+      const hasEngineer = gameState.crew.some(c => c.role === 'Engineer');
+      if (hasEngineer) {
+          fuelCost = Math.round(fuelCost * 0.95);
+      }
 
       if (gameState.playerStats.shipHealth < 50) {
         fuelCost = Math.round(fuelCost * 1.25);
