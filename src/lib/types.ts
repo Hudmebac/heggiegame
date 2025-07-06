@@ -5,6 +5,7 @@ export interface PlayerStats {
   cargo: number;
   maxCargo: number;
   insurance: boolean;
+  avatarUrl: string;
 }
 
 export interface Item {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import type { GameState, Item, PriceHistory, EncounterResult } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter } from '@/app/actions';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 
 
 import Header from './header';
-import ShipManagement from './ship-management';
+import PlayerProfile from './player-profile';
 import TradingInterface from './trading-interface';
 import MarketChart from './market-chart';
 import Leaderboard from './leaderboard';
@@ -28,6 +28,7 @@ const initialGameState: GameState = {
     cargo: 10,
     maxCargo: 50,
     insurance: true,
+    avatarUrl: 'https://placehold.co/96x96/1A2942/3B82F6.png',
   },
   items: [
     { name: 'Quantum Processors', currentPrice: 1200, supply: 50, demand: 80, cargoSpace: 2, owned: 5 },
@@ -63,6 +64,7 @@ export default function Dashboard() {
   const { toast } = useToast()
   const [isSimulatingMarket, startMarketTransition] = useTransition();
   const [isResolvingEncounter, startEncounterTransition] = useTransition();
+  const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
   const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
   const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
 
@@ -74,8 +76,16 @@ export default function Dashboard() {
         const parsedState = JSON.parse(savedState);
         // Basic validation
         if(parsedState.playerStats && parsedState.items) {
-          setGameState(parsedState);
-          setChartItem(parsedState.items[0]?.name || initialGameState.items[0].name);
+          const mergedState = {
+            ...initialGameState,
+            ...parsedState,
+            playerStats: {
+              ...initialGameState.playerStats,
+              ...parsedState.playerStats,
+            },
+          };
+          setGameState(mergedState);
+          setChartItem(mergedState.items[0]?.name || initialGameState.items[0].name);
         }
       }
     } catch (error) {
@@ -215,6 +225,27 @@ export default function Dashboard() {
     });
   };
 
+  const handleGenerateAvatar = () => {
+    startAvatarGenerationTransition(async () => {
+      try {
+        const result = await runAvatarGeneration({ description: 'A futuristic space trader pilot, male, with a cybernetic eye' });
+        setGameState(prev => ({
+          ...prev,
+          playerStats: {
+            ...prev.playerStats,
+            avatarUrl: result.avatarDataUri,
+          }
+        }));
+        toast({ title: "Avatar Generated", description: "Your new captain's portrait is ready." });
+      } catch (error) {
+        console.error(error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({ variant: "destructive", title: "Avatar Generation Failed", description: errorMessage });
+      }
+    });
+  };
+
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => ({...prev, pirateEncounter: null}));
@@ -252,7 +283,11 @@ export default function Dashboard() {
 
         {/* Right Column */}
         <div className="lg:col-span-1 xl:col-span-1 flex flex-col gap-6">
-          <ShipManagement stats={gameState.playerStats} />
+          <PlayerProfile 
+            stats={gameState.playerStats} 
+            onGenerateAvatar={handleGenerateAvatar} 
+            isGeneratingAvatar={isGeneratingAvatar}
+          />
            <div className="flex justify-center">
             <Button onClick={handleSimulateMarket} disabled={isSimulatingMarket} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
               {isSimulatingMarket ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
