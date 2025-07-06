@@ -162,6 +162,7 @@ interface GameContextType {
   handleRefuel: () => void;
   handleRepairShip: () => void;
   handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
+  handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -733,46 +734,111 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (upgradeType === 'cargo') {
             const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity === prev.playerStats.maxCargo);
             if (currentTierIndex !== -1 && currentTierIndex < cargoUpgrades.length - 1) {
+                const currentTier = cargoUpgrades[currentTierIndex];
                 const nextTier = cargoUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost;
+                cost = nextTier.cost - currentTier.cost;
                 if (prev.playerStats.netWorth >= cost) {
                     newPlayerStats.netWorth -= cost;
                     newPlayerStats.maxCargo = nextTier.capacity;
                     canUpgrade = true;
                     toastTitle = "Cargo Hold Upgraded!";
                     toastDescription = `Your maximum cargo capacity is now ${nextTier.capacity}t.`;
+                } else {
+                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
                 }
             }
         } else if (upgradeType === 'weapon') {
             const currentTierIndex = weaponUpgrades.findIndex(u => u.level === prev.playerStats.weaponLevel);
             if (currentTierIndex !== -1 && currentTierIndex < weaponUpgrades.length - 1) {
+                const currentTier = weaponUpgrades[currentTierIndex];
                 const nextTier = weaponUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost;
+                cost = nextTier.cost - currentTier.cost;
                  if (prev.playerStats.netWorth >= cost) {
                     newPlayerStats.netWorth -= cost;
                     newPlayerStats.weaponLevel = nextTier.level;
                     canUpgrade = true;
                     toastTitle = "Weapons Upgraded!";
                     toastDescription = `Your ship is now equipped with ${nextTier.name}.`;
+                } else {
+                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
                 }
             }
         } else if (upgradeType === 'shield') {
             const currentTierIndex = shieldUpgrades.findIndex(u => u.level === prev.playerStats.shieldLevel);
             if (currentTierIndex !== -1 && currentTierIndex < shieldUpgrades.length - 1) {
+                const currentTier = shieldUpgrades[currentTierIndex];
                 const nextTier = shieldUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost;
+                cost = nextTier.cost - currentTier.cost;
                  if (prev.playerStats.netWorth >= cost) {
                     newPlayerStats.netWorth -= cost;
                     newPlayerStats.shieldLevel = nextTier.level;
                     canUpgrade = true;
                     toastTitle = "Shields Upgraded!";
                     toastDescription = `Your ship is now equipped with a ${nextTier.name}.`;
+                } else {
+                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
                 }
             }
         }
         
         if (!canUpgrade) {
             toast({ variant: "destructive", title: "Upgrade Failed", description: cost > 0 ? "Not enough credits." : "Already at max level." });
+            return prev;
+        }
+
+        toast({ title: toastTitle, description: toastDescription });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+  
+  const handleDowngradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield') => {
+    setGameState(prev => {
+        if (!prev) return null;
+
+        let refund = 0;
+        let newPlayerStats = { ...prev.playerStats };
+        let canDowngrade = false;
+        let toastTitle = "Downgrade Successful!";
+        let toastDescription = "";
+        const sellPercentage = 0.75;
+
+        if (upgradeType === 'cargo') {
+            const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity === prev.playerStats.maxCargo);
+            if (currentTierIndex > 0) {
+                const currentTier = cargoUpgrades[currentTierIndex];
+                const previousTier = cargoUpgrades[currentTierIndex - 1];
+                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
+                newPlayerStats.netWorth += refund;
+                newPlayerStats.maxCargo = previousTier.capacity;
+                canDowngrade = true;
+                toastDescription = `Cargo hold downgraded. You received ${refund.toLocaleString()}¢.`;
+            }
+        } else if (upgradeType === 'weapon') {
+            const currentTierIndex = weaponUpgrades.findIndex(u => u.level === prev.playerStats.weaponLevel);
+             if (currentTierIndex > 0) {
+                const currentTier = weaponUpgrades[currentTierIndex];
+                const previousTier = weaponUpgrades[currentTierIndex - 1];
+                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
+                newPlayerStats.netWorth += refund;
+                newPlayerStats.weaponLevel = previousTier.level;
+                canDowngrade = true;
+                toastDescription = `Weapons system downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
+            }
+        } else if (upgradeType === 'shield') {
+            const currentTierIndex = shieldUpgrades.findIndex(u => u.level === prev.playerStats.shieldLevel);
+             if (currentTierIndex > 0) {
+                const currentTier = shieldUpgrades[currentTierIndex];
+                const previousTier = shieldUpgrades[currentTierIndex - 1];
+                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
+                newPlayerStats.netWorth += refund;
+                newPlayerStats.shieldLevel = previousTier.level;
+                canDowngrade = true;
+                toastDescription = `Shields downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
+            }
+        }
+        
+        if (!canDowngrade) {
+            toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." });
             return prev;
         }
 
@@ -814,6 +880,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleRefuel,
     handleRepairShip,
     handleUpgradeShip,
+    handleDowngradeShip,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,

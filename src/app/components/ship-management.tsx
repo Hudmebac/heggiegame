@@ -20,7 +20,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 
 
 export default function ShipManagement() {
-  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
+  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
 
   if (!gameState) {
     return (
@@ -55,19 +55,16 @@ export default function ShipManagement() {
 
   // Upgrade logic
   const currentCargoTierIndex = cargoUpgrades.findIndex(u => u.capacity === stats.maxCargo);
-  const nextCargoUpgrade = currentCargoTierIndex !== -1 && currentCargoTierIndex < cargoUpgrades.length - 1
-    ? cargoUpgrades[currentCargoTierIndex + 1]
-    : null;
+  const currentCargoTier = cargoUpgrades[currentCargoTierIndex];
+  const nextCargoUpgrade = currentCargoTierIndex < cargoUpgrades.length - 1 ? cargoUpgrades[currentCargoTierIndex + 1] : null;
 
-  const currentWeaponTier = weaponUpgrades.find(u => u.level === stats.weaponLevel);
-  const nextWeaponUpgrade = stats.weaponLevel < weaponUpgrades.length
-    ? weaponUpgrades[stats.weaponLevel]
-    : null;
+  const currentWeaponTierIndex = weaponUpgrades.findIndex(u => u.level === stats.weaponLevel);
+  const currentWeaponTier = weaponUpgrades[currentWeaponTierIndex];
+  const nextWeaponUpgrade = currentWeaponTierIndex < weaponUpgrades.length - 1 ? weaponUpgrades[currentWeaponTierIndex + 1] : null;
 
-  const currentShieldTier = shieldUpgrades.find(u => u.level === stats.shieldLevel);
-  const nextShieldUpgrade = stats.shieldLevel < shieldUpgrades.length
-    ? shieldUpgrades[stats.shieldLevel]
-    : null;
+  const currentShieldTierIndex = shieldUpgrades.findIndex(u => u.level === stats.shieldLevel);
+  const currentShieldTier = shieldUpgrades[currentShieldTierIndex];
+  const nextShieldUpgrade = currentShieldTierIndex < shieldUpgrades.length - 1 ? shieldUpgrades[currentShieldTierIndex + 1] : null;
     
   const crewRoleIcons = {
     'Engineer': <Wrench className="h-4 w-4 text-amber-400" />,
@@ -175,39 +172,54 @@ export default function ShipManagement() {
                             <p>Cargo Hold</p>
                             <p className="text-xs text-muted-foreground">Current: {stats.maxCargo}t Capacity</p>
                         </div>
-                         {nextCargoUpgrade ? (
-                            <Button onClick={() => handleUpgradeShip('cargo')} disabled={stats.netWorth < nextCargoUpgrade.cost}>
-                                Upgrade ({nextCargoUpgrade.cost.toLocaleString()}¢)
-                            </Button>
-                        ) : (
-                            <Button disabled>Max Level</Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {currentCargoTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('cargo')}>Sell</Button>
+                          )}
+                          {nextCargoUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('cargo')} disabled={stats.netWorth < (nextCargoUpgrade.cost - currentCargoTier.cost)}>
+                                  Upgrade ({(nextCargoUpgrade.cost - currentCargoTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
+                        </div>
                     </div>
                      <div className="flex justify-between items-center">
                         <div>
                             <p>Weapons System</p>
                             <p className="text-xs text-muted-foreground">Current: {currentWeaponTier?.name}</p>
                         </div>
-                        {nextWeaponUpgrade ? (
-                             <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < nextWeaponUpgrade.cost}>
-                                Upgrade ({nextWeaponUpgrade.cost.toLocaleString()}¢)
-                            </Button>
-                        ) : (
-                            <Button disabled>Max Level</Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                           {currentWeaponTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('weapon')}>Sell</Button>
+                          )}
+                          {nextWeaponUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < (nextWeaponUpgrade.cost - currentWeaponTier.cost)}>
+                                  Upgrade ({(nextWeaponUpgrade.cost - currentWeaponTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
+                        </div>
                     </div>
                      <div className="flex justify-between items-center">
                         <div>
                             <p>Shield Generator</p>
                             <p className="text-xs text-muted-foreground">Current: {currentShieldTier?.name}</p>
                         </div>
-                        {nextShieldUpgrade ? (
-                             <Button onClick={() => handleUpgradeShip('shield')} disabled={stats.netWorth < nextShieldUpgrade.cost}>
-                                Upgrade ({nextShieldUpgrade.cost.toLocaleString()}¢)
-                            </Button>
-                        ) : (
-                             <Button disabled>Max Level</Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {currentShieldTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('shield')}>Sell</Button>
+                          )}
+                          {nextShieldUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('shield')} disabled={stats.netWorth < (nextShieldUpgrade.cost - currentShieldTier.cost)}>
+                                  Upgrade ({(nextShieldUpgrade.cost - currentShieldTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
+                        </div>
                     </div>
                 </CardContent>
             </Card>
