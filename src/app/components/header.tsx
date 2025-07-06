@@ -2,16 +2,14 @@ import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
 import { Coins, Sigma } from 'lucide-react';
 
-interface HeaderProps {
-  playerStats: PlayerStats;
-}
-
 function HeggieIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
-      <path d="M50 10L60 30L80 35L70 50L75 70L50 60L25 70L30 50L20 35L40 30L50 10Z" stroke="currentColor" strokeWidth="5" strokeLinejoin="round" />
-      <path d="M50 40L55 50L65 52L57.5 57.5L60 65L50 60L40 65L42.5 57.5L35 52L45 50L50 40Z" fill="currentColor" />
-      <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="5" strokeDasharray="10 5" />
+    <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 10C35 10 30 25 30 35V65C30 75 35 90 50 90" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70" />
+        <path d="M50 10C65 10 70 25 70 35V65C70 75 65 90 50 90" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70" />
+        <path d="M30 50H70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="text-primary" />
+        <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="3" className="opacity-30" />
+        <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="opacity-50" />
     </svg>
   );
 }

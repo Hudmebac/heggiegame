@@ -30,7 +30,7 @@ const initialGameState: GameState = {
     cargo: 10,
     maxCargo: 50,
     insurance: true,
-    avatarUrl: 'https://placehold.co/96x96/1A2942/3B82F6.png',
+    avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
   },
   items: [
     { name: 'Quantum Processors', currentPrice: 1200, supply: 50, demand: 80, cargoSpace: 2, owned: 5 },
@@ -326,7 +326,7 @@ export default function Dashboard() {
                 <p><strong>Outcome:</strong> <span className="font-mono">{encounterResult.outcome.replace('_', ' ')}</span></p>
                 <p><strong>Credits Lost:</strong> <span className="font-mono text-amber-400">{encounterResult.creditsLost} ¢</span></p>
                 <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} t</span></p>
-                <p><strong>Ship Damage:</strong> <span className="font-mono text-red-400">{encounterResult.damageTaken}</span></p>
+                <p><strong>Ship Damage:</strong> <span className="font-mono text-destructive">{encounterResult.damageTaken}</span></p>
             </div>
             <AlertDialogFooter>
               <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
