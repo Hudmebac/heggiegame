@@ -32,6 +32,7 @@ export interface Pirate {
   name: string;
   shipType: string;
   threatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  scanResult?: string;
 }
 
 export interface System {

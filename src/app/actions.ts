@@ -4,6 +4,7 @@ import { simulateMarketPrices } from '@/ai/flows/simulate-market-prices';
 import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
 import { generateAvatar } from '@/ai/flows/generate-avatar';
 import { generateGameEvent } from '@/ai/flows/generate-game-event';
+import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
 import { z } from 'zod';
 
 import {
@@ -17,6 +18,9 @@ import {
   type GenerateAvatarInput,
   type GenerateAvatarOutput,
   type GenerateGameEventOutput,
+  ScanPirateVesselInputSchema,
+  type ScanPirateVesselInput,
+  type ScanPirateVesselOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -68,5 +72,19 @@ export async function runEventGeneration(): Promise<GenerateGameEventOutput> {
     } catch (error) {
         console.error('Error running event generation:', error);
         throw new Error('Failed to generate game event.');
+    }
+}
+
+export async function runPirateScan(input: ScanPirateVesselInput): Promise<ScanPirateVesselOutput> {
+    try {
+        const validatedInput = ScanPirateVesselInputSchema.parse(input);
+        const result = await scanPirateVessel(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running pirate scan:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for pirate scan: ${error.message}`);
+        }
+        throw new Error('Failed to scan pirate vessel.');
     }
 }

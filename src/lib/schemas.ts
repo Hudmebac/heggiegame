@@ -66,3 +66,16 @@ export const GenerateGameEventOutputSchema = z.object({
   eventDescription: z.string().describe('A short, dramatic description of an in-game event that could affect market prices.'),
 });
 export type GenerateGameEventOutput = z.infer<typeof GenerateGameEventOutputSchema>;
+
+// Schemas for scan-pirate-vessel
+export const ScanPirateVesselInputSchema = z.object({
+  pirateName: z.string().describe('The name of the pirate.'),
+  pirateShipType: z.string().describe('The type of the pirate ship.'),
+  pirateThreatLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe('The threat level of the pirate.'),
+});
+export type ScanPirateVesselInput = z.infer<typeof ScanPirateVesselInputSchema>;
+
+export const ScanPirateVesselOutputSchema = z.object({
+    scanReport: z.string().describe('A tactical report of the scan, providing hints about the pirate vessel.'),
+});
+export type ScanPirateVesselOutput = z.infer<typeof ScanPirateVesselOutputSchema>;

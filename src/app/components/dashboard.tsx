@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration } from '@/app/actions';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -94,6 +94,7 @@ export default function Dashboard() {
   const [isSimulating, startSimulationTransition] = useTransition();
   const [isResolvingEncounter, startEncounterTransition] = useTransition();
   const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
+  const [isScanning, startScanTransition] = useTransition();
   const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
   const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
   const [tradeDetails, setTradeDetails] = useState<{item: Item, type: 'buy' | 'sell'} | null>(null);
@@ -222,13 +223,32 @@ export default function Dashboard() {
   };
 
   const handlePirateAction = (action: 'fight' | 'evade' | 'bribe' | 'scan') => {
+    if (!gameState.pirateEncounter) return;
+
     if (action === 'scan') {
-        toast({ title: "Scan initiated", description: "Scanning pirate vessel... results pending. (Feature coming soon!)" });
+        startScanTransition(async () => {
+            const input = {
+                pirateName: gameState.pirateEncounter!.name,
+                pirateShipType: gameState.pirateEncounter!.shipType,
+                pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
+            };
+            try {
+                const result = await runPirateScan(input);
+                setGameState(prev => {
+                    if (!prev.pirateEncounter) return prev;
+                    const newPirateEncounter = { ...prev.pirateEncounter, scanResult: result.scanReport };
+                    return { ...prev, pirateEncounter: newPirateEncounter };
+                });
+                toast({ title: "Scan Complete", description: "Tactical data available." });
+            } catch (error) {
+                console.error(error);
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                toast({ variant: "destructive", title: "Scan Failed", description: errorMessage });
+            }
+        });
         return;
     }
     
-    if (!gameState.pirateEncounter) return;
-
     startEncounterTransition(async () => {
         const input = {
             action,
@@ -410,7 +430,7 @@ export default function Dashboard() {
               Simulate Market Event
             </Button>
           </div>
-          {gameState.pirateEncounter && <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter} />}
+          {gameState.pirateEncounter && <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter || isScanning} />}
           <Leaderboard data={leaderboardWithPlayer} />
         </div>
       </main>
