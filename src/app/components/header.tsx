@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function HeggieIcon() {
@@ -22,6 +22,7 @@ function HeggieIcon() {
 const navItems = [
     { href: '/captain', label: 'Captain', icon: User },
     { href: '/ship', label: 'Ship', icon: Rocket },
+    { href: '/crew', label: 'Crew', icon: Users },
     { href: '/market', label: 'Market', icon: LineChart },
     { href: '/galaxy', label: 'Galaxy', icon: Map },
     { href: '/quests', label: 'Quests', icon: ScrollText },

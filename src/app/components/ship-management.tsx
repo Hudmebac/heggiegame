@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
+import Link from 'next/link';
 
 const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { icon: React.ReactNode, title: string, value: number, max: number, unit: string, progressColorClass: string }) => (
   <div>
@@ -67,13 +68,6 @@ export default function ShipManagement() {
   const currentShieldTier = shieldUpgrades[currentShieldTierIndex];
   const nextShieldUpgrade = currentShieldTierIndex < shieldUpgrades.length - 1 ? shieldUpgrades[currentShieldTierIndex + 1] : null;
     
-  const crewRoleIcons = {
-    'Engineer': <Wrench className="h-4 w-4 text-amber-400" />,
-    'Navigator': <Navigation className="h-4 w-4 text-sky-400" />,
-    'Gunner': <Crosshair className="h-4 w-4 text-rose-400" />,
-    'Negotiator': <Handshake className="h-4 w-4 text-green-400" />,
-  };
-  
   const hasEngineer = crew.some(c => c.role === 'Engineer');
   const hasGunner = crew.some(c => c.role === 'Gunner');
 
@@ -287,28 +281,10 @@ export default function ShipManagement() {
                     <CardDescription>Your loyal (and paid) companions.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {crew.length > 0 ? (
-                        crew.map(member => (
-                            <div key={member.id} className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-medium flex items-center gap-2">
-                                        {crewRoleIcons[member.role]}
-                                        {member.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">{member.description}</p>
-                                </div>
-                                <div className="text-right">
-                                     <p className="font-mono text-sm">{member.salary.toLocaleString()}¢</p>
-                                     <p className="text-xs text-muted-foreground">/ cycle</p>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-sm text-muted-foreground text-center">Your ship has no crew.</p>
-                    )}
-                    <Button className="w-full mt-4" disabled>
-                        Recruit Crew (Coming Soon)
-                    </Button>
+                    <p className="text-sm text-muted-foreground">You currently have {crew.length} crew members. Manage your roster to hire new specialists and review your team.</p>
+                    <Link href="/crew" passHref>
+                        <Button className="w-full">Manage Crew</Button>
+                    </Link>
                 </CardContent>
             </Card>
         </div>

@@ -90,6 +90,7 @@ export interface CrewMember {
   role: 'Engineer' | 'Navigator' | 'Gunner' | 'Negotiator';
   description: string;
   salary: number;
+  hiringFee: number;
 }
 
 export interface GameState {

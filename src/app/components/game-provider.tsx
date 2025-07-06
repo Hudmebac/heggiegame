@@ -5,6 +5,7 @@ import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Rout
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
+import { AVAILABLE_CREW } from '@/lib/crew';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -107,10 +108,7 @@ function generateRandomPirate(): Pirate {
     }
 }
 
-const initialCrew: CrewMember[] = [
-    { id: 'eng-01', name: 'Zara "Sparks" Kosari', role: 'Engineer', description: 'Reduces travel fuel consumption by 5%.', salary: 500 },
-    { id: 'gun-01', name: 'Rook', role: 'Gunner', description: 'Increases weapon effectiveness in combat.', salary: 750 },
-];
+const initialCrew: CrewMember[] = [AVAILABLE_CREW[0], AVAILABLE_CREW[1]];
 
 const initialGameState: Omit<GameState, 'marketItems'> = {
   playerStats: {
@@ -168,6 +166,8 @@ interface GameContextType {
   handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
   handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
   handlePurchaseShip: (ship: ShipForSale) => void;
+  handleHireCrew: (crewId: string) => void;
+  handleFireCrew: (crewId: string) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -599,6 +599,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return;
     }
     
+    const totalSalary = gameState.crew.reduce((acc, member) => acc + member.salary, 0);
+    if (gameState.playerStats.netWorth < totalSalary) {
+        toast({
+            variant: "destructive",
+            title: "Travel Failed",
+            description: `Insufficient funds for travel and crew salary. You need ${totalSalary.toLocaleString()}¢ for salaries.`
+        });
+        setTravelDestination(null);
+        return;
+    }
+    
     setTravelDestination(null);
 
     startSimulationTransition(async () => {
@@ -673,6 +684,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           
           const newPlayerStats = {
               ...prev.playerStats,
+              netWorth: prev.playerStats.netWorth - totalSalary,
               fuel: prev.playerStats.fuel - fuelCost,
               pirateRisk: scannedPirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05)
           };
@@ -698,8 +710,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
 
         toast({
-            title: "Arrival: Galactic News Flash!",
-            description: `${eventDescription} You arrived safely at ${travelDestination.name}.`
+            title: `Arrival: ${travelDestination.name}`,
+            description: `${eventDescription} Your crew has been paid ${totalSalary.toLocaleString()}¢.`
         });
       } catch (error) {
         console.error(error);
@@ -931,6 +943,50 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleHireCrew = (crewId: string) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const crewToHire = AVAILABLE_CREW.find(c => c.id === crewId);
+        if (!crewToHire) {
+            toast({ variant: "destructive", title: "Recruitment Error", description: "Crew member not found." });
+            return prev;
+        }
+        if (prev.playerStats.netWorth < crewToHire.hiringFee) {
+            toast({ variant: "destructive", title: "Hiring Failed", description: `Insufficient credits. You need ${crewToHire.hiringFee.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - crewToHire.hiringFee,
+        };
+        
+        const newCrew = [...prev.crew, crewToHire];
+
+        toast({ title: "Crew Member Hired!", description: `${crewToHire.name} has joined your crew.` });
+        
+        return { ...prev, playerStats: newPlayerStats, crew: newCrew };
+    });
+  };
+
+  const handleFireCrew = (crewId: string) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        
+        const crewToFire = prev.crew.find(c => c.id === crewId);
+        if (!crewToFire) {
+            toast({ variant: "destructive", title: "Error", description: "Crew member not on your roster." });
+            return prev;
+        }
+
+        const newCrew = prev.crew.filter(c => c.id !== crewId);
+
+        toast({ title: "Crew Member Fired", description: `${crewToFire.name} has left your crew.` });
+
+        return { ...prev, crew: newCrew };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -965,6 +1021,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleUpgradeShip,
     handleDowngradeShip,
     handlePurchaseShip,
+    handleHireCrew,
+    handleFireCrew,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
