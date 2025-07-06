@@ -117,6 +117,7 @@ export const TraderSchema = z.object({
     name: z.string().describe("The full name or callsign of the trader."),
     netWorth: z.number().describe("The estimated net worth of the trader in credits."),
     fleetSize: z.number().describe("The number of ships in the trader's fleet."),
+    bio: z.string().describe("A short, 1-2 sentence, flavourful biography for the trader. Make it interesting and fit the sci-fi tone."),
 });
 
 export const GenerateTradersOutputSchema = z.object({

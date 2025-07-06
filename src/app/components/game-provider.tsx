@@ -140,6 +140,7 @@ interface GameContextType {
   handlePurchaseShip: (ship: ShipForSale) => void;
   handleHireCrew: (crewId: string) => void;
   handleFireCrew: (crewId: string) => void;
+  updateTraderBio: (traderName: string, bio: string) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -282,6 +283,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 trader: t.name,
                 netWorth: t.netWorth,
                 fleetSize: t.fleetSize,
+                bio: t.bio,
             }));
 
             const playerStats = {
@@ -1054,6 +1056,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleUpdateTraderBio = (traderName: string, bio: string) => {
+    setGameState(prev => {
+      if (!prev) return null;
+      const newLeaderboard = prev.leaderboard.map(entry =>
+        entry.trader === traderName ? { ...entry, bio: bio } : entry
+      );
+      return { ...prev, leaderboard: newLeaderboard };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -1090,6 +1102,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handlePurchaseShip,
     handleHireCrew,
     handleFireCrew,
+    updateTraderBio: handleUpdateTraderBio,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,

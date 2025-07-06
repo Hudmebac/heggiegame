@@ -56,6 +56,7 @@ export interface LeaderboardEntry {
   trader: string;
   netWorth: number;
   fleetSize: number;
+  bio?: string;
 }
 
 export interface Pirate {

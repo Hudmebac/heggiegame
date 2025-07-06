@@ -10,7 +10,7 @@ import type { LeaderboardEntry } from "@/lib/types";
 
 
 export default function LeaderboardPage() {
-    const { gameState } = useGame();
+    const { gameState, updateTraderBio } = useGame();
     const { toast } = useToast();
     const [selectedTrader, setSelectedTrader] = useState<LeaderboardEntry | null>(null);
     const [traderBio, setTraderBio] = useState('');
@@ -19,24 +19,31 @@ export default function LeaderboardPage() {
     if (!gameState) return null;
 
     const handleTraderClick = async (trader: LeaderboardEntry) => {
-        if (trader.trader === gameState.playerStats.name) return; // Don't generate bio for the player
+        if (trader.trader === gameState.playerStats.name) return;
         setSelectedTrader(trader);
         setTraderBio('');
         setIsGeneratingBio(true);
 
-        try {
-            const result = await runBioGeneration({ name: trader.trader });
-            setTraderBio(result.bio);
-        } catch (error) {
-            console.error(error);
-            toast({
-                variant: "destructive",
-                title: "Could not fetch intel",
-                description: "Failed to generate a bio for this trader."
-            });
-            setSelectedTrader(null); // Close dialog on error
-        } finally {
+        if (trader.bio) {
+            setTraderBio(trader.bio);
             setIsGeneratingBio(false);
+        } else {
+            try {
+                const result = await runBioGeneration({ name: trader.trader });
+                const newBio = result.bio;
+                setTraderBio(newBio);
+                updateTraderBio(trader.trader, newBio);
+            } catch (error) {
+                console.error(error);
+                toast({
+                    variant: "destructive",
+                    title: "Could not fetch intel",
+                    description: "Failed to generate a bio for this trader."
+                });
+                setSelectedTrader(null);
+            } finally {
+                setIsGeneratingBio(false);
+            }
         }
     };
 

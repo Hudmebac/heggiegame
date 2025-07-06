@@ -22,6 +22,8 @@ const prompt = ai.definePrompt({
   
   Assign them a plausible but high net-worth (between 5,000,000 and 20,000,000 credits) and a fleet size (between 5 and 20 ships).
   
+  For each trader, also write a short, 1-2 sentence, flavourful biography. Make it interesting and fit the sci-fi tone.
+  
   Ensure one of them is clearly an infamous, almost villainous character.
 
   Return the response in the specified JSON format.
