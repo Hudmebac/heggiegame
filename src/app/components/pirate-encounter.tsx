@@ -22,7 +22,7 @@ export default function PirateEncounter({ pirate, onAction, isResolving }: Pirat
   const isScanDisabled = isResolving || !!pirate.scanResult;
 
   return (
-    <Card className="bg-card/70 backdrop-blur-sm border-destructive/50 shadow-lg shadow-destructive/10">
+    <Card className="bg-card/90 backdrop-blur-sm border-destructive/50 shadow-lg shadow-destructive/10 animate-in slide-in-from-bottom-5">
       <CardHeader>
         <CardTitle className="font-headline text-lg flex items-center gap-2 text-destructive">
           <Skull />
@@ -41,7 +41,7 @@ export default function PirateEncounter({ pirate, onAction, isResolving }: Pirat
                 <p>{pirate.scanResult}</p>
             </div>
         )}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Button variant="destructive" disabled={isResolving} onClick={() => onAction('fight')}><Swords className="mr-2 h-4 w-4" /> Fight</Button>
           <Button variant="outline" disabled={isResolving} onClick={() => onAction('evade')}><Shield className="mr-2 h-4 w-4 text-sky-400" /> Evade</Button>
           <Button variant="outline" disabled={isResolving} onClick={() => onAction('bribe')}><DollarSign className="mr-2 h-4 w-4 text-amber-400" /> Bribe</Button>

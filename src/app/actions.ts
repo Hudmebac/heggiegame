@@ -5,6 +5,7 @@ import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
 import { generateAvatar } from '@/ai/flows/generate-avatar';
 import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
+import { generateBio } from '@/ai/flows/generate-bio';
 import { z } from 'zod';
 
 import {
@@ -21,6 +22,9 @@ import {
   ScanPirateVesselInputSchema,
   type ScanPirateVesselInput,
   type ScanPirateVesselOutput,
+  GenerateBioInputSchema,
+  type GenerateBioInput,
+  type GenerateBioOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -86,5 +90,19 @@ export async function runPirateScan(input: ScanPirateVesselInput): Promise<ScanP
             throw new Error(`Invalid input for pirate scan: ${error.message}`);
         }
         throw new Error('Failed to scan pirate vessel.');
+    }
+}
+
+export async function runBioGeneration(input: GenerateBioInput): Promise<GenerateBioOutput> {
+    try {
+        const validatedInput = GenerateBioInputSchema.parse(input);
+        const result = await generateBio(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running bio generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for bio generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate bio.');
     }
 }

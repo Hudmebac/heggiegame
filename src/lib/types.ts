@@ -1,4 +1,6 @@
 export interface PlayerStats {
+  name: string;
+  bio: string;
   netWorth: number;
   fuel: number;
   maxFuel: number;

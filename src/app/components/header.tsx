@@ -1,6 +1,11 @@
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, Sigma } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 function HeggieIcon() {
   return (
@@ -14,32 +19,58 @@ function HeggieIcon() {
   );
 }
 
+const navItems = [
+    { href: '/captain', label: 'Captain', icon: User },
+    { href: '/ship', label: 'Ship', icon: Rocket },
+    { href: '/market', label: 'Market', icon: LineChart },
+    { href: '/galaxy', label: 'Galaxy', icon: Map },
+    { href: '/quests', label: 'Quests', icon: ScrollText },
+    { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+];
 
-export default function Header({ playerStats }: HeaderProps) {
+const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, icon: React.ElementType }) => {
+    const pathname = usePathname();
+    const isActive = pathname.startsWith(href);
+    return (
+        <Link href={href}>
+            <div className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-muted",
+                isActive && "bg-muted text-foreground"
+            )}>
+                <Icon className="h-5 w-5" />
+                <span>{label}</span>
+            </div>
+        </Link>
+    );
+};
+
+export default function Header({ playerStats }: {playerStats: PlayerStats}) {
   return (
-    <header className="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <HeggieIcon />
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-200 font-headline tracking-wider">
-          HEGGIE
-        </h1>
-        <Badge variant="outline" className="border-accent text-accent font-mono text-xs">
-          Hegg Interstellar Exchange
-        </Badge>
-      </div>
-      <div className="flex items-center gap-4 sm:gap-6 p-2 rounded-lg bg-card/50 border border-border">
-        <div className="flex items-center gap-2 font-mono">
-          <Coins className="h-5 w-5 text-amber-400" />
-          <span className="text-lg font-semibold text-slate-200">
-            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 0 }).format(playerStats.netWorth).replace('$', '¢')}
-          </span>
-        </div>
-        <div className="w-px h-6 bg-border"></div>
-        <div className="flex items-center gap-2 font-mono text-slate-300">
-          <Sigma className="h-5 w-5 text-cyan-400" />
-          <span>Net Worth</span>
-        </div>
-      </div>
-    </header>
+    <div className="flex flex-col h-full">
+      <header className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-b">
+          <div className="flex items-center gap-3">
+            <HeggieIcon />
+            <h1 className="text-xl md:text-2xl font-bold text-slate-200 font-headline tracking-wider">
+              HEGGIE
+            </h1>
+          </div>
+          <div className="flex items-center gap-4 sm:gap-6 p-2 rounded-lg bg-card/50 border border-border">
+            <div className="flex items-center gap-2 font-mono">
+              <Coins className="h-5 w-5 text-amber-400" />
+              <span className="text-lg font-semibold text-slate-200">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 0 }).format(playerStats.netWorth).replace('$', '¢')}
+              </span>
+            </div>
+             <div className="hidden sm:flex items-center gap-2 font-mono text-slate-300">
+                <Sigma className="h-5 w-5 text-cyan-400" />
+                <span>Net Worth</span>
+            </div>
+          </div>
+      </header>
+
+      <nav className="p-4 space-y-2">
+        {navItems.map(item => <NavLink key={item.href} {...item} />)}
+      </nav>
+    </div>
   );
 }

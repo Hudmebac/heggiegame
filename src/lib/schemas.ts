@@ -79,3 +79,14 @@ export const ScanPirateVesselOutputSchema = z.object({
     scanReport: z.string().describe('A tactical report of the scan, providing hints about the pirate vessel.'),
 });
 export type ScanPirateVesselOutput = z.infer<typeof ScanPirateVesselOutputSchema>;
+
+// Schemas for generate-bio
+export const GenerateBioInputSchema = z.object({
+  name: z.string().describe("The name of the captain."),
+});
+export type GenerateBioInput = z.infer<typeof GenerateBioInputSchema>;
+
+export const GenerateBioOutputSchema = z.object({
+  bio: z.string().describe("A short, flavourful biography for the space captain, based on their name."),
+});
+export type GenerateBioOutput = z.infer<typeof GenerateBioOutputSchema>;
