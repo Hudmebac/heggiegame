@@ -127,7 +127,7 @@ export default function BarClicker() {
                         <p className="text-muted-foreground">Current Net Worth</p>
                         <p className="text-3xl font-mono text-amber-300 flex items-center justify-center gap-2">
                             <Coins />
-                            {gameState.playerStats.netWorth.toLocaleString()} ¢
+                            {(gameState.playerStats.netWorth || 0).toLocaleString()} ¢
                         </p>
                     </div>
                 </CardContent>
