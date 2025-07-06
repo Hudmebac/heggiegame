@@ -100,11 +100,17 @@ function calculateCurrentCargo(inventory: InventoryItem[]): number {
 }
 
 
-function generateRandomPirate(): Pirate {
+function generateRandomPirate(hasNavigator: boolean): Pirate {
+    const weightedThreats: Pirate['threatLevel'][] = hasNavigator
+        ? ['Low', 'Low', 'Low', 'Medium', 'Medium', 'Medium', 'High', 'High', 'Critical'] // Skewed probabilities with Navigator
+        : ['Low', 'Medium', 'High', 'Critical']; // Even probabilities
+
+    const threat = weightedThreats[Math.floor(Math.random() * weightedThreats.length)];
+
     return {
         name: pirateNames[Math.floor(Math.random() * pirateNames.length)],
         shipType: shipTypes[Math.floor(Math.random() * shipTypes.length)],
-        threatLevel: threatLevels[Math.floor(Math.random() * threatLevels.length)],
+        threatLevel: threat,
     }
 }
 
@@ -452,6 +458,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             pirateName: gameState.pirateEncounter!.name,
             pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
             hasGunner: gameState.crew.some(c => c.role === 'Gunner'),
+            hasNegotiator: gameState.crew.some(c => c.role === 'Negotiator'),
             shipHealth: gameState.playerStats.shipHealth,
             weaponLevel: gameState.playerStats.weaponLevel,
             shieldLevel: gameState.playerStats.shieldLevel,
@@ -623,7 +630,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
 
         const totalEncounterChance = baseEncounterChance + gameState.playerStats.pirateRisk;
-        const pirateEncounterObject = Math.random() < totalEncounterChance ? generateRandomPirate() : null;
+        const hasNavigator = gameState.crew.some(c => c.role === 'Navigator');
+        const pirateEncounterObject = Math.random() < totalEncounterChance ? generateRandomPirate(hasNavigator) : null;
 
         let scannedPirateEncounter: Pirate | null = null;
         if (pirateEncounterObject) {

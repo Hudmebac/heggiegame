@@ -2,7 +2,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import Link from 'next/link';
@@ -70,6 +70,8 @@ export default function ShipManagement() {
     
   const hasEngineer = crew.some(c => c.role === 'Engineer');
   const hasGunner = crew.some(c => c.role === 'Gunner');
+  const hasNavigator = crew.some(c => c.role === 'Navigator');
+  const hasNegotiator = crew.some(c => c.role === 'Negotiator');
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -89,21 +91,14 @@ export default function ShipManagement() {
                 unit="%"
                 progressColorClass="from-rose-500 to-red-500"
             />
-            <div>
-              <StatDisplay 
-                  icon={<Fuel className="h-4 w-4 text-amber-400" />}
-                  title="Fuel"
-                  value={stats.fuel}
-                  max={stats.maxFuel}
-                  unit=" SU"
-                  progressColorClass="from-amber-500 to-orange-500"
-              />
-              {hasEngineer && (
-                  <p className="text-xs text-green-400 flex items-center gap-1.5 mt-1.5 ml-1">
-                      <Users className="h-3 w-3" /> 5% fuel efficiency bonus from Engineer.
-                  </p>
-              )}
-            </div>
+            <StatDisplay 
+                icon={<Fuel className="h-4 w-4 text-amber-400" />}
+                title="Fuel"
+                value={stats.fuel}
+                max={stats.maxFuel}
+                unit=" SU"
+                progressColorClass="from-amber-500 to-orange-500"
+            />
             <StatDisplay 
                 icon={<Warehouse className="h-4 w-4 text-sky-400" />}
                 title="Cargo"
@@ -174,6 +169,56 @@ export default function ShipManagement() {
             <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg font-headline">
+                        <Users className="text-primary"/> Crew Bonuses
+                    </CardTitle>
+                    <CardDescription>Active perks from your hired specialists.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                    { !hasEngineer && !hasGunner && !hasNavigator && !hasNegotiator && (
+                        <p className="text-muted-foreground">No active crew bonuses.</p>
+                    )}
+                    {hasEngineer && (
+                        <div className="flex items-center gap-2">
+                            <Briefcase className="h-4 w-4 text-cyan-400" />
+                            <div>
+                                <span className="font-semibold">Engineer:</span>
+                                <span className="text-muted-foreground"> 5% fuel efficiency bonus.</span>
+                            </div>
+                        </div>
+                    )}
+                    {hasGunner && (
+                        <div className="flex items-center gap-2">
+                            <Crosshair className="h-4 w-4 text-cyan-400" />
+                            <div>
+                                <span className="font-semibold">Gunner:</span>
+                                <span className="text-muted-foreground"> Increased combat effectiveness.</span>
+                            </div>
+                        </div>
+                    )}
+                    {hasNavigator && (
+                        <div className="flex items-center gap-2">
+                           <Navigation className="h-4 w-4 text-cyan-400" />
+                            <div>
+                                <span className="font-semibold">Navigator:</span>
+                                <span className="text-muted-foreground"> Reduced chance of high-threat encounters.</span>
+                            </div>
+                        </div>
+                    )}
+                    {hasNegotiator && (
+                        <div className="flex items-center gap-2">
+                           <Handshake className="h-4 w-4 text-cyan-400" />
+                            <div>
+                                <span className="font-semibold">Negotiator:</span>
+                                <span className="text-muted-foreground"> Better outcomes when bribing pirates.</span>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg font-headline">
                         <ShieldCheck className="text-primary"/> Ship Outfitting
                     </CardTitle>
                     <CardDescription>Improve your vessel's capabilities.</CardDescription>
@@ -216,11 +261,6 @@ export default function ShipManagement() {
                               )}
                             </div>
                         </div>
-                        {hasGunner && (
-                           <p className="text-xs text-green-400 flex items-center gap-1.5 mt-1.5 ml-1">
-                                <Users className="h-3 w-3" /> Combat effectiveness increased by Gunner.
-                           </p>
-                        )}
                     </div>
                      <div className="flex justify-between items-center">
                         <div>
