@@ -20,7 +20,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 
 
 export default function ShipManagement() {
-  const { gameState, handleRefuel } = useGame();
+  const { gameState, handleRefuel, handleUpgradeShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
 
   if (!gameState) {
     return (
@@ -37,6 +37,22 @@ export default function ShipManagement() {
 
   const canAffordRefuel = stats.netWorth >= refuelCost;
   const needsRefuel = fuelNeeded > 0;
+
+  // Upgrade logic
+  const currentCargoTierIndex = cargoUpgrades.findIndex(u => u.capacity >= stats.maxCargo);
+  const nextCargoUpgrade = currentCargoTierIndex !== -1 && currentCargoTierIndex < cargoUpgrades.length - 1
+    ? cargoUpgrades[currentCargoTierIndex + 1]
+    : null;
+
+  const currentWeaponTier = weaponUpgrades.find(u => u.level === stats.weaponLevel);
+  const nextWeaponUpgrade = stats.weaponLevel < weaponUpgrades.length
+    ? weaponUpgrades[stats.weaponLevel]
+    : null;
+
+  const currentShieldTier = shieldUpgrades.find(u => u.level === stats.shieldLevel);
+  const nextShieldUpgrade = stats.shieldLevel < shieldUpgrades.length
+    ? shieldUpgrades[stats.shieldLevel]
+    : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -82,7 +98,7 @@ export default function ShipManagement() {
                 </span>
             </div>
             <Button className="w-full" onClick={handleRefuel} disabled={!needsRefuel || !canAffordRefuel}>
-              {needsRefuel ? `Refuel Ship (${refuelCost}¢)` : 'Fuel Tank Full'}
+              {needsRefuel ? `Refuel Ship (${refuelCost.toLocaleString()}¢)` : 'Fuel Tank Full'}
             </Button>
         </CardContent>
         </Card>
@@ -100,21 +116,39 @@ export default function ShipManagement() {
                             <p>Hull Capacity</p>
                             <p className="text-xs text-muted-foreground">Current: {stats.maxCargo}t</p>
                         </div>
-                        <Button>Upgrade (5,000¢)</Button>
+                         {nextCargoUpgrade ? (
+                            <Button onClick={() => handleUpgradeShip('cargo')} disabled={stats.netWorth < nextCargoUpgrade.cost}>
+                                Upgrade ({nextCargoUpgrade.cost.toLocaleString()}¢)
+                            </Button>
+                        ) : (
+                            <Button disabled>Max Level</Button>
+                        )}
                     </div>
                      <div className="flex justify-between items-center">
                         <div>
                             <p>Weapons System</p>
-                            <p className="text-xs text-muted-foreground">Mk. I Laser Cannon</p>
+                            <p className="text-xs text-muted-foreground">Current: {currentWeaponTier?.name}</p>
                         </div>
-                        <Button>Upgrade (10,000¢)</Button>
+                        {nextWeaponUpgrade ? (
+                             <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < nextWeaponUpgrade.cost}>
+                                Upgrade ({nextWeaponUpgrade.cost.toLocaleString()}¢)
+                            </Button>
+                        ) : (
+                            <Button disabled>Max Level</Button>
+                        )}
                     </div>
                      <div className="flex justify-between items-center">
                         <div>
                             <p>Shield Generator</p>
-                            <p className="text-xs text-muted-foreground">Class-A Deflector</p>
+                            <p className="text-xs text-muted-foreground">Current: {currentShieldTier?.name}</p>
                         </div>
-                        <Button>Upgrade (7,500¢)</Button>
+                        {nextShieldUpgrade ? (
+                             <Button onClick={() => handleUpgradeShip('shield')} disabled={stats.netWorth < nextShieldUpgrade.cost}>
+                                Upgrade ({nextShieldUpgrade.cost.toLocaleString()}¢)
+                            </Button>
+                        ) : (
+                             <Button disabled>Max Level</Button>
+                        )}
                     </div>
                 </CardContent>
             </Card>

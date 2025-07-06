@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest } from '@/lib/types';
+import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,24 @@ const pirateNames = ['Dread Captain "Scar" Ironheart', 'Admiral "Voidgazer" Kael
 const shipTypes = ['Marauder-class Corvette', 'Reaper-class Frigate', 'Void-reaver Battleship', 'Shadow-class Interceptor'];
 const threatLevels: Pirate['threatLevel'][] = ['Low', 'Medium', 'High', 'Critical'];
 
+const cargoUpgrades: CargoUpgrade[] = [
+    { capacity: 50, cost: 0 },
+    { capacity: 75, cost: 5000 },
+    { capacity: 100, cost: 12000 },
+    { capacity: 150, cost: 25000 },
+];
+const weaponUpgrades: WeaponUpgrade[] = [
+    { level: 1, name: 'Mk. I Laser', cost: 0 },
+    { level: 2, name: 'Mk. II Pulse Laser', cost: 10000 },
+    { level: 3, name: 'Mk. III Plasma Cannon', cost: 30000 },
+];
+const shieldUpgrades: ShieldUpgrade[] = [
+    { level: 1, name: 'Class-A Deflector', cost: 0 },
+    { level: 2, name: 'Class-B Field', cost: 7500 },
+    { level: 3, name: 'Class-C Barrier', cost: 20000 },
+];
+
+
 function generateRandomPirate(): Pirate {
     return {
         name: pirateNames[Math.floor(Math.random() * pirateNames.length)],
@@ -50,6 +68,8 @@ const initialGameState: GameState = {
     maxCargo: 50,
     insurance: true,
     avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
+    weaponLevel: 1,
+    shieldLevel: 1,
   },
   items: [
     { name: 'Quantum Processors', currentPrice: 1200, supply: 50, demand: 80, cargoSpace: 2, owned: 5 },
@@ -100,6 +120,10 @@ interface GameContextType {
   setPlayerName: (name: string) => void;
   handleInitiateTravel: (systemName: string) => void;
   handleRefuel: () => void;
+  handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
+  cargoUpgrades: CargoUpgrade[];
+  weaponUpgrades: WeaponUpgrade[];
+  shieldUpgrades: ShieldUpgrade[];
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -505,6 +529,67 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return { ...prev, playerStats: newPlayerStats };
     });
   };
+  
+  const handleUpgradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield') => {
+    setGameState(prev => {
+        if (!prev) return null;
+
+        let cost = 0;
+        let newPlayerStats = { ...prev.playerStats };
+        let canUpgrade = false;
+        let toastTitle = "Upgrade Failed";
+        let toastDescription = "An unknown error occurred.";
+
+        if (upgradeType === 'cargo') {
+            const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity >= prev.playerStats.maxCargo);
+            if (currentTierIndex !== -1 && currentTierIndex < cargoUpgrades.length - 1) {
+                const nextTier = cargoUpgrades[currentTierIndex + 1];
+                cost = nextTier.cost;
+                if (prev.playerStats.netWorth >= cost) {
+                    newPlayerStats.netWorth -= cost;
+                    newPlayerStats.maxCargo = nextTier.capacity;
+                    canUpgrade = true;
+                    toastTitle = "Cargo Hold Upgraded!";
+                    toastDescription = `Your maximum cargo capacity is now ${nextTier.capacity}t.`;
+                }
+            }
+        } else if (upgradeType === 'weapon') {
+            const currentTierIndex = weaponUpgrades.findIndex(u => u.level === prev.playerStats.weaponLevel);
+            if (currentTierIndex !== -1 && currentTierIndex < weaponUpgrades.length - 1) {
+                const nextTier = weaponUpgrades[currentTierIndex + 1];
+                cost = nextTier.cost;
+                 if (prev.playerStats.netWorth >= cost) {
+                    newPlayerStats.netWorth -= cost;
+                    newPlayerStats.weaponLevel = nextTier.level;
+                    canUpgrade = true;
+                    toastTitle = "Weapons Upgraded!";
+                    toastDescription = `Your ship is now equipped with ${nextTier.name}.`;
+                }
+            }
+        } else if (upgradeType === 'shield') {
+            const currentTierIndex = shieldUpgrades.findIndex(u => u.level === prev.playerStats.shieldLevel);
+            if (currentTierIndex !== -1 && currentTierIndex < shieldUpgrades.length - 1) {
+                const nextTier = shieldUpgrades[currentTierIndex + 1];
+                cost = nextTier.cost;
+                 if (prev.playerStats.netWorth >= cost) {
+                    newPlayerStats.netWorth -= cost;
+                    newPlayerStats.shieldLevel = nextTier.level;
+                    canUpgrade = true;
+                    toastTitle = "Shields Upgraded!";
+                    toastDescription = `Your ship is now equipped with a ${nextTier.name}.`;
+                }
+            }
+        }
+        
+        if (!canUpgrade) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: cost > 0 ? "Not enough credits." : "Already at max level." });
+            return prev;
+        }
+
+        toast({ title: toastTitle, description: toastDescription });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
 
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
@@ -537,6 +622,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerName,
     handleInitiateTravel,
     handleRefuel,
+    handleUpgradeShip,
+    cargoUpgrades,
+    weaponUpgrades,
+    shieldUpgrades,
   };
 
   return (

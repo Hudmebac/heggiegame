@@ -8,6 +8,8 @@ export interface PlayerStats {
   maxCargo: number;
   insurance: boolean;
   avatarUrl: string;
+  weaponLevel: number;
+  shieldLevel: number;
 }
 
 export interface Item {
@@ -74,4 +76,21 @@ export interface EncounterResult {
   cargoLost: number;
   creditsLost: number;
   damageTaken: string;
+}
+
+export interface CargoUpgrade {
+  capacity: number;
+  cost: number;
+}
+
+export interface WeaponUpgrade {
+  level: number;
+  name: string;
+  cost: number;
+}
+
+export interface ShieldUpgrade {
+  level: number;
+  name: string;
+  cost: number;
 }
