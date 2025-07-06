@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Ticket, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { recreationThemes } from '@/lib/recreation-themes';
 import RecreationContracts from './recreation-contracts';
+import type { SystemEconomy } from '@/lib/types';
 
 export default function RecreationClicker() {
     const { gameState, handleRecreationClick, handleUpgradeRecreation, handleUpgradeRecreationAutoClicker, handlePurchaseRecreation, handleExpandRecreation, handleSellRecreation } = useGame();
@@ -27,11 +28,20 @@ export default function RecreationClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.recreationLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
 
-    const upgradeCost = Math.round(125 * Math.pow(playerStats.recreationLevel, 2.5));
+    const economyCostModifiers: Record<SystemEconomy, number> = {
+        'High-Tech': 1.15,
+        'Industrial': 0.90,
+        'Extraction': 1.00,
+        'Refinery': 0.95,
+        'Agricultural': 1.10
+    };
+    const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+    const upgradeCost = Math.round(281 * Math.pow(playerStats.recreationLevel, 2.5) * costModifier);
     const isRecreationLevelMaxed = playerStats.recreationLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isRecreationLevelMaxed;
 
-    const botCost = Math.round(1250 * Math.pow(1.15, playerStats.recreationAutoClickerBots));
+    const botCost = Math.round(5625 * Math.pow(1.15, playerStats.recreationAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.recreationAutoClickerBots * rawIncomePerClick;
@@ -40,11 +50,11 @@ export default function RecreationClicker() {
 
     // Establishment upgrade logic
     const expansionTiers = [
-        { level: 1, costMultiplier: 1000, label: "Acquire Entertainment License" },
-        { level: 2, costMultiplier: 10000, label: "Expand Facility (Tier 1)" },
-        { level: 3, costMultiplier: 100000, label: "Expand Facility (Tier 2)" },
-        { level: 4, costMultiplier: 1000000, label: "Expand Facility (Tier 3)" },
-        { level: 5, costMultiplier: 10000000, label: "Develop into Galactic Resort" },
+        { level: 1, costMultiplier: 3000, label: "Acquire Entertainment License" },
+        { level: 2, costMultiplier: 30000, label: "Expand Facility (Tier 1)" },
+        { level: 3, costMultiplier: 300000, label: "Expand Facility (Tier 2)" },
+        { level: 4, costMultiplier: 3000000, label: "Expand Facility (Tier 3)" },
+        { level: 5, costMultiplier: 30000000, label: "Develop into Galactic Resort" },
     ];
     
     const currentEstablishmentLevel = playerStats.recreationEstablishmentLevel;
@@ -56,7 +66,7 @@ export default function RecreationClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseRecreation : handleExpandRecreation;

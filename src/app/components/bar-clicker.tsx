@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Martini, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import BarContracts from './bar-contracts';
+import type { SystemEconomy } from '@/lib/types';
 
 export default function BarClicker() {
     const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment, handleSellBar, handleSellStake } = useGame();
@@ -27,11 +28,20 @@ export default function BarClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.barLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
 
-    const upgradeCost = Math.round(100 * Math.pow(playerStats.barLevel, 2.5));
+    const economyCostModifiers: Record<SystemEconomy, number> = {
+        'High-Tech': 1.15,
+        'Industrial': 0.90,
+        'Extraction': 1.00,
+        'Refinery': 0.95,
+        'Agricultural': 1.10
+    };
+    const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+    const upgradeCost = Math.round(300 * Math.pow(playerStats.barLevel, 2.5) * costModifier);
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
-    const botCost = Math.round(1000 * Math.pow(1.15, playerStats.autoClickerBots));
+    const botCost = Math.round(9000 * Math.pow(1.15, playerStats.autoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;
@@ -40,11 +50,11 @@ export default function BarClicker() {
 
     // Establishment upgrade logic
     const expansionTiers = [
-        { level: 1, costMultiplier: 1000, label: "Purchase Establishment" },
-        { level: 2, costMultiplier: 10000, label: "Expand Establishment (Level 1)" },
-        { level: 3, costMultiplier: 100000, label: "Expand Establishment (Level 2)" },
-        { level: 4, costMultiplier: 1000000, label: "Expand Establishment (Level 3)" },
-        { level: 5, costMultiplier: 10000000, label: "Expand to Galactic Franchise" },
+        { level: 1, costMultiplier: 3000, label: "Purchase Establishment" },
+        { level: 2, costMultiplier: 30000, label: "Expand Establishment (Level 1)" },
+        { level: 3, costMultiplier: 300000, label: "Expand Establishment (Level 2)" },
+        { level: 4, costMultiplier: 3000000, label: "Expand Establishment (Level 3)" },
+        { level: 5, costMultiplier: 30000000, label: "Expand to Galactic Franchise" },
     ];
     
     const currentEstablishmentLevel = playerStats.establishmentLevel;
@@ -56,7 +66,7 @@ export default function BarClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseEstablishment : handleExpandEstablishment;

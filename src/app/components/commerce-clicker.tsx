@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Landmark, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
 import { commerceThemes } from '@/lib/commerce-themes';
 import CommerceContracts from './commerce-contracts';
+import type { SystemEconomy } from '@/lib/types';
 
 export default function CommerceClicker() {
     const { gameState, handleCommerceClick, handleUpgradeCommerce, handleUpgradeCommerceAutoClicker, handlePurchaseCommerce, handleExpandCommerce, handleSellCommerce } = useGame();
@@ -27,11 +28,20 @@ export default function CommerceClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.commerceLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
 
-    const upgradeCost = Math.round(150 * Math.pow(playerStats.commerceLevel, 2.5));
+    const economyCostModifiers: Record<SystemEconomy, number> = {
+        'High-Tech': 1.15,
+        'Industrial': 0.90,
+        'Extraction': 1.00,
+        'Refinery': 0.95,
+        'Agricultural': 1.10
+    };
+    const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+    const upgradeCost = Math.round(375 * Math.pow(playerStats.commerceLevel, 2.5) * costModifier);
     const isCommerceLevelMaxed = playerStats.commerceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isCommerceLevelMaxed;
 
-    const botCost = Math.round(1500 * Math.pow(1.15, playerStats.commerceAutoClickerBots));
+    const botCost = Math.round(12750 * Math.pow(1.15, playerStats.commerceAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.commerceAutoClickerBots * rawIncomePerClick;
@@ -40,11 +50,11 @@ export default function CommerceClicker() {
 
     // Establishment upgrade logic
     const expansionTiers = [
-        { level: 1, costMultiplier: 1000, label: "Acquire Commerce License" },
-        { level: 2, costMultiplier: 10000, label: "Expand Commerce Hub (Tier 1)" },
-        { level: 3, costMultiplier: 100000, label: "Expand Commerce Hub (Tier 2)" },
-        { level: 4, costMultiplier: 1000000, label: "Expand Commerce Hub (Tier 3)" },
-        { level: 5, costMultiplier: 10000000, label: "Develop into Galactic Conglomerate" },
+        { level: 1, costMultiplier: 3000, label: "Acquire Commerce License" },
+        { level: 2, costMultiplier: 30000, label: "Expand Commerce Hub (Tier 1)" },
+        { level: 3, costMultiplier: 300000, label: "Expand Commerce Hub (Tier 2)" },
+        { level: 4, costMultiplier: 3000000, label: "Expand Commerce Hub (Tier 3)" },
+        { level: 5, costMultiplier: 30000000, label: "Develop into Galactic Conglomerate" },
     ];
     
     const currentEstablishmentLevel = playerStats.commerceEstablishmentLevel;
@@ -56,7 +66,7 @@ export default function CommerceClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseCommerce : handleExpandCommerce;

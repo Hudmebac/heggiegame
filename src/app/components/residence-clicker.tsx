@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Home, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
 import { residenceThemes } from '@/lib/residence-themes';
 import ResidenceContracts from './residence-contracts';
+import type { SystemEconomy } from '@/lib/types';
 
 export default function ResidenceClicker() {
     const { gameState, handleResidenceClick, handleUpgradeResidence, handleUpgradeResidenceAutoClicker, handlePurchaseResidence, handleExpandResidence, handleSellResidence } = useGame();
@@ -27,11 +28,20 @@ export default function ResidenceClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.residenceLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
 
-    const upgradeCost = Math.round(50 * Math.pow(playerStats.residenceLevel, 2.5));
+    const economyCostModifiers: Record<SystemEconomy, number> = {
+        'High-Tech': 1.15,
+        'Industrial': 0.90,
+        'Extraction': 1.00,
+        'Refinery': 0.95,
+        'Agricultural': 1.10
+    };
+    const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+    const upgradeCost = Math.round(125 * Math.pow(playerStats.residenceLevel, 2.5) * costModifier);
     const isResidenceLevelMaxed = playerStats.residenceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isResidenceLevelMaxed;
 
-    const botCost = Math.round(500 * Math.pow(1.15, playerStats.residenceAutoClickerBots));
+    const botCost = Math.round(4250 * Math.pow(1.15, playerStats.residenceAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.residenceAutoClickerBots * rawIncomePerClick;
@@ -40,11 +50,11 @@ export default function ResidenceClicker() {
 
     // Establishment upgrade logic
     const expansionTiers = [
-        { level: 1, costMultiplier: 1000, label: "Purchase Property Deed" },
-        { level: 2, costMultiplier: 10000, label: "Expand Property (Level 1)" },
-        { level: 3, costMultiplier: 100000, label: "Expand Property (Level 2)" },
-        { level: 4, costMultiplier: 1000000, label: "Expand Property (Level 3)" },
-        { level: 5, costMultiplier: 10000000, label: "Develop into Galactic Estate" },
+        { level: 1, costMultiplier: 5000, label: "Purchase Property Deed" },
+        { level: 2, costMultiplier: 50000, label: "Expand Property (Level 1)" },
+        { level: 3, costMultiplier: 500000, label: "Expand Property (Level 2)" },
+        { level: 4, costMultiplier: 5000000, label: "Expand Property (Level 3)" },
+        { level: 5, costMultiplier: 50000000, label: "Develop into Galactic Estate" },
     ];
     
     const currentEstablishmentLevel = playerStats.residenceEstablishmentLevel;
@@ -56,7 +66,7 @@ export default function ResidenceClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseResidence : handleExpandResidence;

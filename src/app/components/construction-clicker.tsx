@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Building2, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { constructionThemes } from '@/lib/construction-themes';
 import ConstructionContracts from './construction-contracts';
+import type { SystemEconomy } from '@/lib/types';
 
 export default function ConstructionClicker() {
     const { gameState, handleConstructionClick, handleUpgradeConstruction, handleUpgradeConstructionAutoClicker, handlePurchaseConstruction, handleExpandConstruction, handleSellConstruction } = useGame();
@@ -26,11 +28,20 @@ export default function ConstructionClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.constructionLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
 
-    const upgradeCost = Math.round(200 * Math.pow(playerStats.constructionLevel, 2.5));
+    const economyCostModifiers: Record<SystemEconomy, number> = {
+        'High-Tech': 1.15,
+        'Industrial': 0.90,
+        'Extraction': 1.00,
+        'Refinery': 0.95,
+        'Agricultural': 1.10
+    };
+    const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+    const upgradeCost = Math.round(1000 * Math.pow(playerStats.constructionLevel, 2.5) * costModifier);
     const isConstructionLevelMaxed = playerStats.constructionLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isConstructionLevelMaxed;
 
-    const botCost = Math.round(2000 * Math.pow(1.15, playerStats.constructionAutoClickerBots));
+    const botCost = Math.round(29000 * Math.pow(1.15, playerStats.constructionAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.constructionAutoClickerBots * rawIncomePerClick;
@@ -39,11 +50,11 @@ export default function ConstructionClicker() {
 
     // Establishment upgrade logic
     const expansionTiers = [
-        { level: 1, costMultiplier: 1000, label: "Acquire Land Deed" },
-        { level: 2, costMultiplier: 10000, label: "Expand Project (Phase 1)" },
-        { level: 3, costMultiplier: 100000, label: "Expand Project (Phase 2)" },
-        { level: 4, costMultiplier: 1000000, label: "Expand Project (Phase 3)" },
-        { level: 5, costMultiplier: 10000000, label: "Develop into Megastructure" },
+        { level: 1, costMultiplier: 5000, label: "Acquire Land Deed" },
+        { level: 2, costMultiplier: 50000, label: "Expand Project (Phase 1)" },
+        { level: 3, costMultiplier: 500000, label: "Expand Project (Phase 2)" },
+        { level: 4, costMultiplier: 5000000, label: "Expand Project (Phase 3)" },
+        { level: 5, costMultiplier: 50000000, label: "Develop into Megastructure" },
     ];
     
     const currentEstablishmentLevel = playerStats.constructionEstablishmentLevel;
@@ -55,7 +66,7 @@ export default function ConstructionClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseConstruction : handleExpandConstruction;

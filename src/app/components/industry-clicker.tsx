@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Factory, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { industryThemes } from '@/lib/industry-themes';
 import IndustryContracts from './industry-contracts';
+import type { SystemEconomy } from '@/lib/types';
 
 export default function IndustryClicker() {
     const { gameState, handleIndustryClick, handleUpgradeIndustry, handleUpgradeIndustryAutoClicker, handlePurchaseIndustry, handleExpandIndustry, handleSellIndustry } = useGame();
@@ -27,11 +28,20 @@ export default function IndustryClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.industryLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
 
-    const upgradeCost = Math.round(300 * Math.pow(playerStats.industryLevel, 2.5));
+    const economyCostModifiers: Record<SystemEconomy, number> = {
+        'High-Tech': 1.15,
+        'Industrial': 0.90,
+        'Extraction': 1.00,
+        'Refinery': 0.95,
+        'Agricultural': 1.10
+    };
+    const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+    const upgradeCost = Math.round(1200 * Math.pow(playerStats.industryLevel, 2.5) * costModifier);
     const isIndustryLevelMaxed = playerStats.industryLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isIndustryLevelMaxed;
 
-    const botCost = Math.round(3000 * Math.pow(1.15, playerStats.industryAutoClickerBots));
+    const botCost = Math.round(40500 * Math.pow(1.15, playerStats.industryAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.industryAutoClickerBots * rawIncomePerClick;
@@ -40,11 +50,11 @@ export default function IndustryClicker() {
 
     // Establishment upgrade logic
     const expansionTiers = [
-        { level: 1, costMultiplier: 1000, label: "Acquire Industrial Permit" },
-        { level: 2, costMultiplier: 10000, label: "Expand Factory (Tier 1)" },
-        { level: 3, costMultiplier: 100000, label: "Expand Factory (Tier 2)" },
-        { level: 4, costMultiplier: 1000000, label: "Expand Factory (Tier 3)" },
-        { level: 5, costMultiplier: 10000000, label: "Develop into Galactic Conglomerate" },
+        { level: 1, costMultiplier: 4000, label: "Acquire Industrial Permit" },
+        { level: 2, costMultiplier: 40000, label: "Expand Factory (Tier 1)" },
+        { level: 3, costMultiplier: 400000, label: "Expand Factory (Tier 2)" },
+        { level: 4, costMultiplier: 4000000, label: "Expand Factory (Tier 3)" },
+        { level: 5, costMultiplier: 40000000, label: "Develop into Galactic Conglomerate" },
     ];
     
     const currentEstablishmentLevel = playerStats.industryEstablishmentLevel;
@@ -56,7 +66,7 @@ export default function IndustryClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseIndustry : handleExpandIndustry;
