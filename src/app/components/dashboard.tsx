@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import type { GameState, Item, PriceHistory, EncounterResult } from '@/lib/types';
+import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 
 import Header from './header';
@@ -21,6 +21,34 @@ import GalaxyMap from './galaxy-map';
 import TradeDialog from './trade-dialog';
 import { Loader2 } from 'lucide-react';
 
+
+const systems: System[] = [
+    { name: 'Sol', x: 20, y: 30 },
+    { name: 'Kepler-186f', x: 45, y: 65 },
+    { name: 'Sirius', x: 75, y: 25 },
+    { name: 'Proxima Centauri', x: 80, y: 80 },
+    { name: 'TRAPPIST-1', x: 5, y: 85 },
+];
+
+const routes: Route[] = [
+    { from: 'Sol', to: 'Kepler-186f' },
+    { from: 'Sol', to: 'Sirius' },
+    { from: 'Kepler-186f', to: 'Proxima Centauri' },
+    { from: 'Sirius', to: 'Proxima Centauri' },
+    { from: 'Kepler-186f', to: 'TRAPPIST-1' },
+];
+
+const pirateNames = ['Dread Captain "Scar" Ironheart', 'Admiral "Voidgazer" Kael', 'Captain "Mad" Mel', 'Commander "Hex" Stryker'];
+const shipTypes = ['Marauder-class Corvette', 'Reaper-class Frigate', 'Void-reaver Battleship', 'Shadow-class Interceptor'];
+const threatLevels: Pirate['threatLevel'][] = ['Low', 'Medium', 'High', 'Critical'];
+
+function generateRandomPirate(): Pirate {
+    return {
+        name: pirateNames[Math.floor(Math.random() * pirateNames.length)],
+        shipType: shipTypes[Math.floor(Math.random() * shipTypes.length)],
+        threatLevel: threatLevels[Math.floor(Math.random() * threatLevels.length)],
+    }
+}
 
 const initialGameState: GameState = {
   playerStats: {
@@ -53,25 +81,23 @@ const initialGameState: GameState = {
     { rank: 4, trader: 'You', netWorth: 10000, fleetSize: 1 },
     { rank: 5, trader: 'Baron Von "Blackhole" Hess', netWorth: 8_123_456, fleetSize: 5 },
   ],
-  pirateEncounter: {
-    name: 'Dread Captain "Scar" Ironheart',
-    shipType: 'Marauder-class Corvette',
-    threatLevel: 'Medium',
-  },
+  pirateEncounter: null,
+  systems: systems,
+  routes: routes,
+  currentSystem: 'Sol',
 };
 
 export default function Dashboard() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast()
-  const [isSimulatingMarket, startMarketTransition] = useTransition();
+  const [isSimulating, startSimulationTransition] = useTransition();
   const [isResolvingEncounter, startEncounterTransition] = useTransition();
   const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
   const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
   const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
-  
-  // State for trade dialog
   const [tradeDetails, setTradeDetails] = useState<{item: Item, type: 'buy' | 'sell'} | null>(null);
+  const [travelDestination, setTravelDestination] = useState<System | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -79,7 +105,6 @@ export default function Dashboard() {
       const savedState = localStorage.getItem('heggieGameState');
       if (savedState) {
         const parsedState = JSON.parse(savedState);
-        // Basic validation
         if(parsedState.playerStats && parsedState.items) {
           const mergedState = {
             ...initialGameState,
@@ -157,9 +182,8 @@ export default function Dashboard() {
     setTradeDetails({ item, type });
   };
 
-
   const handleSimulateMarket = () => {
-    startMarketTransition(async () => {
+    startSimulationTransition(async () => {
       try {
         const eventResult = await runEventGeneration();
         const eventDescription = eventResult.eventDescription;
@@ -179,7 +203,7 @@ export default function Dashboard() {
             if (itemIndex !== -1) {
               newItems[itemIndex].currentPrice = update.newPrice;
               if (newPriceHistory[update.name]) {
-                newPriceHistory[update.name] = [...newPriceHistory[update.name], update.newPrice].slice(-20); // Keep last 20 prices
+                newPriceHistory[update.name] = [...newPriceHistory[update.name], update.newPrice].slice(-20);
               } else {
                 newPriceHistory[update.name] = [update.newPrice];
               }
@@ -222,11 +246,6 @@ export default function Dashboard() {
                 newPlayerStats.netWorth -= result.creditsLost;
                 newPlayerStats.cargo -= result.cargoLost;
                 if (newPlayerStats.cargo < 0) newPlayerStats.cargo = 0;
-
-                // For simplicity, we just remove cargo space units, not specific items.
-                // A more complex game could have a more detailed inventory management.
-
-                // Remove the pirate after the encounter is acknowledged
                 return { ...prev, playerStats: newPlayerStats };
             });
 
@@ -258,6 +277,84 @@ export default function Dashboard() {
     });
   };
 
+  const handleInitiateTravel = (systemName: string) => {
+    if (systemName === gameState.currentSystem) return;
+    const destination = gameState.systems.find(s => s.name === systemName);
+    if (destination) {
+        setTravelDestination(destination);
+    }
+  };
+
+  const handleConfirmTravel = () => {
+      if (!travelDestination) return;
+
+      const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+      if (!currentSystem) return;
+
+      const distance = Math.hypot(travelDestination.x - currentSystem.x, travelDestination.y - currentSystem.y);
+      const fuelCost = Math.round(distance / 5);
+
+      if (gameState.playerStats.fuel < fuelCost) {
+          toast({
+              variant: "destructive",
+              title: "Travel Failed",
+              description: `Not enough fuel. You need ${fuelCost} SU, but you only have ${gameState.playerStats.fuel}.`
+          });
+          setTravelDestination(null);
+          return;
+      }
+      
+      setTravelDestination(null);
+
+      startSimulationTransition(async () => {
+        const stateBeforeTravel = gameState;
+        
+        const travelledState = {
+            ...stateBeforeTravel,
+            playerStats: {
+                ...stateBeforeTravel.playerStats,
+                fuel: stateBeforeTravel.playerStats.fuel - fuelCost,
+            },
+            currentSystem: travelDestination.name,
+            pirateEncounter: Math.random() < 0.3 ? generateRandomPirate() : null,
+        };
+
+        const marketInput = {
+            items: travelledState.items.map(({ name, currentPrice, supply, demand }) => ({ name, currentPrice, supply, demand })),
+            eventDescription: `You've arrived at ${travelDestination.name}. The local market is buzzing with new opportunities.`,
+        };
+
+        try {
+            const marketResult = await runMarketSimulation(marketInput);
+            const newItems = [...travelledState.items];
+            const newPriceHistory: PriceHistory = { ...travelledState.priceHistory };
+
+            marketResult.forEach(update => {
+                const itemIndex = newItems.findIndex(i => i.name === update.name);
+                if (itemIndex !== -1) {
+                    newItems[itemIndex].currentPrice = update.newPrice;
+                    if (newPriceHistory[update.name]) {
+                        newPriceHistory[update.name] = [...newPriceHistory[update.name], update.newPrice].slice(-20);
+                    } else {
+                        newPriceHistory[update.name] = [update.newPrice];
+                    }
+                }
+            });
+
+            setGameState({ ...travelledState, items: newItems, priceHistory: newPriceHistory });
+            toast({
+                title: "Arrival",
+                description: `You have arrived at the ${travelDestination.name} system. Your journey consumed ${fuelCost} fuel units.`
+            });
+
+        } catch (error) {
+            setGameState(travelledState);
+            console.error(error);
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            toast({ variant: "destructive", title: "Market Update Failed", description: errorMessage });
+        }
+      });
+  };
 
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
@@ -267,6 +364,8 @@ export default function Dashboard() {
   const leaderboardWithPlayer = gameState.leaderboard.map(entry => 
     entry.trader === 'You' ? { ...entry, netWorth: gameState.playerStats.netWorth } : entry
   ).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({...entry, rank: index + 1}));
+
+  const travelFuelCost = travelDestination ? Math.round(Math.hypot(travelDestination.x - (gameState.systems.find(s => s.name === gameState.currentSystem)?.x || 0), travelDestination.y - (gameState.systems.find(s => s.name === gameState.currentSystem)?.y || 0)) / 5) : 0;
 
   if (!isClient) {
     return (
@@ -280,7 +379,6 @@ export default function Dashboard() {
     <div className="bg-background text-foreground min-h-screen p-4 sm:p-6 lg:p-8 font-body">
       <Header playerStats={gameState.playerStats} />
       <main className="mt-8 grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {/* Left Column */}
         <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
           <TradingInterface items={gameState.items} onInitiateTrade={handleInitiateTrade} />
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -290,22 +388,26 @@ export default function Dashboard() {
               selectedItem={chartItem}
               onSelectItem={setChartItem}
             />
-            <GalaxyMap />
+            <GalaxyMap 
+              systems={gameState.systems}
+              routes={gameState.routes}
+              currentSystem={gameState.currentSystem}
+              onTravel={handleInitiateTravel}
+            />
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="lg:col-span-1 xl:col-span-1 flex flex-col gap-6">
           <PlayerProfile 
             stats={gameState.playerStats} 
             onGenerateAvatar={handleGenerateAvatar} 
             isGeneratingAvatar={isGeneratingAvatar}
           />
-          <ShipManagement stats={gameState.playerStats} />
+          <ShipManagement stats={gameState.playerStats} currentSystem={gameState.currentSystem} />
            <div className="flex justify-center">
-            <Button onClick={handleSimulateMarket} disabled={isSimulatingMarket} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-              {isSimulatingMarket ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Simulate Market Prices
+            <Button onClick={handleSimulateMarket} disabled={isSimulating} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
+              {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Simulate Market Event
             </Button>
           </div>
           {gameState.pirateEncounter && <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter} />}
@@ -330,6 +432,33 @@ export default function Dashboard() {
             </div>
             <AlertDialogFooter>
               <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {travelDestination && (
+        <AlertDialog open={!!travelDestination} onOpenChange={() => setTravelDestination(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Interstellar Travel</AlertDialogTitle>
+              <AlertDialogDescription>
+                You are about to travel to the <span className="font-bold text-primary">{travelDestination.name}</span> system.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="text-sm space-y-2">
+                <p><strong>Destination:</strong> <span className="font-mono">{travelDestination.name}</span></p>
+                <p><strong>Estimated Fuel Cost:</strong> <span className="font-mono text-amber-400">{travelFuelCost} SU</span></p>
+                <p className={gameState.playerStats.fuel - travelFuelCost < 0 ? 'text-destructive' : ''}>
+                  <strong>Remaining Fuel:</strong> <span className="font-mono">{gameState.playerStats.fuel - travelFuelCost} SU</span>
+                </p>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmTravel} disabled={isSimulating || gameState.playerStats.fuel < travelFuelCost}>
+                {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Engage Warp Drive
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

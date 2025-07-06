@@ -1,10 +1,11 @@
 import type { PlayerStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin } from 'lucide-react';
 
 interface ShipManagementProps {
   stats: PlayerStats;
+  currentSystem: string;
 }
 
 const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { icon: React.ReactNode, title: string, value: number, max: number, unit: string, progressColorClass: string }) => (
@@ -21,7 +22,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 );
 
 
-export default function ShipManagement({ stats }: ShipManagementProps) {
+export default function ShipManagement({ stats, currentSystem }: ShipManagementProps) {
   return (
     <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
       <CardHeader>
@@ -47,6 +48,13 @@ export default function ShipManagement({ stats }: ShipManagementProps) {
           unit="t"
           progressColorClass="from-sky-500 to-cyan-500"
         />
+        <div className="flex justify-between items-center text-sm">
+           <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              <span>Current Location</span>
+           </div>
+            <span className="font-mono text-primary">{currentSystem} System</span>
+        </div>
          <div className="flex justify-between items-center text-sm">
            <div className="flex items-center gap-2 text-muted-foreground">
               <Shield className="h-4 w-4 text-green-400" />

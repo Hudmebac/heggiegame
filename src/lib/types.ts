@@ -34,12 +34,26 @@ export interface Pirate {
   threatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
 }
 
+export interface System {
+  name: string;
+  x: number;
+  y: number;
+}
+
+export interface Route {
+  from: string;
+  to: string;
+}
+
 export interface GameState {
   playerStats: PlayerStats;
   items: Item[];
   priceHistory: PriceHistory;
   leaderboard: LeaderboardEntry[];
   pirateEncounter: Pirate | null;
+  systems: System[];
+  routes: Route[];
+  currentSystem: string;
 }
 
 export interface EncounterResult {
