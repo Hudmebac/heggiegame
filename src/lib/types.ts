@@ -40,3 +40,11 @@ export interface GameState {
   leaderboard: LeaderboardEntry[];
   pirateEncounter: Pirate | null;
 }
+
+export interface EncounterResult {
+  outcome: 'success' | 'failure' | 'partial_success';
+  narrative: string;
+  cargoLost: number;
+  creditsLost: number;
+  damageTaken: string;
+}

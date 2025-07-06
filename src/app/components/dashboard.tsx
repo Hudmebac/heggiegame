@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import type { GameState, Item, PriceHistory } from '@/lib/types';
-import { runMarketSimulation } from '@/app/actions';
+import type { GameState, Item, PriceHistory, EncounterResult } from '@/lib/types';
+import { runMarketSimulation, resolveEncounter } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+
 
 import Header from './header';
 import ShipManagement from './ship-management';
@@ -59,8 +61,10 @@ export default function Dashboard() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast()
-  const [isPending, startTransition] = useTransition();
+  const [isSimulatingMarket, startMarketTransition] = useTransition();
+  const [isResolvingEncounter, startEncounterTransition] = useTransition();
   const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
+  const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -135,7 +139,7 @@ export default function Dashboard() {
   };
 
   const handleSimulateMarket = () => {
-    startTransition(async () => {
+    startMarketTransition(async () => {
       const input = {
         items: gameState.items.map(({ name, currentPrice, supply, demand }) => ({ name, currentPrice, supply, demand })),
         eventDescription: 'A surprise solar flare has disrupted major trade routes.',
@@ -169,6 +173,52 @@ export default function Dashboard() {
       }
     });
   };
+
+  const handlePirateAction = (action: 'fight' | 'evade' | 'bribe' | 'scan') => {
+    if (action === 'scan') {
+        toast({ title: "Scan initiated", description: "Scanning pirate vessel... results pending. (Feature coming soon!)" });
+        return;
+    }
+    
+    if (!gameState.pirateEncounter) return;
+
+    startEncounterTransition(async () => {
+        const input = {
+            action,
+            playerNetWorth: gameState.playerStats.netWorth,
+            playerCargo: gameState.playerStats.cargo,
+            pirateName: gameState.pirateEncounter!.name,
+            pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
+        };
+        try {
+            const result = await resolveEncounter(input);
+            setEncounterResult(result);
+
+            setGameState(prev => {
+                const newPlayerStats = { ...prev.playerStats };
+                newPlayerStats.netWorth -= result.creditsLost;
+                newPlayerStats.cargo -= result.cargoLost;
+                if (newPlayerStats.cargo < 0) newPlayerStats.cargo = 0;
+
+                // For simplicity, we just remove cargo space units, not specific items.
+                // A more complex game could have a more detailed inventory management.
+
+                // Remove the pirate after the encounter is acknowledged
+                return { ...prev, playerStats: newPlayerStats };
+            });
+
+        } catch (error) {
+            console.error(error);
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            toast({ variant: "destructive", title: "Encounter Failed", description: errorMessage });
+        }
+    });
+  };
+
+  const handleCloseEncounterDialog = () => {
+    setEncounterResult(null);
+    setGameState(prev => ({...prev, pirateEncounter: null}));
+  }
   
   const leaderboardWithPlayer = gameState.leaderboard.map(entry => 
     entry.trader === 'You' ? { ...entry, netWorth: gameState.playerStats.netWorth } : entry
@@ -204,15 +254,38 @@ export default function Dashboard() {
         <div className="lg:col-span-1 xl:col-span-1 flex flex-col gap-6">
           <ShipManagement stats={gameState.playerStats} />
            <div className="flex justify-center">
-            <Button onClick={handleSimulateMarket} disabled={isPending} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            <Button onClick={handleSimulateMarket} disabled={isSimulatingMarket} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
+              {isSimulatingMarket ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Simulate Market Prices
             </Button>
           </div>
-          {gameState.pirateEncounter && <PirateEncounter pirate={gameState.pirateEncounter} />}
+          {gameState.pirateEncounter && <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter} />}
           <Leaderboard data={leaderboardWithPlayer} />
         </div>
       </main>
+      
+      {encounterResult && (
+        <AlertDialog open={!!encounterResult} onOpenChange={handleCloseEncounterDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{`Encounter with ${gameState.pirateEncounter?.name || 'Pirate'} Resolved`}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {encounterResult.narrative}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="text-sm space-y-2">
+                <p><strong>Outcome:</strong> <span className="font-mono">{encounterResult.outcome.replace('_', ' ')}</span></p>
+                <p><strong>Credits Lost:</strong> <span className="font-mono text-amber-400">{encounterResult.creditsLost} ¢</span></p>
+                <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} t</span></p>
+                <p><strong>Ship Damage:</strong> <span className="font-mono text-red-400">{encounterResult.damageTaken}</span></p>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
       <Toaster />
     </div>
   );

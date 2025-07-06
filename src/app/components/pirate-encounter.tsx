@@ -1,12 +1,14 @@
 import type { Pirate } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Swords, Shield, DollarSign, Scan, Skull } from 'lucide-react';
+import { Swords, Shield, DollarSign, Scan, Skull, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 
 interface PirateEncounterProps {
   pirate: Pirate;
+  onAction: (action: 'fight' | 'evade' | 'bribe' | 'scan') => void;
+  isResolving: boolean;
 }
 
 const threatColors = {
@@ -16,7 +18,7 @@ const threatColors = {
     'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
 }
 
-export default function PirateEncounter({ pirate }: PirateEncounterProps) {
+export default function PirateEncounter({ pirate, onAction, isResolving }: PirateEncounterProps) {
   return (
     <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg shadow-red-500/10">
       <CardHeader>
@@ -25,16 +27,17 @@ export default function PirateEncounter({ pirate }: PirateEncounterProps) {
           Pirate Encounter!
         </CardTitle>
         <CardDescription>You've been intercepted by {pirate.name} in a {pirate.shipType}.</CardDescription>
-        <div className="pt-2">
+        <div className="pt-2 flex items-center gap-4">
             <Badge variant="outline" className={threatColors[pirate.threatLevel]}>Threat: {pirate.threatLevel}</Badge>
+            {isResolving && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
         </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="destructive" className="bg-red-800/50 text-red-300 hover:bg-red-800/80 border border-red-500/30"><Swords className="mr-2 h-4 w-4" /> Fight</Button>
-          <Button variant="outline"><Shield className="mr-2 h-4 w-4 text-sky-400" /> Evade</Button>
-          <Button variant="outline"><DollarSign className="mr-2 h-4 w-4 text-amber-400" /> Bribe</Button>
-          <Button variant="outline"><Scan className="mr-2 h-4 w-4 text-purple-400" /> Scan</Button>
+          <Button variant="destructive" disabled={isResolving} onClick={() => onAction('fight')} className="bg-red-800/50 text-red-300 hover:bg-red-800/80 border border-red-500/30"><Swords className="mr-2 h-4 w-4" /> Fight</Button>
+          <Button variant="outline" disabled={isResolving} onClick={() => onAction('evade')}><Shield className="mr-2 h-4 w-4 text-sky-400" /> Evade</Button>
+          <Button variant="outline" disabled={isResolving} onClick={() => onAction('bribe')}><DollarSign className="mr-2 h-4 w-4 text-amber-400" /> Bribe</Button>
+          <Button variant="outline" disabled={isResolving} onClick={() => onAction('scan')}><Scan className="mr-2 h-4 w-4 text-purple-400" /> Scan</Button>
         </div>
       </CardContent>
     </Card>
