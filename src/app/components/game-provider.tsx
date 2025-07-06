@@ -144,6 +144,7 @@ interface GameContextType {
   handleHireCrew: (crewId: string) => void;
   handleFireCrew: (crewId: string) => void;
   updateTraderBio: (traderName: string, bio: string) => void;
+  handleBarClick: () => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -245,10 +246,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const savedStateJSON = localStorage.getItem('heggieGameState');
             if (savedStateJSON) {
                 const savedState = JSON.parse(savedStateJSON);
-
-                // For robustness against old save formats, remove static data
-                delete savedState.systems;
-                delete savedState.routes;
                 
                 if (savedState.playerStats && savedState.inventory) {
                     const currentSystemFromSave = SYSTEMS.find(s => s.name === savedState.currentSystem)!;
@@ -263,8 +260,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     const validInventory = savedState.inventory.filter((item: InventoryItem) => 
                         STATIC_ITEMS.some(si => si.name === item.name)
                     );
-
-                    // Validate currentPlanet
+                    
                     const planetExists = currentSystemFromSave.planets.some(p => p.name === savedState.currentPlanet);
                     if (!planetExists) {
                         savedState.currentPlanet = currentSystemFromSave.planets[0].name;
@@ -280,6 +276,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
                             ...savedState.playerStats,
                             cargo: calculateCurrentCargo(validInventory),
                         },
+                        systems: SYSTEMS, 
+                        routes: ROUTES,
                     });
                     setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
                     return;
@@ -1113,6 +1111,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleBarClick = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const incomePerClick = 10;
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth + incomePerClick,
+        };
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -1151,6 +1161,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleHireCrew,
     handleFireCrew,
     updateTraderBio: handleUpdateTraderBio,
+    handleBarClick,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
