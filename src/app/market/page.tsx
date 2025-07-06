@@ -4,6 +4,7 @@ import MarketChart from '@/app/components/market-chart';
 import TradingInterface from '@/app/components/trading-interface';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import type { MarketItem, InventoryItem } from '@/lib/types';
 
 export default function MarketPage() {
   const { 
@@ -21,11 +22,15 @@ export default function MarketPage() {
   
   return (
      <div className="flex flex-col gap-6">
-        <TradingInterface items={gameState.items} onInitiateTrade={handleInitiateTrade} />
+        <TradingInterface 
+            marketItems={gameState.marketItems} 
+            inventory={gameState.inventory}
+            onInitiateTrade={(item: MarketItem, type: 'buy' | 'sell') => handleInitiateTrade(item.name, type)} 
+        />
         
         <MarketChart 
             priceHistory={gameState.priceHistory} 
-            items={gameState.items.map(i => i.name)}
+            items={gameState.marketItems.map(i => i.name)}
             selectedItem={chartItem}
             onSelectItem={setChartItem}
         />

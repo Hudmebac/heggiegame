@@ -1,23 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Item, PlayerStats } from '@/lib/types';
+import type { MarketItem, PlayerStats, InventoryItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Minus, Plus, Coins, Package } from 'lucide-react';
+import { STATIC_ITEMS } from '@/lib/items';
 
 interface TradeDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  item: Item | null;
+  item: MarketItem | null;
   tradeType: 'buy' | 'sell';
   playerStats: PlayerStats;
+  inventory: InventoryItem[];
   onTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
 }
 
-export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, playerStats, onTrade }: TradeDialogProps) {
+export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, playerStats, inventory, onTrade }: TradeDialogProps) {
   const [amount, setAmount] = useState(1);
 
   useEffect(() => {
@@ -27,20 +29,25 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
 
   if (!item) return null;
 
+  const staticItemData = STATIC_ITEMS.find(i => i.name === item.name);
+  if (!staticItemData) return null; // Should not happen
+
   const handleAmountChange = (newAmount: number) => {
     if (newAmount >= 0) {
       setAmount(newAmount);
     }
   };
 
+  const currentOwned = inventory.find(i => i.name === item.name)?.owned ?? 0;
+
   const maxBuyableByCredits = item.currentPrice > 0 ? Math.floor(playerStats.netWorth / item.currentPrice) : Infinity;
-  const maxBuyableByCargo = item.cargoSpace > 0 ? Math.floor((playerStats.maxCargo - playerStats.cargo) / item.cargoSpace) : Infinity;
+  const maxBuyableByCargo = staticItemData.cargoSpace > 0 ? Math.floor((playerStats.maxCargo - playerStats.cargo) / staticItemData.cargoSpace) : Infinity;
   const maxBuy = Math.min(maxBuyableByCredits, maxBuyableByCargo);
-  const maxSell = item.owned;
+  const maxSell = currentOwned;
 
   const maxAmount = tradeType === 'buy' ? maxBuy : maxSell;
   const totalPrice = amount * item.currentPrice;
-  const totalCargo = amount * item.cargoSpace;
+  const totalCargo = amount * staticItemData.cargoSpace;
   const isTransactionValid = amount > 0 && amount <= maxAmount;
 
 
@@ -87,14 +94,14 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
           <div className="space-y-2 rounded-md border border-border/50 p-3 bg-card/50">
              <div className="flex justify-between items-center text-sm">
                 <p className="flex items-center gap-2 text-muted-foreground"><Coins className="h-4 w-4 text-amber-400" /> Total Price:</p>
-                <p className={`font-mono ${tradeType === 'buy' && totalPrice > playerStats.netWorth ? 'text-red-400' : 'text-foreground'}`}>
+                <p className={`font-mono ${tradeType === 'buy' && totalPrice > playerStats.netWorth ? 'text-destructive' : 'text-foreground'}`}>
                     {totalPrice.toLocaleString()} ¢
                 </p>
              </div>
              <div className="flex justify-between items-center text-sm">
                 <p className="flex items-center gap-2 text-muted-foreground"><Package className="h-4 w-4 text-sky-400" /> Cargo Space:</p>
-                <p className={`font-mono ${tradeType === 'buy' && totalCargo > (playerStats.maxCargo - playerStats.cargo) ? 'text-red-400' : 'text-foreground'}`}>
-                    {totalCargo}t
+                <p className={`font-mono ${tradeType === 'buy' && totalCargo > (playerStats.maxCargo - playerStats.cargo) ? 'text-destructive' : 'text-foreground'}`}>
+                    {totalCargo.toFixed(2)}t
                 </p>
              </div>
           </div>

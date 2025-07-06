@@ -1,3 +1,28 @@
+export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal';
+export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare';
+
+export interface StaticItem {
+  category: ItemCategory;
+  name: string;
+  rarity: ItemRarity;
+  description: string;
+  detail: string;
+  basePrice: number;
+  cargoSpace: number;
+}
+
+export interface MarketItem {
+  name: string;
+  currentPrice: number;
+  supply: number;
+  demand: number;
+}
+
+export interface InventoryItem {
+    name: string;
+    owned: number;
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -11,15 +36,7 @@ export interface PlayerStats {
   weaponLevel: number;
   shieldLevel: number;
   fleetSize: number;
-}
-
-export interface Item {
-  name: string;
-  currentPrice: number;
-  supply: number;
-  demand: number;
-  cargoSpace: number;
-  owned: number;
+  pirateRisk: number;
 }
 
 export interface PriceHistory {
@@ -40,12 +57,15 @@ export interface Pirate {
   scanResult?: string;
 }
 
+export type SystemEconomy = 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';
+
 export interface System {
   name: string;
   x: number;
   y: number;
   security: 'High' | 'Medium' | 'Low' | 'Anarchy';
-  economy: 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';
+  economy: SystemEconomy;
+  volatility: number;
 }
 
 export interface Route {
@@ -63,7 +83,8 @@ export interface Quest {
 
 export interface GameState {
   playerStats: PlayerStats;
-  items: Item[];
+  inventory: InventoryItem[];
+  marketItems: MarketItem[];
   priceHistory: PriceHistory;
   leaderboard: LeaderboardEntry[];
   pirateEncounter: Pirate | null;

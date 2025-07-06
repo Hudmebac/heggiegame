@@ -1,8 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
+import { STATIC_ITEMS } from '@/lib/items';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,11 +13,11 @@ import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recyc
 import PirateEncounter from './pirate-encounter';
 
 const systems: System[] = [
-    { name: 'Sol', x: 20, y: 30, security: 'High', economy: 'Industrial' },
-    { name: 'Kepler-186f', x: 45, y: 65, security: 'Medium', economy: 'Agricultural' },
-    { name: 'Sirius', x: 75, y: 25, security: 'High', economy: 'High-Tech' },
-    { name: 'Proxima Centauri', x: 80, y: 80, security: 'Low', economy: 'Extraction' },
-    { name: 'TRAPPIST-1', x: 5, y: 85, security: 'Anarchy', economy: 'Refinery' },
+    { name: 'Sol', x: 20, y: 30, security: 'High', economy: 'Industrial', volatility: 0.1 },
+    { name: 'Kepler-186f', x: 45, y: 65, security: 'Medium', economy: 'Agricultural', volatility: 0.3 },
+    { name: 'Sirius', x: 75, y: 25, security: 'High', economy: 'High-Tech', volatility: 0.2 },
+    { name: 'Proxima Centauri', x: 80, y: 80, security: 'Low', economy: 'Extraction', volatility: 0.5 },
+    { name: 'TRAPPIST-1', x: 5, y: 85, security: 'Anarchy', economy: 'Refinery', volatility: 0.8 },
 ];
 
 const routes: Route[] = [
@@ -63,6 +64,30 @@ const economyIcons: Record<System['economy'], React.ReactNode> = {
     'Refinery': <Recycle className="h-4 w-4"/>,
 };
 
+const ECONOMY_MULTIPLIERS: Record<ItemCategory, Record<SystemEconomy, number>> = {
+    'Biological':   { 'Agricultural': 0.7, 'High-Tech': 1.2, 'Industrial': 1.3, 'Extraction': 1.1, 'Refinery': 1.2 },
+    'Industrial':   { 'Agricultural': 1.3, 'High-Tech': 1.1, 'Industrial': 0.7, 'Extraction': 1.2, 'Refinery': 0.8 },
+    'Pleasure':     { 'Agricultural': 1.1, 'High-Tech': 1.2, 'Industrial': 1.1, 'Extraction': 1.0, 'Refinery': 1.0 },
+    'Food':         { 'Agricultural': 0.6, 'High-Tech': 1.2, 'Industrial': 1.3, 'Extraction': 1.4, 'Refinery': 1.2 },
+    'Military':     { 'Agricultural': 1.4, 'High-Tech': 1.1, 'Industrial': 1.2, 'Extraction': 1.0, 'Refinery': 1.0 },
+    'Technology':   { 'Agricultural': 1.3, 'High-Tech': 0.7, 'Industrial': 1.1, 'Extraction': 1.2, 'Refinery': 1.2 },
+    'Minerals':     { 'Agricultural': 1.2, 'High-Tech': 1.1, 'Industrial': 0.9, 'Extraction': 0.7, 'Refinery': 0.8 },
+    'Illegal':      { 'Agricultural': 1.1, 'High-Tech': 1.2, 'Industrial': 1.0, 'Extraction': 1.3, 'Refinery': 1.4 },
+};
+
+function calculatePrice(basePrice: number, supply: number, demand: number, economyMultiplier: number): number {
+    const demandFactor = demand / supply;
+    const price = basePrice * economyMultiplier * Math.pow(demandFactor, 0.5);
+    return Math.round(price);
+}
+
+function calculateCurrentCargo(inventory: InventoryItem[]): number {
+    return inventory.reduce((acc, item) => {
+        const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
+        return acc + (staticItem ? staticItem.cargoSpace * item.owned : 0);
+    }, 0);
+}
+
 
 function generateRandomPirate(): Pirate {
     return {
@@ -72,61 +97,24 @@ function generateRandomPirate(): Pirate {
     }
 }
 
-const initialGameState: GameState = {
+const initialGameState: Omit<GameState, 'marketItems'> = {
   playerStats: {
     name: 'You',
     bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
     netWorth: 10000,
-    fuel: 80,
+    fuel: 100,
     maxFuel: 100,
-    cargo: 10,
+    cargo: 0,
     maxCargo: 50,
     insurance: true,
     avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
     weaponLevel: 1,
     shieldLevel: 1,
     fleetSize: 1,
+    pirateRisk: 0,
   },
-  items: [
-    { name: 'Quantum Processors', currentPrice: 1200, supply: 50, demand: 80, cargoSpace: 2, owned: 5 },
-    { name: 'Cryo-Gas', currentPrice: 350, supply: 200, demand: 150, cargoSpace: 5, owned: 0 },
-    { name: 'Asteroid Minerals', currentPrice: 80, supply: 1000, demand: 800, cargoSpace: 10, owned: 0 },
-    { name: 'Bioluminescent Fungi', currentPrice: 550, supply: 100, demand: 120, cargoSpace: 3, owned: 0 },
-    { name: 'Zero-Point Energy Cells', currentPrice: 5000, supply: 10, demand: 25, cargoSpace: 1, owned: 0 },
-    { name: 'Refined He-3 Isotope', currentPrice: 800, supply: 150, demand: 100, cargoSpace: 4, owned: 0 },
-    { name: 'Xenocrystal Shards', currentPrice: 2500, supply: 30, demand: 50, cargoSpace: 1, owned: 0 },
-    { name: 'Gene-Spliced Kava Root', currentPrice: 200, supply: 500, demand: 400, cargoSpace: 2, owned: 0 },
-    { name: 'Mycelial Network Spores', currentPrice: 1800, supply: 60, demand: 40, cargoSpace: 0.5, owned: 0 },
-    { name: 'Graviton Emitters', currentPrice: 7500, supply: 5, demand: 15, cargoSpace: 3, owned: 0 },
-    { name: 'Void Opals', currentPrice: 10000, supply: 8, demand: 12, cargoSpace: 0.2, owned: 0 },
-    { name: 'Decommissioned Ship Parts', currentPrice: 450, supply: 80, demand: 120, cargoSpace: 20, owned: 0 },
-    { name: 'Sentient AI Cores', currentPrice: 50000, supply: 2, demand: 5, cargoSpace: 2, owned: 0 },
-    { name: 'Stellar Flares (Data)', currentPrice: 3200, supply: 25, demand: 35, cargoSpace: 0.1, owned: 0 },
-    { name: 'Medical Nanites', currentPrice: 2200, supply: 70, demand: 90, cargoSpace: 0.5, owned: 0 },
-    { name: 'Terraforming Agents', currentPrice: 4000, supply: 15, demand: 20, cargoSpace: 8, owned: 0 },
-    { name: 'Luxury Spices', currentPrice: 900, supply: 300, demand: 350, cargoSpace: 1, owned: 0 },
-    { name: 'Illegal Cybernetics', currentPrice: 6500, supply: 12, demand: 30, cargoSpace: 2, owned: 0 },
-  ],
-  priceHistory: {
-    'Quantum Processors': [1200],
-    'Cryo-Gas': [350],
-    'Asteroid Minerals': [80],
-    'Bioluminescent Fungi': [550],
-    'Zero-Point Energy Cells': [5000],
-    'Refined He-3 Isotope': [800],
-    'Xenocrystal Shards': [2500],
-    'Gene-Spliced Kava Root': [200],
-    'Mycelial Network Spores': [1800],
-    'Graviton Emitters': [7500],
-    'Void Opals': [10000],
-    'Decommissioned Ship Parts': [450],
-    'Sentient AI Cores': [50000],
-    'Stellar Flares (Data)': [3200],
-    'Medical Nanites': [2200],
-    'Terraforming Agents': [4000],
-    'Luxury Spices': [900],
-    'Illegal Cybernetics': [6500],
-  },
+  inventory: [{ name: 'Quantum Filament Spools', owned: 5 }],
+  priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
   leaderboard: [
     { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1 },
   ],
@@ -149,7 +137,7 @@ interface GameContextType {
   chartItem: string;
   setChartItem: (item: string) => void;
   handleTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
-  handleInitiateTrade: (item: Item, type: 'buy' | 'sell') => void;
+  handleInitiateTrade: (itemName: string, type: 'buy' | 'sell') => void;
   handleSimulateMarket: () => void;
   handlePirateAction: (action: 'fight' | 'evade' | 'bribe' | 'scan') => void;
   handleGenerateAvatar: (description: string) => void;
@@ -184,71 +172,96 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [isGeneratingBio, startBioGenerationTransition] = useTransition();
   const [isGeneratingQuests, startQuestGenerationTransition] = useTransition();
   const [isScanning, startScanTransition] = useTransition();
-  const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
+  const [chartItem, setChartItem] = useState<string>(STATIC_ITEMS[0].name);
   const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
-  const [tradeDetails, setTradeDetails] = useState<{ item: Item, type: 'buy' | 'sell' } | null>(null);
+  const [tradeDetails, setTradeDetails] = useState<{ item: MarketItem, type: 'buy' | 'sell' } | null>(null);
   const [travelDestination, setTravelDestination] = useState<System | null>(null);
+  
+  const calculateMarketDataForSystem = (system: System): MarketItem[] => {
+        return STATIC_ITEMS.map(staticItem => {
+            const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][system.economy];
+            const supply = Math.round(100 / economyMultiplier);
+            const demand = Math.round(100 * economyMultiplier);
+            const currentPrice = calculatePrice(staticItem.basePrice, supply, demand, economyMultiplier);
+            return {
+                name: staticItem.name,
+                currentPrice,
+                supply,
+                demand,
+            };
+        });
+    };
 
   useEffect(() => {
     setIsClient(true);
     const loadGame = async () => {
         try {
-            const savedState = localStorage.getItem('heggieGameState');
-            if (savedState) {
-                const parsedState = JSON.parse(savedState);
-                if (parsedState.playerStats && parsedState.items) {
-                    const mergedState = {
-                        ...initialGameState,
-                        ...parsedState,
-                        quests: parsedState.quests || [],
+            const savedStateJSON = localStorage.getItem('heggieGameState');
+            if (savedStateJSON) {
+                const savedState = JSON.parse(savedStateJSON);
+                if (savedState.playerStats && savedState.inventory && savedState.marketItems) {
+                     setGameState({
+                        ...savedState,
                         playerStats: {
                             ...initialGameState.playerStats,
-                            ...parsedState.playerStats,
+                            ...savedState.playerStats,
+                            cargo: calculateCurrentCargo(savedState.inventory),
                         },
-                        systems: initialGameState.systems,
-                        routes: initialGameState.routes,
-                    };
-                    setGameState(mergedState);
-                    setChartItem(mergedState.items[0]?.name || initialGameState.items[0].name);
-                } else {
-                    // Saved state is malformed, start a new game.
-                    throw new Error("Malformed saved state.");
+                    });
+                    setChartItem(savedState.marketItems[0]?.name || STATIC_ITEMS[0].name);
+                    return;
                 }
-            } else {
-                // New game initialization
-                const [tradersResult, questsResult] = await Promise.all([
-                    runTraderGeneration(),
-                    runQuestGeneration()
-                ]);
-
-                const newLeaderboard: Omit<LeaderboardEntry, 'rank'>[] = tradersResult.traders.map(t => ({
-                    trader: t.name,
-                    netWorth: t.netWorth,
-                    fleetSize: t.fleetSize,
-                }));
-
-                newLeaderboard.push({
-                    trader: 'You',
-                    netWorth: initialGameState.playerStats.netWorth,
-                    fleetSize: initialGameState.playerStats.fleetSize
-                });
-                
-                const sortedLeaderboard = newLeaderboard
-                    .sort((a, b) => b.netWorth - a.netWorth)
-                    .map((entry, index) => ({ ...entry, rank: index + 1 }));
-
-                const newGameState = {
-                    ...initialGameState,
-                    leaderboard: sortedLeaderboard,
-                    quests: questsResult.quests,
-                };
-                setGameState(newGameState);
-                toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
             }
+
+            // New game initialization
+            const [tradersResult, questsResult] = await Promise.all([
+                runTraderGeneration(),
+                runQuestGeneration()
+            ]);
+
+            const newLeaderboard: Omit<LeaderboardEntry, 'rank'>[] = tradersResult.traders.map(t => ({
+                trader: t.name,
+                netWorth: t.netWorth,
+                fleetSize: t.fleetSize,
+            }));
+
+            const playerStats = {
+                ...initialGameState.playerStats,
+                cargo: calculateCurrentCargo(initialGameState.inventory)
+            };
+            
+            newLeaderboard.push({
+                trader: 'You',
+                netWorth: playerStats.netWorth,
+                fleetSize: playerStats.fleetSize
+            });
+            
+            const sortedLeaderboard = newLeaderboard
+                .sort((a, b) => b.netWorth - a.netWorth)
+                .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+            const currentSystem = initialGameState.systems.find(s => s.name === initialGameState.currentSystem)!;
+            const marketItems = calculateMarketDataForSystem(currentSystem);
+
+            const newGameState: GameState = {
+                ...initialGameState,
+                playerStats,
+                marketItems,
+                leaderboard: sortedLeaderboard,
+                quests: questsResult.quests,
+            };
+            
+            setGameState(newGameState);
+            setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
+            toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
+
         } catch (error) {
             console.error("Failed to load or initialize game state:", error);
-            // Fallback to a default state, even if AI calls fail
-            setGameState(initialGameState);
+            // Fallback to a default state
+            const currentSystem = initialGameState.systems.find(s => s.name === initialGameState.currentSystem)!;
+            const marketItems = calculateMarketDataForSystem(currentSystem);
+            const playerStats = {...initialGameState.playerStats, cargo: calculateCurrentCargo(initialGameState.inventory)};
+            setGameState({...initialGameState, playerStats, marketItems });
             toast({ variant: "destructive", title: "Initialization Failed", description: "Could not connect to game services. Using default state." });
         }
     };
@@ -281,16 +294,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
     setGameState(prev => {
       if (!prev) return null;
-      const item = prev.items.find(i => i.name === itemName);
-      if (!item) return prev;
+      
+      const marketItem = prev.marketItems.find(i => i.name === itemName);
+      const staticItemData = STATIC_ITEMS.find(i => i.name === itemName);
+      if (!marketItem || !staticItemData) return prev;
 
       const newPlayerStats = { ...prev.playerStats };
-      const newItems = [...prev.items];
-      const itemIndex = newItems.findIndex(i => i.name === itemName);
-      const updatedItem = { ...item };
+      const newInventory = [...prev.inventory];
+      const inventoryItemIndex = newInventory.findIndex(i => i.name === itemName);
+      let inventoryItem = newInventory[inventoryItemIndex];
 
-      const totalCost = item.currentPrice * amount;
-      const totalCargo = item.cargoSpace * amount;
+      const totalCost = marketItem.currentPrice * amount;
+      const totalCargo = staticItemData.cargoSpace * amount;
 
       if (type === 'buy') {
         if (newPlayerStats.netWorth < totalCost) {
@@ -302,53 +317,81 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return prev;
         }
         newPlayerStats.netWorth -= totalCost;
-        newPlayerStats.cargo += totalCargo;
-        updatedItem.owned += amount;
+
+        if (inventoryItem) {
+            newInventory[inventoryItemIndex] = { ...inventoryItem, owned: inventoryItem.owned + amount };
+        } else {
+            newInventory.push({ name: itemName, owned: amount });
+        }
+
+        if (staticItemData.rarity === 'Rare' || staticItemData.rarity === 'Ultra Rare') {
+            const riskIncrease = staticItemData.rarity === 'Ultra Rare' ? 0.05 : 0.02;
+            newPlayerStats.pirateRisk = Math.min(newPlayerStats.pirateRisk + riskIncrease, 0.5);
+        }
+
       } else { // sell
-        if (item.owned < amount) {
+        if (!inventoryItem || inventoryItem.owned < amount) {
           toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough items to sell." });
           return prev;
         }
         newPlayerStats.netWorth += totalCost;
-        newPlayerStats.cargo -= totalCargo;
-        updatedItem.owned -= amount;
+        newInventory[inventoryItemIndex] = { ...inventoryItem, owned: inventoryItem.owned - amount };
       }
+      
+      const updatedInventory = newInventory.filter(item => item.owned > 0);
+      newPlayerStats.cargo = calculateCurrentCargo(updatedInventory);
 
-      newItems[itemIndex] = updatedItem;
-      return { ...prev, playerStats: newPlayerStats, items: newItems };
+      return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory };
     });
   };
 
-  const handleInitiateTrade = (item: Item, type: 'buy' | 'sell') => {
-    setTradeDetails({ item, type });
+  const handleInitiateTrade = (itemName: string, type: 'buy' | 'sell') => {
+    if(!gameState) return;
+    const item = gameState.marketItems.find(i => i.name === itemName);
+    if (item) {
+        setTradeDetails({ item, type });
+    }
   };
 
   const handleSimulateMarket = () => {
     if (!gameState) return;
+    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    if (!currentSystem) return;
+
     startSimulationTransition(async () => {
       try {
         const eventResult = await runEventGeneration();
         const eventDescription = eventResult.eventDescription;
 
         const input = {
-          items: gameState.items.map(({ name, currentPrice, supply, demand }) => ({ name, currentPrice, supply, demand })),
+          items: gameState.marketItems,
+          systemEconomy: currentSystem.economy,
+          systemVolatility: currentSystem.volatility,
           eventDescription,
         };
 
         const result = await runMarketSimulation(input);
+
         setGameState(prev => {
           if (!prev) return null;
-          const newItems = [...prev.items];
+
+          const newMarketItems: MarketItem[] = [...prev.marketItems];
           const newPriceHistory: PriceHistory = { ...prev.priceHistory };
 
           result.forEach(update => {
-            const itemIndex = newItems.findIndex(i => i.name === update.name);
+            const itemIndex = newMarketItems.findIndex(i => i.name === update.name);
             if (itemIndex !== -1) {
-              newItems[itemIndex].currentPrice = update.newPrice;
+              const staticItem = STATIC_ITEMS.find(si => si.name === update.name)!;
+              const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][currentSystem.economy];
+              
+              newMarketItems[itemIndex].supply = update.newSupply;
+              newMarketItems[itemIndex].demand = update.newDemand;
+              newMarketItems[itemIndex].currentPrice = calculatePrice(staticItem.basePrice, update.newSupply, update.newDemand, economyMultiplier);
+
               if (newPriceHistory[update.name]) {
-                newPriceHistory[update.name] = [...newPriceHistory[update.name], update.newPrice].slice(-20);
+                newPriceHistory[update.name] = [...newPriceHistory[update.name], newMarketItems[itemIndex].currentPrice].slice(-20);
               } else {
-                newPriceHistory[update.name] = [update.newPrice];
+                newPriceHistory[update.name] = [newMarketItems[itemIndex].currentPrice];
               }
             }
           });
@@ -362,7 +405,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               return entry;
           });
 
-          return { ...prev, items: newItems, priceHistory: newPriceHistory, leaderboard: newLeaderboard };
+          return { ...prev, marketItems: newMarketItems, priceHistory: newPriceHistory, leaderboard: newLeaderboard };
         });
         toast({ title: "Galactic News Flash!", description: `${eventDescription} The leaderboard has been updated.` });
       } catch (error) {
@@ -416,8 +459,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 if (!prev) return null;
                 const newPlayerStats = { ...prev.playerStats };
                 newPlayerStats.netWorth -= result.creditsLost;
-                newPlayerStats.cargo -= result.cargoLost;
-                if (newPlayerStats.cargo < 0) newPlayerStats.cargo = 0;
+                // Cargo loss is complex, would need to randomly select from inventory.
+                // For now, we simulate a flat cargo value loss.
+                const cargoLostValue = result.cargoLost; // This is abstract now.
+                newPlayerStats.pirateRisk = 0; // Encounter resolved, risk reset.
+
                 return { ...prev, playerStats: newPlayerStats };
             });
 
@@ -533,60 +579,52 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setTravelDestination(null);
 
       startSimulationTransition(async () => {
-        const stateBeforeTravel = gameState;
         
-        let encounterChance = 0;
+        let baseEncounterChance = 0;
         switch (travelDestination.security) {
-            case 'Anarchy': encounterChance = 0.5; break;
-            case 'Low': encounterChance = 0.3; break;
-            case 'Medium': encounterChance = 0.1; break;
-            case 'High': encounterChance = 0.0; break;
+            case 'Anarchy': baseEncounterChance = 0.4; break;
+            case 'Low': baseEncounterChance = 0.2; break;
+            case 'Medium': baseEncounterChance = 0.05; break;
+            case 'High': baseEncounterChance = 0.0; break;
         }
 
-        const travelledState: GameState = {
-            ...stateBeforeTravel,
-            playerStats: {
-                ...stateBeforeTravel.playerStats,
-                fuel: stateBeforeTravel.playerStats.fuel - fuelCost,
-            },
-            currentSystem: travelDestination.name,
-            pirateEncounter: Math.random() < encounterChance ? generateRandomPirate() : null,
-        };
+        const totalEncounterChance = baseEncounterChance + gameState.playerStats.pirateRisk;
+        const pirateEncounter = Math.random() < totalEncounterChance ? generateRandomPirate() : null;
 
-        const marketInput = {
-            items: travelledState.items.map(({ name, currentPrice, supply, demand }) => ({ name, currentPrice, supply, demand })),
-            eventDescription: `You've arrived at ${travelDestination.name}. The local market is buzzing with new opportunities.`,
-        };
+        const newMarketItems = calculateMarketDataForSystem(travelDestination);
+        
+        setGameState(prev => {
+          if (!prev) return null;
+          
+          const newPlayerStats = {
+              ...prev.playerStats,
+              fuel: prev.playerStats.fuel - fuelCost,
+              pirateRisk: pirateEncounter ? prev.playerStats.pirateRisk : Math.max(0, prev.playerStats.pirateRisk - 0.05) // Decay risk if no encounter
+          };
 
-        try {
-            const marketResult = await runMarketSimulation(marketInput);
-            const newItems = [...travelledState.items];
-            const newPriceHistory: PriceHistory = { ...travelledState.priceHistory };
+          const newPriceHistory = { ...prev.priceHistory };
+          newMarketItems.forEach(item => {
+              if (newPriceHistory[item.name]) {
+                  newPriceHistory[item.name] = [...newPriceHistory[item.name], item.currentPrice].slice(-20);
+              } else {
+                  newPriceHistory[item.name] = [item.currentPrice];
+              }
+          });
 
-            marketResult.forEach(update => {
-                const itemIndex = newItems.findIndex(i => i.name === update.name);
-                if (itemIndex !== -1) {
-                    newItems[itemIndex].currentPrice = update.newPrice;
-                    if (newPriceHistory[update.name]) {
-                        newPriceHistory[update.name] = [...newPriceHistory[update.name], update.newPrice].slice(-20);
-                    } else {
-                        newPriceHistory[update.name] = [update.newPrice];
-                    }
-                }
-            });
+          return {
+              ...prev,
+              playerStats: newPlayerStats,
+              currentSystem: travelDestination.name,
+              pirateEncounter,
+              marketItems: newMarketItems,
+              priceHistory: newPriceHistory,
+          }
+        });
 
-            setGameState({ ...travelledState, items: newItems, priceHistory: newPriceHistory });
-            toast({
-                title: "Arrival",
-                description: `You have arrived at the ${travelDestination.name} system. Your journey consumed ${fuelCost} fuel units.`
-            });
-
-        } catch (error) {
-            setGameState(travelledState);
-            console.error(error);
-            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            toast({ variant: "destructive", title: "Market Update Failed", description: errorMessage });
-        }
+        toast({
+            title: "Arrival",
+            description: `You have arrived at the ${travelDestination.name} system. Your journey consumed ${fuelCost} fuel units.`
+        });
       });
   };
 
@@ -739,7 +777,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     <div className="text-sm space-y-2">
                         <p><strong>Outcome:</strong> <span className="font-mono">{encounterResult.outcome.replace('_', ' ')}</span></p>
                         <p><strong>Credits Lost:</strong> <span className="font-mono text-amber-400">{encounterResult.creditsLost} ¢</span></p>
-                        <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} t</span></p>
+                        <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} (value)</span></p>
                         <p><strong>Ship Damage:</strong> <span className="font-mono text-destructive">{encounterResult.damageTaken}</span></p>
                     </div>
                     <AlertDialogFooter>
@@ -805,6 +843,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 item={tradeDetails?.item ?? null}
                 tradeType={tradeDetails?.type ?? 'buy'}
                 playerStats={gameState.playerStats}
+                inventory={gameState.inventory}
                 onTrade={handleTrade}
             />
         </>}

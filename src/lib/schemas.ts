@@ -1,17 +1,17 @@
 import { z } from 'zod';
 
 // Schemas for simulate-market-prices
+export const MarketItemSchema = z.object({
+  name: z.string().describe('The name of the item.'),
+  currentPrice: z.number().describe('The current price of the item.'),
+  supply: z.number().describe('The current supply of the item.'),
+  demand: z.number().describe('The current demand for the item.'),
+});
+
 export const SimulateMarketPricesInputSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        name: z.string().describe('The name of the item.'),
-        currentPrice: z.number().describe('The current price of the item.'),
-        supply: z.number().describe('The current supply of the item.'),
-        demand: z.number().describe('The current demand for the item.'),
-      })
-    )
-    .describe('An array of items with their current prices, supply, and demand.'),
+  items: z.array(MarketItemSchema).describe('An array of items with their current market data.'),
+  systemEconomy: z.string().describe('The primary economy of the current system (e.g., Industrial, Agricultural).'),
+  systemVolatility: z.number().describe('A factor (0-1) representing the market volatility of the system.'),
   eventDescription: z
     .string()
     .optional()
@@ -22,8 +22,9 @@ export type SimulateMarketPricesInput = z.infer<typeof SimulateMarketPricesInput
 export const SimulateMarketPricesOutputSchema = z.array(
   z.object({
     name: z.string().describe('The name of the item.'),
-    newPrice: z.number().describe('The new simulated price of the item.'),
-    reasoning: z.string().describe('The reasoning behind the price change.'),
+    newSupply: z.number().describe('The new simulated supply level for the item.'),
+    newDemand: z.number().describe('The new simulated demand level for the item.'),
+    reasoning: z.string().describe('The reasoning behind the supply/demand change.'),
   })
 );
 export type SimulateMarketPricesOutput = z.infer<typeof SimulateMarketPricesOutputSchema>;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Item } from '@/lib/types';
+import type { MarketItem, InventoryItem } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -9,24 +9,37 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Coins, Package, Search } from 'lucide-
 import { Input } from '@/components/ui/input';
 
 interface TradingInterfaceProps {
-  items: Item[];
-  onInitiateTrade: (item: Item, type: 'buy' | 'sell') => void;
+  marketItems: MarketItem[];
+  inventory: InventoryItem[];
+  onInitiateTrade: (item: MarketItem, type: 'buy' | 'sell') => void;
 }
 
-type SortKey = keyof Item | 'value';
+interface DisplayItem extends MarketItem {
+    owned: number;
+}
 
-export default function TradingInterface({ items, onInitiateTrade }: TradingInterfaceProps) {
+type SortKey = keyof DisplayItem;
+
+export default function TradingInterface({ marketItems, inventory, onInitiateTrade }: TradingInterfaceProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredItems = items.filter(item =>
+  const displayItems: DisplayItem[] = marketItems.map(marketItem => {
+    const inventoryItem = inventory.find(i => i.name === marketItem.name);
+    return {
+      ...marketItem,
+      owned: inventoryItem ? inventoryItem.owned : 0,
+    };
+  });
+
+  const filteredItems = displayItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sortedItems = [...filteredItems].sort((a, b) => {
-    const aValue = sortKey === 'value' ? a.currentPrice * a.cargoSpace : a[sortKey];
-    const bValue = sortKey === 'value' ? b.currentPrice * b.cargoSpace : b[sortKey];
+    const aValue = a[sortKey];
+    const bValue = b[sortKey];
 
     if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
