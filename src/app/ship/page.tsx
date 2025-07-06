@@ -1,9 +1,10 @@
+
 'use client';
 
-import ShipManagement from "../components/ship-management";
+import FleetManagement from "../components/fleet-management";
 
 export default function ShipPage() {
     return (
-        <ShipManagement />
+        <FleetManagement />
     )
 }

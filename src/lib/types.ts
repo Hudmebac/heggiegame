@@ -1,4 +1,5 @@
 
+
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
@@ -38,26 +39,44 @@ export interface BarContract {
   partners: BarPartner[];
 }
 
-export interface PlayerStats {
+export interface PlayerShip {
+  instanceId: number;
+  shipId: string;
   name: string;
-  bio: string;
-  netWorth: number;
-  fuel: number;
-  maxFuel: number;
-  cargo: number;
-  maxCargo: number;
-  insurance: boolean;
-  avatarUrl: string;
   weaponLevel: number;
   shieldLevel: number;
   hullLevel: number;
   fuelLevel: number;
   sensorLevel: number;
-  fleetSize: number;
+  cargoLevel: number;
+}
+
+export interface PlayerStats {
+  name: string;
+  bio: string;
+  netWorth: number;
+  insurance: boolean;
+  avatarUrl: string;
   pirateRisk: number;
+  reputation: number;
+
+  fleet: PlayerShip[];
+
+  // Stats of the ACTIVE ship (from fleet[0])
+  fuel: number;
+  maxFuel: number;
+  cargo: number;
+  maxCargo: number;
   shipHealth: number;
   maxShipHealth: number;
-  reputation: number;
+  weaponLevel: number;
+  shieldLevel: number;
+  hullLevel: number;
+  fuelLevel: number;
+  sensorLevel: number;
+  cargoLevel: number;
+
+  // Business stats
   barLevel: number;
   autoClickerBots: number;
   establishmentLevel: number;
@@ -175,6 +194,7 @@ export interface EncounterResult {
 }
 
 export interface CargoUpgrade {
+  level: number;
   capacity: number;
   cost: number;
 }
@@ -224,9 +244,9 @@ export interface ShipForSale {
   description: string;
   cost: number;
   crewCapacity: number;
-  cargo: number;
-  fuel: number;
-  health: number;
+  baseCargo: number;
+  baseFuel: number;
+  baseHealth: number;
   defenseRating: number;
   speedRating: number;
   shieldEmitterSlots: number;

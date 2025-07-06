@@ -111,8 +111,8 @@ export default function CaptainPage() {
                             <span className="font-mono text-primary">#{leaderboardRank}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Prestige Score</span>
-                            <span className="font-mono text-primary">{(playerStats.netWorth / 1000).toFixed(0)}</span>
+                            <span className="text-muted-foreground">Fleet Size</span>
+                            <span className="font-mono text-primary">{playerStats.fleet.length}</span>
                         </div>
                     </CardContent>
                 </Card>
