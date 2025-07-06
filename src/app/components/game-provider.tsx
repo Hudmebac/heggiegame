@@ -115,7 +115,7 @@ interface GameContextType {
   handleSimulateMarket: () => void;
   handlePirateAction: (action: 'fight' | 'evade' | 'bribe' | 'scan') => void;
   handleGenerateAvatar: (description: string) => void;
-  handleGenerateBio: () => void;
+  handleGenerateBio: (name?: string) => void;
   handleGenerateQuests: () => void;
   setPlayerName: (name: string) => void;
   handleInitiateTravel: (systemName: string) => void;
@@ -370,11 +370,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const handleGenerateBio = () => {
+  const handleGenerateBio = (name?: string) => {
     if (!gameState) return;
+    const captainName = name || gameState.playerStats.name;
     startBioGenerationTransition(async () => {
         try {
-            const result = await runBioGeneration({ name: gameState.playerStats.name });
+            const result = await runBioGeneration({ name: captainName });
             setGameState(prev => {
               if (!prev) return null;
               return {
