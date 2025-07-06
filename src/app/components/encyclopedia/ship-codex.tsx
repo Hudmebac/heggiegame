@@ -55,7 +55,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="/s-class-shuttle-blueprint.png"
+                            src="https://placehold.co/956x669.png"
                             alt="S-Class Shuttle Blueprint"
                             width={956}
                             height={669}
