@@ -9,6 +9,7 @@ import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
+import { barThemes } from '@/lib/bar-themes';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -102,12 +103,11 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     pirateRisk: 0,
     reputation: 0,
     barLevel: 1,
+    autoClickerBots: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
-  leaderboard: [
-    { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1, bio: 'A new captain on the star-lanes.' },
-  ],
+  leaderboard: [],
   pirateEncounter: null,
   systems: SYSTEMS,
   routes: ROUTES,
@@ -147,6 +147,7 @@ interface GameContextType {
   updateTraderBio: (traderName: string, bio: string) => void;
   handleBarClick: (income: number) => void;
   handleUpgradeBar: () => void;
+  handleUpgradeAutoClicker: () => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -255,15 +256,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
             savedState = null;
         }
 
-        if (savedState && savedState.playerStats) {
-            const currentSystem = SYSTEMS.find(s => s.name === savedState.currentSystem) || SYSTEMS[0];
-            const marketItems = calculateMarketDataForSystem(currentSystem);
+        const currentSystem = SYSTEMS.find(s => s.name === (savedState?.currentSystem || initialGameState.currentSystem)) || SYSTEMS[0];
+        const marketItems = calculateMarketDataForSystem(currentSystem);
 
+        if (savedState && savedState.playerStats) {
             setGameState({
                 ...initialGameState,
                 ...savedState,
                 marketItems,
-                systems: SYSTEMS,
+                systems: SYSTEMS, 
                 routes: ROUTES,
             });
         } else {
@@ -271,42 +272,35 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 runTraderGeneration(),
                 runQuestGeneration()
             ]);
-
-            const newLeaderboard: Omit<LeaderboardEntry, 'rank' | 'bio'>[] = tradersResult.traders.map(t => ({
-                trader: t.name,
-                netWorth: t.netWorth,
-                fleetSize: t.fleetSize,
-            }));
             
-             // Add player to the leaderboard
-            newLeaderboard.push({
-                trader: 'You',
+            const newLeaderboardWithBios = tradersResult.traders.map(trader => ({
+                trader: trader.name,
+                netWorth: trader.netWorth,
+                fleetSize: trader.fleetSize,
+                bio: trader.bio,
+            }));
+
+            const playerEntry = {
+                trader: initialGameState.playerStats.name,
                 netWorth: initialGameState.playerStats.netWorth,
                 fleetSize: initialGameState.playerStats.fleetSize,
-            });
+                bio: initialGameState.playerStats.bio
+            };
 
-            const sortedLeaderboard = newLeaderboard
+            const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry]
                 .sort((a, b) => b.netWorth - a.netWorth)
                 .map((entry, index) => ({ ...entry, rank: index + 1 }));
-
-            const updatedLeaderboardWithBios = sortedLeaderboard.map(entry => {
-                const traderData = tradersResult.traders.find(t => t.name === entry.trader);
-                return { ...entry, bio: traderData?.bio || '' };
-            });
 
             const playerStats = {
                 ...initialGameState.playerStats,
                 cargo: calculateCurrentCargo(initialGameState.inventory)
             };
-
-            const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem)!;
-            const marketItems = calculateMarketDataForSystem(currentSystem);
-
+            
             const newGameState: GameState = {
                 ...initialGameState,
                 playerStats,
                 marketItems,
-                leaderboard: updatedLeaderboardWithBios,
+                leaderboard: sortedLeaderboard,
                 quests: questsResult.quests,
             };
             
@@ -337,6 +331,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [gameState, isClient]);
+
+  useEffect(() => {
+    if (!gameState || gameState.playerStats.autoClickerBots === 0) {
+        return;
+    }
+
+    const intervalId = setInterval(() => {
+        setGameState(prev => {
+            if (!prev || prev.playerStats.autoClickerBots === 0) {
+                clearInterval(intervalId);
+                return prev;
+            }
+
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const zoneType = currentSystem?.zoneType;
+            const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
+            const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
+            const incomePerSecond = prev.playerStats.autoClickerBots * incomePerClick;
+
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + incomePerSecond,
+            };
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, 1000); // every second
+
+    return () => clearInterval(intervalId);
+  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel]);
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
     setGameState(prev => {
@@ -1114,6 +1138,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleUpgradeAutoClicker = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const cost = Math.round(1000 * Math.pow(1.15, prev.playerStats.autoClickerBots));
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits to buy a bot. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            autoClickerBots: prev.playerStats.autoClickerBots + 1,
+        };
+        toast({ title: "Auto-Clicker Bot Purchased!", description: "A new bot has been added to your staff." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -1154,6 +1196,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     updateTraderBio: handleUpdateTraderBio,
     handleBarClick,
     handleUpgradeBar,
+    handleUpgradeAutoClicker,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
