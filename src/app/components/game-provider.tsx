@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -131,7 +131,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     pirateRisk: 0,
     reputation: 0,
   },
-  inventory: [{ name: 'Quantum Filament Spools (Standard)', owned: 5 }],
+  inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
   leaderboard: [
     { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1 },
@@ -266,17 +266,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const savedStateJSON = localStorage.getItem('heggieGameState');
             if (savedStateJSON) {
                 const savedState = JSON.parse(savedStateJSON);
+                
                 if (savedState.playerStats && savedState.inventory && savedState.marketItems) {
-                     setGameState({
+                    const currentSystemFromSave = systems.find(s => s.name === savedState.currentSystem)!;
+                    
+                    const firstMarketItemName = savedState.marketItems[0]?.name;
+                    const isMarketDataStale = !firstMarketItemName || !STATIC_ITEMS.some(si => si.name === firstMarketItemName);
+                    
+                    const marketItems = isMarketDataStale
+                        ? calculateMarketDataForSystem(currentSystemFromSave)
+                        : savedState.marketItems;
+
+                    const validInventory = savedState.inventory.filter((item: InventoryItem) => 
+                        STATIC_ITEMS.some(si => si.name === item.name)
+                    );
+
+                    setGameState({
                         ...initialGameState,
                         ...savedState,
+                        marketItems,
+                        inventory: validInventory,
                         playerStats: {
                             ...initialGameState.playerStats,
                             ...savedState.playerStats,
-                            cargo: calculateCurrentCargo(savedState.inventory),
+                            cargo: calculateCurrentCargo(validInventory),
                         },
                     });
-                    setChartItem(savedState.marketItems[0]?.name || STATIC_ITEMS[0].name);
+                    setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
                     return;
                 }
             }
@@ -369,7 +385,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       const newPlayerStats = { ...prev.playerStats };
       const newInventory = [...prev.inventory];
-      const inventoryItemIndex = newNewInventory.findIndex(i => i.name === itemName);
+      const inventoryItemIndex = newInventory.findIndex(i => i.name === itemName);
       let inventoryItem = newInventory[inventoryItemIndex];
 
       const totalCost = marketItem.currentPrice * amount;

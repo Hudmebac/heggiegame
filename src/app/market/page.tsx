@@ -4,7 +4,7 @@ import MarketChart from '@/app/components/market-chart';
 import TradingInterface from '@/app/components/trading-interface';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import type { MarketItem } from '@/lib/types';
+import type { MarketItem, ItemGrade } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { STATIC_ITEMS } from '@/lib/items';
 import InventoryView from '@/app/components/inventory-view';
@@ -18,18 +18,23 @@ export default function MarketPage() {
   } = useGame();
 
   const [chartCategory, setChartCategory] = useState('All');
+  const [chartGrade, setChartGrade] = useState('All');
 
   if (!gameState) {
     return null;
   }
   
   const allCategories = ['All', ...Array.from(new Set(STATIC_ITEMS.map(item => item.category)))];
+  const allGrades: Array<'All' | ItemGrade> = ['All', 'Salvaged', 'Standard', 'Refined', 'Experimental', 'Quantum', 'Singularity'];
 
   const chartItems = gameState.marketItems
     .filter(item => {
-        if (chartCategory === 'All') return true;
         const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
-        return staticItem?.category === chartCategory;
+        if (!staticItem) return false;
+
+        const categoryMatch = chartCategory === 'All' || staticItem.category === chartCategory;
+        const gradeMatch = chartGrade === 'All' || staticItem.grade === chartGrade;
+        return categoryMatch && gradeMatch;
     })
     .map(i => i.name);
 
@@ -39,7 +44,7 @@ export default function MarketPage() {
     } else if (chartItems.length === 0 && chartItem) {
       setChartItem('');
     }
-  }, [chartCategory, chartItems, chartItem, setChartItem]);
+  }, [chartCategory, chartGrade, chartItems, chartItem, setChartItem]);
 
   
   return (
@@ -63,6 +68,9 @@ export default function MarketPage() {
             categories={allCategories}
             selectedCategory={chartCategory}
             onSelectCategory={setChartCategory}
+            grades={allGrades}
+            selectedGrade={chartGrade}
+            onSelectGrade={setChartGrade}
         />
     </div>
   );

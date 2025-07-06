@@ -16,6 +16,9 @@ interface MarketChartProps {
   categories: string[];
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
+  grades: string[];
+  selectedGrade: string;
+  onSelectGrade: (grade: string) => void;
 }
 
 export default function MarketChart({ 
@@ -25,7 +28,10 @@ export default function MarketChart({
   onSelectItem,
   categories,
   selectedCategory,
-  onSelectCategory
+  onSelectCategory,
+  grades,
+  selectedGrade,
+  onSelectGrade
 }: MarketChartProps) {
   const chartData = priceHistory[selectedItem]?.map((price, index) => ({
     time: index + 1,
@@ -51,8 +57,18 @@ export default function MarketChart({
                 <CardDescription>Price history for selected commodity.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
+                <Select onValueChange={onSelectGrade} value={selectedGrade}>
+                  <SelectTrigger className="w-[140px] bg-background">
+                    <SelectValue placeholder="Select Grade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map(grade => (
+                      <SelectItem key={grade} value={grade}>{grade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select onValueChange={onSelectCategory} value={selectedCategory}>
-                  <SelectTrigger className="w-[180px] bg-background">
+                  <SelectTrigger className="w-[150px] bg-background">
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -62,7 +78,7 @@ export default function MarketChart({
                   </SelectContent>
                 </Select>
                 <Select onValueChange={onSelectItem} value={selectedItem || ''} disabled={items.length === 0}>
-                  <SelectTrigger className="w-[180px] bg-background">
+                  <SelectTrigger className="w-[200px] bg-background">
                     <SelectValue placeholder="Select Item" />
                   </SelectTrigger>
                   <SelectContent>
@@ -90,7 +106,7 @@ export default function MarketChart({
           </ChartContainer>
         ) : (
           <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-            {items.length === 0 ? "No items in this category." : "Not enough data to display chart."}
+            {items.length === 0 ? "No items match your filter." : "Not enough data to display chart."}
           </div>
         )}
       </CardContent>

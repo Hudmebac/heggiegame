@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { MarketItem, InventoryItem, StaticItem, ItemCategory } from '@/lib/types';
+import type { MarketItem, InventoryItem, StaticItem, ItemCategory, ItemGrade } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -27,9 +27,10 @@ interface TradingInterfaceProps {
 interface DisplayItem extends MarketItem {
     owned: number;
     category: ItemCategory;
+    grade: ItemGrade;
 }
 
-type SortKey = keyof DisplayItem;
+type SortKey = keyof DisplayItem | 'grade';
 
 const allCategories = ['All', ...Array.from(new Set(STATIC_ITEMS.map(item => item.category)))];
 
@@ -54,6 +55,7 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
         ...marketItem,
         owned: inventoryItem ? inventoryItem.owned : 0,
         category: staticItem.category,
+        grade: staticItem.grade,
       };
     })
     .filter((item): item is DisplayItem => item !== null);
@@ -158,6 +160,7 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
                 <TableRow>
                   <SortableHeader tkey="name" label="Item Name" className="w-2/5" />
                   <SortableHeader tkey="category" label="Category" />
+                  <SortableHeader tkey="grade" label="Grade" />
                   <SortableHeader tkey="currentPrice" label="Price (¢)" />
                   <SortableHeader tkey="supply" label="Supply" />
                   <SortableHeader tkey="demand" label="Demand" />
@@ -175,6 +178,7 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
                         </button>
                     </TableCell>
                     <TableCell>{item.category}</TableCell>
+                    <TableCell>{item.grade}</TableCell>
                     <TableCell className="font-mono text-amber-300">{item.currentPrice.toLocaleString()}</TableCell>
                     <TableCell className="font-mono text-sky-300">{item.supply}</TableCell>
                     <TableCell className="font-mono text-rose-300">{item.demand}</TableCell>
