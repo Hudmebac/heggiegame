@@ -3,7 +3,7 @@ import GalaxyMap from "@/app/components/galaxy-map";
 import { useGame } from "@/app/components/game-provider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Planet as PlanetIcon, Send } from "lucide-react";
+import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon, Send } from "lucide-react";
 
 export default function GalaxyPage() {
     const { gameState, handleInitiateTravel, handlePlanetTravel } = useGame();
