@@ -10,6 +10,7 @@ export interface PlayerStats {
   avatarUrl: string;
   weaponLevel: number;
   shieldLevel: number;
+  fleetSize: number;
 }
 
 export interface Item {

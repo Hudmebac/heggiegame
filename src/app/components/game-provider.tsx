@@ -85,6 +85,7 @@ const initialGameState: GameState = {
     avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
     weaponLevel: 1,
     shieldLevel: 1,
+    fleetSize: 1,
   },
   items: [
     { name: 'Quantum Processors', currentPrice: 1200, supply: 50, demand: 80, cargoSpace: 2, owned: 5 },
@@ -229,7 +230,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 newLeaderboard.push({
                     trader: 'You',
                     netWorth: initialGameState.playerStats.netWorth,
-                    fleetSize: 1
+                    fleetSize: initialGameState.playerStats.fleetSize
                 });
                 
                 const sortedLeaderboard = newLeaderboard
@@ -261,10 +262,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const leaderboardWithPlayer = gameState.leaderboard.map(entry => {
             if (player && entry.rank === player.rank) {
-                return { ...entry, trader: gameState.playerStats.name, netWorth: gameState.playerStats.netWorth };
+                return { ...entry, trader: gameState.playerStats.name, netWorth: gameState.playerStats.netWorth, fleetSize: gameState.playerStats.fleetSize || 1 };
             }
             if(entry.trader === 'You' && !player) { // First time name change
-                 return { ...entry, trader: gameState.playerStats.name, netWorth: gameState.playerStats.netWorth };
+                 return { ...entry, trader: gameState.playerStats.name, netWorth: gameState.playerStats.netWorth, fleetSize: gameState.playerStats.fleetSize || 1 };
             }
             return entry;
         }).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({ ...entry, rank: index + 1 }));

@@ -41,7 +41,7 @@ export default function ShipManagement() {
   // Upgrade logic
   const currentCargoTierIndex = cargoUpgrades.findIndex(u => u.capacity >= stats.maxCargo);
   const nextCargoUpgrade = currentCargoTierIndex !== -1 && currentCargoTierIndex < cargoUpgrades.length - 1
-    ? cargoUpgrades[currentCargoTierIndex + 1]
+    ? cargoUpgrades[currentTierIndex + 1]
     : null;
 
   const currentWeaponTier = weaponUpgrades.find(u => u.level === stats.weaponLevel);
@@ -159,8 +159,14 @@ export default function ShipManagement() {
                     </CardTitle>
                     <CardDescription>Manage your fleet of vessels.</CardDescription>
                 </CardHeader>
-                <CardContent className="text-center">
-                    <p className="text-muted-foreground">Coming Soon</p>
+                <CardContent className="space-y-4 text-left">
+                    <div className="flex justify-between items-center">
+                        <p className="text-muted-foreground">Current Fleet Size</p>
+                        <p className="font-mono text-primary">{stats.fleetSize} {stats.fleetSize > 1 ? 'Ships' : 'Ship'}</p>
+                    </div>
+                    <Button className="w-full" disabled>
+                        Purchase New Ship (Coming Soon)
+                    </Button>
                 </CardContent>
             </Card>
         </div>
