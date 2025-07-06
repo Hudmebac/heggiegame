@@ -245,20 +245,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const savedStateJSON = localStorage.getItem('heggieGameState');
             if (savedStateJSON) {
                 const savedState = JSON.parse(savedStateJSON);
+
+                // For robustness against old save formats, remove static data
+                delete savedState.systems;
+                delete savedState.routes;
                 
-                if (savedState.playerStats && savedState.inventory && savedState.marketItems) {
+                if (savedState.playerStats && savedState.inventory) {
                     const currentSystemFromSave = SYSTEMS.find(s => s.name === savedState.currentSystem)!;
                     
-                    const firstMarketItemName = savedState.marketItems[0]?.name;
+                    const firstMarketItemName = savedState.marketItems?.[0]?.name;
                     const isMarketDataStale = !firstMarketItemName || !STATIC_ITEMS.some(si => si.name === firstMarketItemName);
                     
-                    const marketItems = isMarketDataStale
+                    const marketItems = isMarketDataStale || !savedState.marketItems
                         ? calculateMarketDataForSystem(currentSystemFromSave)
                         : savedState.marketItems;
 
                     const validInventory = savedState.inventory.filter((item: InventoryItem) => 
                         STATIC_ITEMS.some(si => si.name === item.name)
                     );
+
+                    // Validate currentPlanet
+                    const planetExists = currentSystemFromSave.planets.some(p => p.name === savedState.currentPlanet);
+                    if (!planetExists) {
+                        savedState.currentPlanet = currentSystemFromSave.planets[0].name;
+                    }
 
                     setGameState({
                         ...initialGameState,
