@@ -7,6 +7,7 @@ import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades } from '@/lib/upgrades';
+import { SYSTEMS, ROUTES } from '@/lib/systems';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,22 +15,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import TradeDialog from './trade-dialog';
 import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recycle, Info } from 'lucide-react';
 import PirateEncounter from './pirate-encounter';
-
-const systems: System[] = [
-    { name: 'Sol', x: 20, y: 30, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World' },
-    { name: 'Kepler-186f', x: 45, y: 65, security: 'Medium', economy: 'Agricultural', volatility: 0.3, zoneType: 'Frontier Outpost' },
-    { name: 'Sirius', x: 75, y: 25, security: 'High', economy: 'High-Tech', volatility: 0.2, zoneType: 'Trade Hub' },
-    { name: 'Proxima Centauri', x: 80, y: 80, security: 'Low', economy: 'Extraction', volatility: 0.5, zoneType: 'Mining Colony' },
-    { name: 'TRAPPIST-1', x: 5, y: 85, security: 'Anarchy', economy: 'Refinery', volatility: 0.8, zoneType: 'Ancient Ruins' },
-];
-
-const routes: Route[] = [
-    { from: 'Sol', to: 'Kepler-186f' },
-    { from: 'Sol', to: 'Sirius' },
-    { from: 'Kepler-186f', to: 'Proxima Centauri' },
-    { from: 'Sirius', to: 'Proxima Centauri' },
-    { from: 'Kepler-186f', to: 'TRAPPIST-1' },
-];
 
 const pirateNames = ['Dread Captain "Scar" Ironheart', 'Admiral "Voidgazer" Kael', 'Captain "Mad" Mel', 'Commander "Hex" Stryker'];
 const shipTypes = ['Marauder-class Corvette', 'Reaper-class Frigate', 'Void-reaver Battleship', 'Shadow-class Interceptor'];
@@ -119,8 +104,8 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1 },
   ],
   pirateEncounter: null,
-  systems: systems,
-  routes: routes,
+  systems: SYSTEMS,
+  routes: ROUTES,
   currentSystem: 'Sol',
   quests: [],
   crew: initialCrew,
@@ -252,7 +237,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const savedState = JSON.parse(savedStateJSON);
                 
                 if (savedState.playerStats && savedState.inventory && savedState.marketItems) {
-                    const currentSystemFromSave = systems.find(s => s.name === savedState.currentSystem)!;
+                    const currentSystemFromSave = SYSTEMS.find(s => s.name === savedState.currentSystem)!;
                     
                     const firstMarketItemName = savedState.marketItems[0]?.name;
                     const isMarketDataStale = !firstMarketItemName || !STATIC_ITEMS.some(si => si.name === firstMarketItemName);
@@ -741,7 +726,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleRepairShip = () => {
     setGameState(prev => {
         if (!prev) return null;
-        const currentSystem = systems.find(s => s.name === prev.currentSystem);
+        const currentSystem = SYSTEMS.find(s => s.name === prev.currentSystem);
         if (!currentSystem) return prev;
 
         const damageToRepair = prev.playerStats.maxShipHealth - prev.playerStats.shipHealth;

@@ -74,6 +74,12 @@ export interface System {
   economy: SystemEconomy;
   volatility: number;
   zoneType: ZoneType;
+  description: string;
+}
+
+export interface Route {
+  from: string;
+  to: string;
 }
 
 export interface Quest {
