@@ -6,6 +6,7 @@ import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGen
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades } from '@/lib/upgrades';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -33,29 +34,6 @@ const routes: Route[] = [
 const pirateNames = ['Dread Captain "Scar" Ironheart', 'Admiral "Voidgazer" Kael', 'Captain "Mad" Mel', 'Commander "Hex" Stryker'];
 const shipTypes = ['Marauder-class Corvette', 'Reaper-class Frigate', 'Void-reaver Battleship', 'Shadow-class Interceptor'];
 const threatLevels: Pirate['threatLevel'][] = ['Low', 'Medium', 'High', 'Critical'];
-
-const cargoUpgrades: CargoUpgrade[] = [
-    { capacity: 50, cost: 0 },
-    { capacity: 75, cost: 5000 },
-    { capacity: 100, cost: 12000 },
-    { capacity: 150, cost: 25000 },
-    { capacity: 225, cost: 50000 },
-    { capacity: 300, cost: 100000 },
-];
-const weaponUpgrades: WeaponUpgrade[] = [
-    { level: 1, name: 'Mk. I Laser', cost: 0 },
-    { level: 2, name: 'Mk. II Pulse Laser', cost: 10000 },
-    { level: 3, name: 'Mk. III Plasma Cannon', cost: 30000 },
-    { level: 4, name: 'Mk. IV Ion Repeater', cost: 75000 },
-    { level: 5, name: 'Mk. V Neutron Blaster', cost: 150000 },
-];
-const shieldUpgrades: ShieldUpgrade[] = [
-    { level: 1, name: 'Class-A Deflector', cost: 0 },
-    { level: 2, name: 'Class-B Field', cost: 7500 },
-    { level: 3, name: 'Class-C Barrier', cost: 20000 },
-    { level: 4, name: 'Class-D Force Field', cost: 50000 },
-    { level: 5, name: 'Class-E Aegis Shielding', cost: 120000 },
-];
 
 const securityConfig: Record<System['security'], { color: string; icon: React.ReactNode }> = {
     'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4"/> },
