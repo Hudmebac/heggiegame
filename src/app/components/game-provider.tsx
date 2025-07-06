@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import TradeDialog from './trade-dialog';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recycle } from 'lucide-react';
 import PirateEncounter from './pirate-encounter';
 
 const systems: System[] = [
@@ -47,6 +47,21 @@ const shieldUpgrades: ShieldUpgrade[] = [
     { level: 2, name: 'Class-B Field', cost: 7500 },
     { level: 3, name: 'Class-C Barrier', cost: 20000 },
 ];
+
+const securityConfig: Record<System['security'], { color: string; icon: React.ReactNode }> = {
+    'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4"/> },
+    'Medium': { color: 'text-yellow-400', icon: <ShieldCheck className="h-4 w-4"/> },
+    'Low': { color: 'text-orange-400', icon: <AlertTriangle className="h-4 w-4"/> },
+    'Anarchy': { color: 'text-destructive', icon: <AlertTriangle className="h-4 w-4"/> },
+};
+
+const economyIcons: Record<System['economy'], React.ReactNode> = {
+    'Industrial': <Factory className="h-4 w-4"/>,
+    'Agricultural': <Wheat className="h-4 w-4"/>,
+    'High-Tech': <Cpu className="h-4 w-4"/>,
+    'Extraction': <Hammer className="h-4 w-4"/>,
+    'Refinery': <Recycle className="h-4 w-4"/>,
+};
 
 
 function generateRandomPirate(): Pirate {
@@ -688,28 +703,51 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             {travelDestination && (
                 <AlertDialog open={!!travelDestination} onOpenChange={() => setTravelDestination(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Interstellar Travel</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        You are about to travel to the <span className="font-bold text-primary">{travelDestination.name}</span> system.
-                    </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="text-sm space-y-2">
-                        <p><strong>Destination:</strong> <span className="font-mono">{travelDestination.name}</span></p>
-                        <p><strong>Estimated Fuel Cost:</strong> <span className="font-mono text-amber-400">{travelFuelCost} SU</span></p>
-                        <p className={gameState.playerStats.fuel - travelFuelCost < 0 ? 'text-destructive' : ''}>
-                        <strong>Remaining Fuel:</strong> <span className="font-mono">{gameState.playerStats.fuel - travelFuelCost} SU</span>
-                        </p>
-                    </div>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirmTravel} disabled={isSimulating || gameState.playerStats.fuel < travelFuelCost}>
-                        {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Engage Warp Drive
-                    </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Interstellar Travel</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You are about to travel to the <span className="font-bold text-primary">{travelDestination.name}</span> system. This will consume fuel and may attract unwanted attention.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="text-sm space-y-3 rounded-md border border-border/50 p-4 bg-card/50">
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Destination</span>
+                                <span className="font-mono text-primary">{travelDestination.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                               <span className="text-muted-foreground">Security</span>
+                               <span className={`font-mono flex items-center gap-1.5 ${securityConfig[travelDestination.security].color}`}>
+                                    {securityConfig[travelDestination.security].icon}
+                                    {travelDestination.security}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                               <span className="text-muted-foreground">Economy</span>
+                               <span className="font-mono flex items-center gap-1.5 text-primary">
+                                    {economyIcons[travelDestination.economy]}
+                                    {travelDestination.economy}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Estimated Fuel Cost</span>
+                                <span className="font-mono text-amber-400">{travelFuelCost} SU</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Remaining Fuel</span>
+                                <span className={`font-mono ${gameState.playerStats.fuel - travelFuelCost < 0 ? 'text-destructive' : ''}`}>
+                                    {gameState.playerStats.fuel - travelFuelCost} SU
+                                </span>
+                            </div>
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleConfirmTravel} disabled={isSimulating || gameState.playerStats.fuel < travelFuelCost}>
+                                {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                Engage Warp Drive
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
                 </AlertDialog>
             )}
 
