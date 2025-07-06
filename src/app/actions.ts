@@ -8,6 +8,7 @@ import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
 import { generateBio } from '@/ai/flows/generate-bio';
 import { generateQuests } from '@/ai/flows/generate-quests';
 import { generateTraders } from '@/ai/flows/generate-traders';
+import { generatePartnershipOffers } from '@/ai/flows/generate-partnership-offers';
 import { z } from 'zod';
 
 import {
@@ -29,6 +30,9 @@ import {
   type GenerateBioOutput,
   type GenerateQuestsOutput,
   type GenerateTradersOutput,
+  GeneratePartnershipOffersInputSchema,
+  type GeneratePartnershipOffersInput,
+  type GeneratePartnershipOffersOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -128,5 +132,19 @@ export async function runTraderGeneration(): Promise<GenerateTradersOutput> {
     } catch (error) {
         console.error('Error running trader generation:', error);
         throw new Error('Failed to generate traders.');
+    }
+}
+
+export async function runPartnershipOfferGeneration(input: GeneratePartnershipOffersInput): Promise<GeneratePartnershipOffersOutput> {
+    try {
+        const validatedInput = GeneratePartnershipOffersInputSchema.parse(input);
+        const result = await generatePartnershipOffers(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running partnership offer generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for partnership offer generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate partnership offers.');
     }
 }

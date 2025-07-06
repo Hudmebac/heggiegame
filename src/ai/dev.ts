@@ -9,3 +9,4 @@ import '@/ai/flows/scan-pirate-vessel.ts';
 import '@/ai/flows/generate-bio.ts';
 import '@/ai/flows/generate-quests.ts';
 import '@/ai/flows/generate-traders.ts';
+import '@/ai/flows/generate-partnership-offers.ts';

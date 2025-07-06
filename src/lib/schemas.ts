@@ -124,3 +124,22 @@ export const GenerateTradersOutputSchema = z.object({
     traders: z.array(TraderSchema).describe("An array of 4 generated NPC traders for the leaderboard."),
 });
 export type GenerateTradersOutput = z.infer<typeof GenerateTradersOutputSchema>;
+
+// Schemas for generate-partnership-offers
+export const GeneratePartnershipOffersInputSchema = z.object({
+  marketValue: z.number().describe("The current market value of the player's establishment."),
+});
+export type GeneratePartnershipOffersInput = z.infer<typeof GeneratePartnershipOffersInputSchema>;
+
+export const PartnershipOfferSchema = z.object({
+  partnerName: z.string().describe("The name of the potential partner corporation or faction."),
+  stakePercentage: z.number().describe("The percentage of the stake they want to purchase (e.g., 0.1 for 10%)."),
+  cashOffer: z.number().describe("The amount of credits offered for the stake."),
+  dealDescription: z.string().describe("A short, flavourful description of the deal and the partner's reputation."),
+});
+export type PartnershipOffer = z.infer<typeof PartnershipOfferSchema>;
+
+export const GeneratePartnershipOffersOutputSchema = z.object({
+    offers: z.array(PartnershipOfferSchema).describe("An array of generated partnership offers."),
+});
+export type GeneratePartnershipOffersOutput = z.infer<typeof GeneratePartnershipOffersOutputSchema>;

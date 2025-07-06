@@ -1,18 +1,22 @@
 
 'use client';
 
-import type { PlayerStats } from '@/lib/types';
+import { useState } from 'react';
+import type { PlayerStats, PartnershipOffer } from '@/lib/types';
+import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Briefcase, DollarSign, Handshake, TrendingUp } from 'lucide-react';
+import { Briefcase, Handshake, TrendingUp, Loader2 } from 'lucide-react';
 import BarValueChart from './bar-value-chart';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { runPartnershipOfferGeneration } from '@/app/actions';
+import { useToast } from "@/hooks/use-toast";
 
 interface BarContractsProps {
     playerStats: PlayerStats;
     onSell: () => void;
     onExpand: () => void;
-    onSellStake: () => void;
     canAffordExpansion: boolean;
     expansionButtonLabel: string;
     nextExpansionTier: boolean;
@@ -25,9 +29,40 @@ const getEstablishmentLevelLabel = (level: number) => {
     return `Expansion Level ${level - 1}`;
 };
 
-export default function BarContracts({ playerStats, onSell, onExpand, onSellStake, canAffordExpansion, expansionButtonLabel, nextExpansionTier }: BarContractsProps) {
+export default function BarContracts({ playerStats, onSell, onExpand, canAffordExpansion, expansionButtonLabel, nextExpansionTier }: BarContractsProps) {
+    const { handleAcceptPartnerOffer } = useGame();
+    const { toast } = useToast();
+    const [offers, setOffers] = useState<PartnershipOffer[]>([]);
+    const [isFetchingOffers, setIsFetchingOffers] = useState(false);
+    const [isOffersDialogOpen, setIsOffersDialogOpen] = useState(false);
+
     if (!playerStats.barContract) return null;
-    const hasPartners = playerStats.barContract.partners.length > 0;
+
+    const totalPartnerShare = playerStats.barContract.partners.reduce((acc, p) => acc + p.percentage, 0);
+    const canAcceptMorePartners = totalPartnerShare < 1.0;
+
+    const handleFetchOffers = async () => {
+        setIsFetchingOffers(true);
+        try {
+            const result = await runPartnershipOfferGeneration({ marketValue: playerStats.barContract!.currentMarketValue });
+            setOffers(result.offers);
+            setIsOffersDialogOpen(true);
+        } catch (error) {
+            console.error("Failed to fetch partnership offers:", error);
+            toast({
+                variant: "destructive",
+                title: "Network Error",
+                description: "Could not retrieve partnership offers at this time.",
+            });
+        } finally {
+            setIsFetchingOffers(false);
+        }
+    };
+    
+    const handleOfferAccepted = (offer: PartnershipOffer) => {
+        handleAcceptPartnerOffer(offer);
+        setIsOffersDialogOpen(false);
+    };
 
     return (
         <Card>
@@ -81,36 +116,52 @@ export default function BarContracts({ playerStats, onSell, onExpand, onSellStak
                  
                  <div>
                     <h4 className="text-sm font-semibold flex items-center gap-2 mb-2"><Handshake className="text-primary"/> Partnerships</h4>
-                    {hasPartners ? (
-                        <div className="p-4 rounded-lg bg-background/50 text-sm space-y-2">
-                            {playerStats.barContract.partners.map(partner => (
+                    <div className="p-4 rounded-lg bg-background/50 text-sm space-y-2">
+                         {playerStats.barContract.partners.length > 0 ? (
+                            playerStats.barContract.partners.map(partner => (
                                 <div key={partner.name} className="flex justify-between items-center">
                                     <span className="text-muted-foreground">{partner.name}</span>
                                     <span className="font-mono text-primary">{partner.percentage * 100}% Stake</span>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="p-4 rounded-lg bg-background/50 text-center text-muted-foreground text-sm">
-                             <p>You are the sole proprietor.</p>
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" className="mt-2" size="sm">Float to Partners</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Sell a Stake to The Syndicate?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            The Syndicate offers to buy a 10% stake in your establishment for 10% of its current market value. This will provide an immediate cash injection, but they will take 10% of all future income from this bar. This action is irreversible.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Decline</AlertDialogCancel>
-                                        <AlertDialogAction onClick={onSellStake}>Accept Deal</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </div>
+                            ))
+                        ) : (
+                            <p className="text-muted-foreground text-center">You are the sole proprietor.</p>
+                        )}
+                    </div>
+                    {canAcceptMorePartners && (
+                         <Dialog open={isOffersDialogOpen} onOpenChange={setIsOffersDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" className="w-full mt-2" onClick={handleFetchOffers} disabled={isFetchingOffers}>
+                                    {isFetchingOffers ? <Loader2 className="mr-2 animate-spin" /> : null}
+                                    Float to Partners
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                    <DialogTitle>Partnership Opportunities</DialogTitle>
+                                    <DialogDescription>
+                                        Several factions have expressed interest in acquiring a stake in your establishment. Review their offers carefully.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 max-h-[60vh] overflow-y-auto p-1">
+                                    {offers.map(offer => (
+                                        <Card key={offer.partnerName} className="bg-card/50">
+                                            <CardHeader>
+                                                <CardTitle className="text-base text-primary">{offer.partnerName}</CardTitle>
+                                                <CardDescription>{offer.dealDescription}</CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="flex justify-between items-center">
+                                                <div className="space-y-1 text-sm">
+                                                    <p>Stake: <span className="font-mono font-bold">{(offer.stakePercentage * 100).toFixed(0)}%</span></p>
+                                                    <p>Offer: <span className="font-mono font-bold text-amber-300">{offer.cashOffer.toLocaleString()}¢</span></p>
+                                                </div>
+                                                <Button onClick={() => handleOfferAccepted(offer)}>Accept Deal</Button>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     )}
                  </div>
 

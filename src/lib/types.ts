@@ -209,3 +209,10 @@ export interface ShipForSale {
   recommendedUse: string;
   heggieClearance: string;
 }
+
+export interface PartnershipOffer {
+  partnerName: string;
+  stakePercentage: number;
+  cashOffer: number;
+  dealDescription: string;
+}

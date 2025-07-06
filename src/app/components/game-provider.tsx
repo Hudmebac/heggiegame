@@ -2,8 +2,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer } from '@/lib/types';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -152,7 +152,7 @@ interface GameContextType {
   handlePurchaseEstablishment: () => void;
   handleExpandEstablishment: () => void;
   handleSellBar: () => void;
-  handleSellStake: () => void;
+  handleAcceptPartnerOffer: (offer: PartnershipOffer) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -1321,38 +1321,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
-    const handleSellStake = () => {
+    const handleAcceptPartnerOffer = (offer: PartnershipOffer) => {
         setGameState(prev => {
-            if (!prev || !prev.playerStats.barContract || prev.playerStats.establishmentLevel === 0) {
-                toast({ variant: "destructive", title: "Action Failed", description: "You must own the establishment first." });
-                return prev;
-            }
-
-            const totalPartnerShare = prev.playerStats.barContract.partners.reduce((acc, p) => acc + p.percentage, 0);
-            if (totalPartnerShare > 0) {
-                toast({ variant: "destructive", title: "Action Failed", description: "You have already sold a stake in this establishment." });
-                return prev;
-            }
-            
-            const stakePercentage = 0.10; // 10%
-            const cashInjection = Math.round(prev.playerStats.barContract.currentMarketValue * stakePercentage);
+            if (!prev || !prev.playerStats.barContract) return prev;
 
             const newPartner: BarPartner = {
-                name: 'The Syndicate',
-                percentage: stakePercentage,
-                investment: cashInjection,
+                name: offer.partnerName,
+                percentage: offer.stakePercentage,
+                investment: offer.cashOffer,
             };
 
             const newPlayerStats: PlayerStats = {
                 ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth + cashInjection,
+                netWorth: prev.playerStats.netWorth + offer.cashOffer,
                 barContract: {
                     ...prev.playerStats.barContract,
                     partners: [...prev.playerStats.barContract.partners, newPartner],
                 }
             };
+            
+            const totalPartnerShare = newPlayerStats.barContract.partners.reduce((acc, p) => acc + p.percentage, 0);
 
-            toast({ title: "Deal Made!", description: `You sold a ${stakePercentage * 100}% stake for ${cashInjection.toLocaleString()}¢. Your future income from this bar will be reduced.` });
+            if (totalPartnerShare > 1) {
+                toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your establishment." });
+                return prev;
+            }
+
+            toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
             return { ...prev, playerStats: newPlayerStats };
         });
     };
@@ -1401,7 +1396,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handlePurchaseEstablishment,
     handleExpandEstablishment,
     handleSellBar,
-    handleSellStake,
+    handleAcceptPartnerOffer,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
