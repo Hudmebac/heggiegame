@@ -5,9 +5,10 @@ import { Trophy } from 'lucide-react';
 
 interface LeaderboardProps {
   data: LeaderboardEntry[];
+  playerName: string;
 }
 
-export default function Leaderboard({ data }: LeaderboardProps) {
+export default function Leaderboard({ data, playerName }: LeaderboardProps) {
   return (
     <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
       <CardHeader>
@@ -28,7 +29,7 @@ export default function Leaderboard({ data }: LeaderboardProps) {
           </TableHeader>
           <TableBody>
             {data.map(entry => (
-              <TableRow key={entry.rank} className={entry.trader === 'You' ? 'bg-primary/10' : ''}>
+              <TableRow key={entry.rank} className={entry.trader === playerName ? 'bg-primary/10' : ''}>
                 <TableCell className="font-medium font-mono text-center">{entry.rank}</TableCell>
                 <TableCell>{entry.trader}</TableCell>
                 <TableCell className="text-right font-mono text-amber-300">

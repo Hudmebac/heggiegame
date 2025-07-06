@@ -12,6 +12,6 @@ export default function LeaderboardPage() {
     ).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({...entry, rank: index + 1}));
 
     return (
-        <Leaderboard data={leaderboardWithPlayer} />
+        <Leaderboard data={leaderboardWithPlayer} playerName={gameState.playerStats.name} />
     )
 }
