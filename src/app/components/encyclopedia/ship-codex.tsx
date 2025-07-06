@@ -3,6 +3,7 @@ import { SHIPS_FOR_SALE } from "@/lib/ships";
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from "@/lib/upgrades";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Warehouse, Fuel, HeartPulse, ShieldCheck, Crosshair, Package, Rocket, Radar, Users, GaugeCircle, Star, KeyRound, ChevronsUp, Wrench, Shield, Clipboard } from 'lucide-react';
+import Image from 'next/image';
 
 const shipAnatomyData = [
     { area: 'Hull', description: 'The outer shell of the ship; structural integrity and armor plating.', gameUse: 'Shields, armor, breach points.' },
@@ -74,6 +75,16 @@ export default function ShipCodex() {
                     <CardDescription>Detailed schematics and profile for the S-Class Shuttle.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    <div className="bg-black/30 p-4 rounded-lg border border-border/50">
+                        <Image
+                            src="/s-class-shuttle-blueprint.png"
+                            alt="S-Class Shuttle Blueprint"
+                            width={956}
+                            height={669}
+                            className="rounded-md w-full h-auto"
+                            data-ai-hint="shuttle blueprint"
+                        />
+                    </div>
                     <div>
                         <h4 className="font-bold text-primary mb-2">Vessel Profile</h4>
                         <div className="space-y-2 text-sm border p-4 rounded-lg bg-background/30">
