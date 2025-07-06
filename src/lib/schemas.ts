@@ -104,3 +104,15 @@ export const GenerateQuestsOutputSchema = z.object({
     quests: z.array(QuestSchema).describe("An array of generated quests."),
 });
 export type GenerateQuestsOutput = z.infer<typeof GenerateQuestsOutputSchema>;
+
+// Schemas for generate-traders
+export const TraderSchema = z.object({
+    name: z.string().describe("The full name or callsign of the trader."),
+    netWorth: z.number().describe("The estimated net worth of the trader in credits."),
+    fleetSize: z.number().describe("The number of ships in the trader's fleet."),
+});
+
+export const GenerateTradersOutputSchema = z.object({
+    traders: z.array(TraderSchema).describe("An array of 4 generated NPC traders for the leaderboard."),
+});
+export type GenerateTradersOutput = z.infer<typeof GenerateTradersOutputSchema>;

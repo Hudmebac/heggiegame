@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration } from '@/app/actions';
+import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry } from '@/lib/types';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -127,11 +127,7 @@ const initialGameState: GameState = {
     'Illegal Cybernetics': [6500],
   },
   leaderboard: [
-    { rank: 1, trader: 'Cmdr. Alex "Void" Ryder', netWorth: 15_780_234, fleetSize: 12 },
-    { rank: 2, trader: 'Captain Eva "Stardust" Rostova', netWorth: 12_450_987, fleetSize: 8 },
-    { rank: 3, trader: 'Jax "The Comet" Williams', netWorth: 9_876_543, fleetSize: 15 },
-    { rank: 4, trader: 'You', netWorth: 10000, fleetSize: 1 },
-    { rank: 5, trader: 'Baron Von "Blackhole" Hess', netWorth: 8_123_456, fleetSize: 5 },
+    { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1 },
   ],
   pirateEncounter: null,
   systems: systems,
@@ -194,35 +190,69 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClient(true);
-    try {
-      const savedState = localStorage.getItem('heggieGameState');
-      if (savedState) {
-        const parsedState = JSON.parse(savedState);
-        if (parsedState.playerStats && parsedState.items) {
-          const mergedState = {
-            ...initialGameState,
-            ...parsedState,
-            quests: parsedState.quests || [],
-            playerStats: {
-              ...initialGameState.playerStats,
-              ...parsedState.playerStats,
-            },
-            systems: initialGameState.systems,
-            routes: initialGameState.routes,
-          };
-          setGameState(mergedState);
-          setChartItem(mergedState.items[0]?.name || initialGameState.items[0].name);
-        } else {
+    const loadGame = async () => {
+        try {
+            const savedState = localStorage.getItem('heggieGameState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                if (parsedState.playerStats && parsedState.items) {
+                    const mergedState = {
+                        ...initialGameState,
+                        ...parsedState,
+                        quests: parsedState.quests || [],
+                        playerStats: {
+                            ...initialGameState.playerStats,
+                            ...parsedState.playerStats,
+                        },
+                        systems: initialGameState.systems,
+                        routes: initialGameState.routes,
+                    };
+                    setGameState(mergedState);
+                    setChartItem(mergedState.items[0]?.name || initialGameState.items[0].name);
+                } else {
+                    // Saved state is malformed, start a new game.
+                    throw new Error("Malformed saved state.");
+                }
+            } else {
+                // New game initialization
+                const [tradersResult, questsResult] = await Promise.all([
+                    runTraderGeneration(),
+                    runQuestGeneration()
+                ]);
+
+                const newLeaderboard: Omit<LeaderboardEntry, 'rank'>[] = tradersResult.traders.map(t => ({
+                    trader: t.name,
+                    netWorth: t.netWorth,
+                    fleetSize: t.fleetSize,
+                }));
+
+                newLeaderboard.push({
+                    trader: 'You',
+                    netWorth: initialGameState.playerStats.netWorth,
+                    fleetSize: 1
+                });
+                
+                const sortedLeaderboard = newLeaderboard
+                    .sort((a, b) => b.netWorth - a.netWorth)
+                    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+                const newGameState = {
+                    ...initialGameState,
+                    leaderboard: sortedLeaderboard,
+                    quests: questsResult.quests,
+                };
+                setGameState(newGameState);
+                toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
+            }
+        } catch (error) {
+            console.error("Failed to load or initialize game state:", error);
+            // Fallback to a default state, even if AI calls fail
             setGameState(initialGameState);
+            toast({ variant: "destructive", title: "Initialization Failed", description: "Could not connect to game services. Using default state." });
         }
-      } else {
-        setGameState(initialGameState);
-      }
-    } catch (error) {
-      console.error("Failed to load game state from local storage:", error);
-      setGameState(initialGameState);
-    }
-  }, []);
+    };
+    loadGame();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (isClient && gameState) {

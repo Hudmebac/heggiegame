@@ -7,6 +7,7 @@ import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
 import { generateBio } from '@/ai/flows/generate-bio';
 import { generateQuests } from '@/ai/flows/generate-quests';
+import { generateTraders } from '@/ai/flows/generate-traders';
 import { z } from 'zod';
 
 import {
@@ -27,6 +28,7 @@ import {
   type GenerateBioInput,
   type GenerateBioOutput,
   type GenerateQuestsOutput,
+  type GenerateTradersOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -116,5 +118,15 @@ export async function runQuestGeneration(): Promise<GenerateQuestsOutput> {
     } catch (error) {
         console.error('Error running quest generation:', error);
         throw new Error('Failed to generate quests.');
+    }
+}
+
+export async function runTraderGeneration(): Promise<GenerateTradersOutput> {
+    try {
+        const result = await generateTraders();
+        return result;
+    } catch (error) {
+        console.error('Error running trader generation:', error);
+        throw new Error('Failed to generate traders.');
     }
 }
