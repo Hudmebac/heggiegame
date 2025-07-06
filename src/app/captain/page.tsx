@@ -71,73 +71,77 @@ export default function CaptainPage() {
   const totalPassiveIncome = portfolio.reduce((sum, item) => sum + item.income, 0);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="md:col-span-2">
-         <PlayerProfile
-            stats={playerStats}
-            onGenerateAvatar={handleGenerateAvatar}
-            isGeneratingAvatar={isGeneratingAvatar}
-            onGenerateBio={handleGenerateBio}
-            isGeneratingBio={isGeneratingBio}
-            onNameChange={setPlayerName}
-          />
-      </div>
-      <div className="space-y-6">
-          <Card>
-              <CardHeader>
-                  <CardTitle className="font-headline text-lg flex items-center gap-2">
-                      <Coins className="text-primary"/>
-                      Finances
-                  </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Net Worth</span>
-                      <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
-                  </div>
-              </CardContent>
-          </Card>
-           <Card>
-              <CardHeader>
-                  <CardTitle className="font-headline text-lg flex items-center gap-2">
-                      <Trophy className="text-primary"/>
-                      Ranking
-                  </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Global Rank</span>
-                      <span className="font-mono text-primary">#{leaderboardRank}</span>
-                  </div>
-                   <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Prestige Score</span>
-                      <span className="font-mono text-primary">{(playerStats.netWorth / 1000).toFixed(0)}</span>
-                  </div>
-              </CardContent>
-          </Card>
-          <Card>
-              <CardHeader>
-                  <CardTitle className="font-headline text-lg flex items-center gap-2">
-                      <Handshake className="text-primary"/>
-                      Reputation
-                  </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Galactic Standing</span>
-                      <span className={`font-mono font-bold ${reputationInfo.color}`}>{reputationInfo.label}</span>
-                  </div>
-                   <div>
-                       <Progress value={reputationProgress} className="h-2 [&>div]:bg-gradient-to-r" indicatorClassName={reputationInfo.progressColor} />
-                       <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                           <span>Outcast</span>
-                           <span>Rookie</span>
-                           <span>Syndicate</span>
-                       </div>
-                   </div>
-              </CardContent>
-          </Card>
-           <Card>
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-2">
+            <PlayerProfile
+                stats={playerStats}
+                onGenerateAvatar={handleGenerateAvatar}
+                isGeneratingAvatar={isGeneratingAvatar}
+                onGenerateBio={handleGenerateBio}
+                isGeneratingBio={isGeneratingBio}
+                onNameChange={setPlayerName}
+            />
+        </div>
+        <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Coins className="text-primary"/>
+                            Finances
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Net Worth</span>
+                            <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Trophy className="text-primary"/>
+                            Ranking
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Global Rank</span>
+                            <span className="font-mono text-primary">#{leaderboardRank}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Prestige Score</span>
+                            <span className="font-mono text-primary">{(playerStats.netWorth / 1000).toFixed(0)}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Handshake className="text-primary"/>
+                        Reputation
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Galactic Standing</span>
+                        <span className={`font-mono font-bold ${reputationInfo.color}`}>{reputationInfo.label}</span>
+                    </div>
+                    <div>
+                        <Progress value={reputationProgress} className="h-2 [&>div]:bg-gradient-to-r" indicatorClassName={reputationInfo.progressColor} />
+                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>Outcast</span>
+                            <span>Rookie</span>
+                            <span>Syndicate</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+        <div className="lg:col-span-4">
+            <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2">
                         <Briefcase className="text-primary"/>
@@ -179,7 +183,7 @@ export default function CaptainPage() {
                     </Table>
                 </CardContent>
             </Card>
-      </div>
+        </div>
     </div>
   );
 }
