@@ -12,7 +12,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 import Header from './header';
 import PlayerProfile from './player-profile';
-import ShipManagement from './ship-management';
 import TradingInterface from './trading-interface';
 import MarketChart from './market-chart';
 import Leaderboard from './leaderboard';
@@ -422,8 +421,8 @@ export default function Dashboard() {
             stats={gameState.playerStats} 
             onGenerateAvatar={handleGenerateAvatar} 
             isGeneratingAvatar={isGeneratingAvatar}
+            currentSystem={gameState.currentSystem}
           />
-          <ShipManagement stats={gameState.playerStats} currentSystem={gameState.currentSystem} />
            <div className="flex justify-center">
             <Button onClick={handleSimulateMarket} disabled={isSimulating} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
               {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
