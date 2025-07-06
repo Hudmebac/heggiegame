@@ -2,7 +2,7 @@
 import { SHIPS_FOR_SALE } from "@/lib/ships";
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from "@/lib/upgrades";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Warehouse, Fuel, HeartPulse, ShieldCheck, Crosshair, Package, Rocket, Radar, Users, GaugeCircle, Star, KeyRound, ChevronsUp, Wrench, Shield } from 'lucide-react';
+import { Warehouse, Fuel, HeartPulse, ShieldCheck, Crosshair, Package, Rocket, Radar, Users, GaugeCircle, Star, KeyRound, ChevronsUp, Wrench, Shield, Clipboard } from 'lucide-react';
 
 const shipAnatomyData = [
     { area: 'Hull', description: 'The outer shell of the ship; structural integrity and armor plating.', gameUse: 'Shields, armor, breach points.' },
@@ -65,6 +65,56 @@ export default function ShipCodex() {
                             </div>
                         </div>
                     ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Clipboard className="text-primary"/>Ship Blueprint: S-Class Shuttle</CardTitle>
+                    <CardDescription>Detailed schematics and profile for the S-Class Shuttle.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Vessel Profile</h4>
+                        <div className="space-y-2 text-sm border p-4 rounded-lg bg-background/30">
+                            <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>Shuttle</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Designation</span><span>S-Class</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Length</span><span>18.4 meters</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Crew Capacity</span><span>2</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Cargo Bay</span><span>20 tons</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Primary Use</span><span className="text-right">Short-haul courier runs, secure-sector dispatches</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">HEGGIE Clearance</span><span>Tier I</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Layout Overview</h4>
+                        <pre className="p-4 bg-black/50 rounded-lg text-xs font-mono text-cyan-300 overflow-x-auto">
+{`+---------------------------+
+|   COCKPIT / BRIDGE        | ← Forward Navigation Console
+|---------------------------|
+|   CREW MODULE             | ← Cryopod Seating + Emergency Station
+|---------------------------|
+|   CORE CARGO HOLD         | ← Modular crates, bioseal locking
+|---------------------------|
+|   MAINTENANCE ACCESS      | ← Engine diagnostics panel
+|---------------------------|
+|   MICRO-PULSE ENGINE      | ← MicroPulse-5 drive + backup thruster
++---------------------------+`}
+                        </pre>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Visual Description</h4>
+                        <div className="border p-4 rounded-lg bg-background/30">
+                            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                <li><span className="font-semibold text-foreground">Color Scheme:</span> Deep orange accents along a matte dark hull—reflecting HEGGIE’s guild palette.</li>
+                                <li><span className="font-semibold text-foreground">Markings:</span> Sigil on left stabilizer wing, Vault Nexus registry glyph on cockpit nose.</li>
+                                <li><span className="font-semibold text-foreground">Shape:</span> Compact, oblong cabin body with tapered nose and dorsal antenna arrays.</li>
+                                <li><span className="font-semibold text-foreground">Underside:</span> Heat shields + retractable landing struts.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
