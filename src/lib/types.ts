@@ -69,6 +69,11 @@ export interface Pirate {
 export type SystemEconomy = 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';
 export type ZoneType = 'Core World' | 'Frontier Outpost' | 'Mining Colony' | 'Trade Hub' | 'Corporate Zone' | 'Diplomatic Station' | 'Ancient Ruins';
 
+export interface Planet {
+  name: string;
+  type: 'Terrestrial' | 'Gas Giant' | 'Ice Giant' | 'Barren' | 'Volcanic' | 'Oceanic';
+  description: string;
+}
 
 export interface System {
   name: string;
@@ -79,6 +84,7 @@ export interface System {
   volatility: number;
   zoneType: ZoneType;
   description: string;
+  planets: Planet[];
 }
 
 export interface Route {
@@ -113,6 +119,7 @@ export interface GameState {
   systems: System[];
   routes: Route[];
   currentSystem: string;
+  currentPlanet: string;
   quests: Quest[];
   crew: CrewMember[];
 }

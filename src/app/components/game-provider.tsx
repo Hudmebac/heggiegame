@@ -1,7 +1,8 @@
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -110,6 +111,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
   systems: SYSTEMS,
   routes: ROUTES,
   currentSystem: 'Sol',
+  currentPlanet: 'Earth',
   quests: [],
   crew: initialCrew,
 };
@@ -133,6 +135,7 @@ interface GameContextType {
   handleGenerateQuests: () => void;
   setPlayerName: (name: string) => void;
   handleInitiateTravel: (systemName: string) => void;
+  handlePlanetTravel: (planetName: string) => void;
   handleRefuel: () => void;
   handleRepairShip: () => void;
   handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
@@ -550,6 +553,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const handlePlanetTravel = (planetName: string) => {
+    setGameState(prev => {
+      if (!prev || prev.currentPlanet === planetName) return prev;
+      
+      const planetFuelCost = 1;
+      if (prev.playerStats.fuel < planetFuelCost) {
+        toast({
+            variant: "destructive",
+            title: "Intra-system Travel Failed",
+            description: `Not enough fuel for orbital realignment. You need ${planetFuelCost} SU.`
+        });
+        return prev;
+      }
+      
+      const newPlayerStats = {
+          ...prev.playerStats,
+          fuel: prev.playerStats.fuel - planetFuelCost,
+      };
+
+      toast({
+          title: `Arrived at ${planetName}`,
+          description: `Orbital realignment complete. Fuel consumed: ${planetFuelCost} SU.`
+      });
+
+      return {
+          ...prev,
+          playerStats: newPlayerStats,
+          currentPlanet: planetName,
+      }
+    });
+  };
+
   const handleConfirmTravel = () => {
     if (!gameState || !travelDestination) return;
 
@@ -682,6 +717,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               ...prev,
               playerStats: newPlayerStats,
               currentSystem: travelDestination.name,
+              currentPlanet: travelDestination.planets[0].name,
               pirateEncounter: scannedPirateEncounter,
               marketItems: newMarketItems,
               priceHistory: newPriceHistory,
@@ -691,7 +727,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         toast({
             title: `Arrival: ${travelDestination.name}`,
-            description: `${eventDescription} Your crew has been paid ${totalSalary.toLocaleString()}¢.`
+            description: `${eventDescription} Now in orbit of ${travelDestination.planets[0].name}. Your crew has been paid ${totalSalary.toLocaleString()}¢.`
         });
       } catch (error) {
         console.error(error);
@@ -1095,6 +1131,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleGenerateQuests,
     setPlayerName,
     handleInitiateTravel,
+    handlePlanetTravel,
     handleRefuel,
     handleRepairShip,
     handleUpgradeShip,

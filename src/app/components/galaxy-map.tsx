@@ -58,6 +58,7 @@ interface GalaxyMapProps {
     systems: System[];
     routes: Route[];
     currentSystem: string;
+    currentPlanet: string;
     onTravel: (systemName: string) => void;
 }
 
@@ -76,7 +77,7 @@ const economyIcons: Record<System['economy'], React.ReactNode> = {
     'Refinery': <Recycle className="h-4 w-4"/>,
 };
 
-export default function GalaxyMap({ systems, routes, currentSystem, onTravel }: GalaxyMapProps) {
+export default function GalaxyMap({ systems, routes, currentSystem, currentPlanet, onTravel }: GalaxyMapProps) {
     return (
         <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg h-full flex flex-col">
             <CardHeader>
@@ -84,7 +85,7 @@ export default function GalaxyMap({ systems, routes, currentSystem, onTravel }: 
                     <Map className="text-primary"/>
                     Galaxy Map
                 </CardTitle>
-                <CardDescription>Current Sector: {currentSystem} System. Hover over a system for details, click to travel.</CardDescription>
+                <CardDescription>Current Location: {currentSystem} ({currentPlanet}). Hover over a system for details, click to travel.</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow flex items-center justify-center p-4">
                 <div className="relative w-full h-full min-h-[200px] rounded-lg border border-border/50 bg-black/20 overflow-hidden">
