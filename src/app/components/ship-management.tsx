@@ -41,7 +41,7 @@ export default function ShipManagement() {
   // Upgrade logic
   const currentCargoTierIndex = cargoUpgrades.findIndex(u => u.capacity >= stats.maxCargo);
   const nextCargoUpgrade = currentCargoTierIndex !== -1 && currentCargoTierIndex < cargoUpgrades.length - 1
-    ? cargoUpgrades[currentTierIndex + 1]
+    ? cargoUpgrades[currentCargoTierIndex + 1]
     : null;
 
   const currentWeaponTier = weaponUpgrades.find(u => u.level === stats.weaponLevel);
