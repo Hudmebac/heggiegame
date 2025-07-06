@@ -4,23 +4,15 @@
  * @fileOverview Generates a player avatar image.
  * 
  * - generateAvatar - A function that generates an avatar based on a description.
- * - GenerateAvatarInput - The input type for the generateAvatar function.
- * - GenerateAvatarOutput - The return type for the generateAvatar function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const GenerateAvatarInputSchema = z.object({
-  description: z.string().describe('A brief description of the desired avatar style. e.g., "grizzled male space pilot", "young female explorer with vibrant hair"'),
-});
-export type GenerateAvatarInput = z.infer<typeof GenerateAvatarInputSchema>;
-
-const GenerateAvatarOutputSchema = z.object({
-  avatarDataUri: z.string().describe("The generated avatar image as a data URI."),
-});
-export type GenerateAvatarOutput = z.infer<typeof GenerateAvatarOutputSchema>;
-
+import {
+  GenerateAvatarInput,
+  GenerateAvatarInputSchema,
+  GenerateAvatarOutput,
+  GenerateAvatarOutputSchema,
+} from '@/lib/schemas';
 
 export async function generateAvatar(input: GenerateAvatarInput): Promise<GenerateAvatarOutput> {
   return generateAvatarFlow(input);

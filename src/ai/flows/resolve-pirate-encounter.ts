@@ -4,30 +4,15 @@
  * @fileOverview A Game Master AI that resolves pirate encounters in a space trading game.
  * 
  * - resolvePirateEncounter - A function that resolves the pirate encounter based on player action.
- * - ResolvePirateEncounterInput - The input type for the resolvePirateEncounter function.
- * - ResolvePirateEncounterOutput - The return type for the resolvePirateEncounter function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const ResolvePirateEncounterInputSchema = z.object({
-  action: z.enum(['fight', 'evade', 'bribe']).describe("The player's chosen action."),
-  playerNetWorth: z.number().describe("The player's current net worth in credits."),
-  playerCargo: z.number().describe("The amount of cargo the player is currently carrying."),
-  pirateName: z.string().describe('The name of the pirate.'),
-  pirateThreatLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe('The threat level of the pirate.'),
-});
-export type ResolvePirateEncounterInput = z.infer<typeof ResolvePirateEncounterInputSchema>;
-
-const ResolvePirateEncounterOutputSchema = z.object({
-  outcome: z.enum(['success', 'failure', 'partial_success']).describe('The result of the encounter.'),
-  narrative: z.string().describe('A dramatic, short description of what happened.'),
-  cargoLost: z.number().describe('Amount of cargo units lost.'),
-  creditsLost: z.number().describe('Amount of credits lost (from bribes or damages).'),
-  damageTaken: z.string().describe('A brief description of any damage taken to the ship.'),
-});
-export type ResolvePirateEncounterOutput = z.infer<typeof ResolvePirateEncounterOutputSchema>;
+import {
+  ResolvePirateEncounterInput,
+  ResolvePirateEncounterInputSchema,
+  ResolvePirateEncounterOutput,
+  ResolvePirateEncounterOutputSchema,
+} from '@/lib/schemas';
 
 export async function resolvePirateEncounter(input: ResolvePirateEncounterInput): Promise<ResolvePirateEncounterOutput> {
   return resolvePirateEncounterFlow(input);

@@ -1,24 +1,23 @@
 'use server';
 
-import { simulateMarketPrices, type SimulateMarketPricesInput, type SimulateMarketPricesOutput } from '@/ai/flows/simulate-market-prices';
-import { resolvePirateEncounter, type ResolvePirateEncounterInput, type ResolvePirateEncounterOutput } from '@/ai/flows/resolve-pirate-encounter';
-import { generateAvatar, type GenerateAvatarInput, type GenerateAvatarOutput } from '@/ai/flows/generate-avatar';
-import { generateGameEvent, type GenerateGameEventOutput } from '@/ai/flows/generate-game-event';
+import { simulateMarketPrices } from '@/ai/flows/simulate-market-prices';
+import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
+import { generateAvatar } from '@/ai/flows/generate-avatar';
+import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { z } from 'zod';
 
-const SimulateMarketPricesInputSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        name: z.string(),
-        currentPrice: z.number(),
-        supply: z.number(),
-        demand: z.number(),
-      })
-    ),
-  eventDescription: z.string().optional(),
-});
-
+import {
+  SimulateMarketPricesInputSchema,
+  type SimulateMarketPricesInput,
+  type SimulateMarketPricesOutput,
+  ResolvePirateEncounterInputSchema,
+  type ResolvePirateEncounterInput,
+  type ResolvePirateEncounterOutput,
+  GenerateAvatarInputSchema,
+  type GenerateAvatarInput,
+  type GenerateAvatarOutput,
+  type GenerateGameEventOutput,
+} from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
   try {
@@ -34,17 +33,9 @@ export async function runMarketSimulation(input: SimulateMarketPricesInput): Pro
   }
 }
 
-const ResolvePirateEncounterInputClientSchema = z.object({
-    action: z.enum(['fight', 'evade', 'bribe']),
-    playerNetWorth: z.number(),
-    playerCargo: z.number(),
-    pirateName: z.string(),
-    pirateThreatLevel: z.enum(['Low', 'Medium', 'High', 'Critical']),
-});
-
 export async function resolveEncounter(input: ResolvePirateEncounterInput): Promise<ResolvePirateEncounterOutput> {
     try {
-        const validatedInput = ResolvePirateEncounterInputClientSchema.parse(input);
+        const validatedInput = ResolvePirateEncounterInputSchema.parse(input);
         const result = await resolvePirateEncounter(validatedInput);
         return result;
     } catch (error) {
@@ -55,10 +46,6 @@ export async function resolveEncounter(input: ResolvePirateEncounterInput): Prom
         throw new Error('Failed to resolve encounter.');
     }
 }
-
-const GenerateAvatarInputSchema = z.object({
-    description: z.string(),
-});
 
 export async function runAvatarGeneration(input: GenerateAvatarInput): Promise<GenerateAvatarOutput> {
     try {

@@ -4,16 +4,13 @@
  * @fileOverview Generates a random in-game event for the space trading game.
  * 
  * - generateGameEvent - A function that returns a description of a random event.
- * - GenerateGameEventOutput - The return type for the generateGameEvent function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const GenerateGameEventOutputSchema = z.object({
-  eventDescription: z.string().describe('A short, dramatic description of an in-game event that could affect market prices.'),
-});
-export type GenerateGameEventOutput = z.infer<typeof GenerateGameEventOutputSchema>;
+import {
+  GenerateGameEventOutput,
+  GenerateGameEventOutputSchema,
+} from '@/lib/schemas';
 
 export async function generateGameEvent(): Promise<GenerateGameEventOutput> {
   return generateGameEventFlow();

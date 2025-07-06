@@ -5,39 +5,15 @@
  * @fileOverview Simulates market prices for items in the game based on supply, demand, and in-game events.
  *
  * - simulateMarketPrices - A function that simulates market prices and returns the updated prices.
- * - SimulateMarketPricesInput - The input type for the simulateMarketPrices function.
- * - SimulateMarketPricesOutput - The return type for the simulateMarketPrices function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const SimulateMarketPricesInputSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        name: z.string().describe('The name of the item.'),
-        currentPrice: z.number().describe('The current price of the item.'),
-        supply: z.number().describe('The current supply of the item.'),
-        demand: z.number().describe('The current demand for the item.'),
-      })
-    )
-    .describe('An array of items with their current prices, supply, and demand.'),
-  eventDescription: z
-    .string()
-    .optional()
-    .describe('An optional description of a recent in-game event that may affect market prices.'),
-});
-export type SimulateMarketPricesInput = z.infer<typeof SimulateMarketPricesInputSchema>;
-
-const SimulateMarketPricesOutputSchema = z.array(
-  z.object({
-    name: z.string().describe('The name of the item.'),
-    newPrice: z.number().describe('The new simulated price of the item.'),
-    reasoning: z.string().describe('The reasoning behind the price change.'),
-  })
-);
-export type SimulateMarketPricesOutput = z.infer<typeof SimulateMarketPricesOutputSchema>;
+import {
+  SimulateMarketPricesInput,
+  SimulateMarketPricesInputSchema,
+  SimulateMarketPricesOutput,
+  SimulateMarketPricesOutputSchema,
+} from '@/lib/schemas';
 
 export async function simulateMarketPrices(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
   return simulateMarketPricesFlow(input);
