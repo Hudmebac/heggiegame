@@ -96,6 +96,7 @@ interface GameContextType {
   handleGenerateBio: () => void;
   setPlayerName: (name: string) => void;
   handleInitiateTravel: (systemName: string) => void;
+  handleRefuel: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -453,6 +454,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
   };
 
+  const handleRefuel = () => {
+    setGameState(prev => {
+      if (!prev) return null;
+      
+      const fuelNeeded = prev.playerStats.maxFuel - prev.playerStats.fuel;
+      if (fuelNeeded <= 0) {
+        toast({ variant: "destructive", title: "Refuel Not Needed", description: "Fuel tank is already full." });
+        return prev;
+      }
+
+      const fuelPrice = 2; // credits per unit
+      const totalCost = fuelNeeded * fuelPrice;
+
+      if (prev.playerStats.netWorth < totalCost) {
+        toast({ variant: "destructive", title: "Refuel Failed", description: `Not enough credits. You need ${totalCost}¢.` });
+        return prev;
+      }
+
+      const newPlayerStats = { 
+        ...prev.playerStats,
+        netWorth: prev.playerStats.netWorth - totalCost,
+        fuel: prev.playerStats.maxFuel,
+      };
+
+      toast({ title: "Refuel Complete", description: `You spent ${totalCost}¢ to refuel your ship.` });
+      
+      return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -481,6 +512,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleGenerateBio,
     setPlayerName,
     handleInitiateTravel,
+    handleRefuel,
   };
 
   return (

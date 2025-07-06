@@ -1,14 +1,9 @@
 'use client';
-import type { PlayerStats } from '@/lib/types';
+import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Bot } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface ShipManagementProps {
-  stats: PlayerStats;
-  currentSystem: string;
-}
 
 const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { icon: React.ReactNode, title: string, value: number, max: number, unit: string, progressColorClass: string }) => (
   <div>
@@ -24,7 +19,25 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 );
 
 
-export default function ShipManagement({ stats, currentSystem }: ShipManagementProps) {
+export default function ShipManagement() {
+  const { gameState, handleRefuel } = useGame();
+
+  if (!gameState) {
+    return (
+        <div className="flex justify-center items-center h-full">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+    );
+  }
+  
+  const { playerStats: stats, currentSystem } = gameState;
+  const fuelPrice = 2; // credits per unit
+  const fuelNeeded = stats.maxFuel - stats.fuel;
+  const refuelCost = fuelNeeded * fuelPrice;
+
+  const canAffordRefuel = stats.netWorth >= refuelCost;
+  const needsRefuel = fuelNeeded > 0;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
@@ -68,7 +81,9 @@ export default function ShipManagement({ stats, currentSystem }: ShipManagementP
                     {stats.insurance ? 'Active' : 'Inactive'}
                 </span>
             </div>
-            <Button className="w-full">Refuel Ship (100¢)</Button>
+            <Button className="w-full" onClick={handleRefuel} disabled={!needsRefuel || !canAffordRefuel}>
+              {needsRefuel ? `Refuel Ship (${refuelCost}¢)` : 'Fuel Tank Full'}
+            </Button>
         </CardContent>
         </Card>
         <div className="space-y-6">
