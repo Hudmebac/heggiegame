@@ -1,3 +1,4 @@
+
 'use server';
 
 import { simulateMarketPrices } from '@/ai/flows/simulate-market-prices';
@@ -13,6 +14,7 @@ import { generateResidencePartnershipOffers } from '@/ai/flows/generate-residenc
 import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-partnership-offers';
 import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-partnership-offers';
 import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
+import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
 import { z } from 'zod';
 
 import {
@@ -49,6 +51,9 @@ import {
   GenerateConstructionPartnershipOffersInputSchema,
   type GenerateConstructionPartnershipOffersInput,
   type GenerateConstructionPartnershipOffersOutput,
+  GenerateRecreationPartnershipOffersInputSchema,
+  type GenerateRecreationPartnershipOffersInput,
+  type GenerateRecreationPartnershipOffersOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -218,5 +223,19 @@ export async function runConstructionPartnershipOfferGeneration(input: GenerateC
             throw new Error(`Invalid input for construction partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate construction partnership offers.');
+    }
+}
+
+export async function runRecreationPartnershipOfferGeneration(input: GenerateRecreationPartnershipOffersInput): Promise<GenerateRecreationPartnershipOffersOutput> {
+    try {
+        const validatedInput = GenerateRecreationPartnershipOffersInputSchema.parse(input);
+        const result = await generateRecreationPartnershipOffers(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running recreation partnership offer generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for recreation partnership offer generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate recreation partnership offers.');
     }
 }

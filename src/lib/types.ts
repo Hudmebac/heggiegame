@@ -1,3 +1,4 @@
+
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
@@ -77,6 +78,10 @@ export interface PlayerStats {
   constructionAutoClickerBots: number;
   constructionEstablishmentLevel: number;
   constructionContract?: BarContract;
+  recreationLevel: number;
+  recreationAutoClickerBots: number;
+  recreationEstablishmentLevel: number;
+  recreationContract?: BarContract;
 }
 
 export interface PriceHistory {

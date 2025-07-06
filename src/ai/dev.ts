@@ -1,3 +1,4 @@
+
 import { config } from 'dotenv';
 config();
 
@@ -14,3 +15,4 @@ import '@/ai/flows/generate-residence-partnership-offers.ts';
 import '@/ai/flows/generate-commerce-partnership-offers.ts';
 import '@/ai/flows/generate-industry-partnership-offers.ts';
 import '@/ai/flows/generate-construction-partnership-offers.ts';
+import '@/ai/flows/generate-recreation-partnership-offers.ts';

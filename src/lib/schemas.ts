@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 // Schemas for simulate-market-prices
@@ -199,3 +200,17 @@ export const GenerateConstructionPartnershipOffersOutputSchema = z.object({
     offers: z.array(ConstructionPartnershipOfferSchema).describe("An array of generated partnership offers for the construction project."),
 });
 export type GenerateConstructionPartnershipOffersOutput = z.infer<typeof GenerateConstructionPartnershipOffersOutputSchema>;
+
+// Schemas for generate-recreation-partnership-offers
+export const GenerateRecreationPartnershipOffersInputSchema = z.object({
+  marketValue: z.number().describe("The current market value of the player's recreation facility."),
+});
+export type GenerateRecreationPartnershipOffersInput = z.infer<typeof GenerateRecreationPartnershipOffersInputSchema>;
+
+export const RecreationPartnershipOfferSchema = PartnershipOfferSchema;
+export type RecreationPartnershipOffer = z.infer<typeof RecreationPartnershipOfferSchema>;
+
+export const GenerateRecreationPartnershipOffersOutputSchema = z.object({
+    offers: z.array(RecreationPartnershipOfferSchema).describe("An array of generated partnership offers for the recreation facility."),
+});
+export type GenerateRecreationPartnershipOffersOutput = z.infer<typeof GenerateRecreationPartnershipOffersOutputSchema>;

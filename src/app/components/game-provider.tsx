@@ -1,8 +1,9 @@
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
 import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration, runCommercePartnershipOfferGeneration, runIndustryPartnershipOfferGeneration, runConstructionPartnershipOfferGeneration } from '@/app/actions';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration, runCommercePartnershipOfferGeneration, runIndustryPartnershipOfferGeneration, runConstructionPartnershipOfferGeneration, runRecreationPartnershipOfferGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -13,6 +14,7 @@ import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
 import { industryThemes } from '@/lib/industry-themes';
 import { constructionThemes } from '@/lib/construction-themes';
+import { recreationThemes } from '@/lib/recreation-themes';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -120,6 +122,9 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     constructionLevel: 1,
     constructionAutoClickerBots: 0,
     constructionEstablishmentLevel: 0,
+    recreationLevel: 1,
+    recreationAutoClickerBots: 0,
+    recreationEstablishmentLevel: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -196,6 +201,13 @@ interface GameContextType {
   handleExpandConstruction: () => void;
   handleSellConstruction: () => void;
   handleAcceptConstructionPartnerOffer: (offer: PartnershipOffer) => void;
+  handleRecreationClick: (income: number) => void;
+  handleUpgradeRecreation: () => void;
+  handleUpgradeRecreationAutoClicker: () => void;
+  handlePurchaseRecreation: () => void;
+  handleExpandRecreation: () => void;
+  handleSellRecreation: () => void;
+  handleAcceptRecreationPartnerOffer: (offer: PartnershipOffer) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -577,6 +589,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(intervalId);
   }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.constructionLevel, gameState?.playerStats.constructionContract]);
+
+  useEffect(() => {
+    if (!gameState || (gameState.playerStats.recreationAutoClickerBots || 0) === 0) {
+        return;
+    }
+
+    const intervalId = setInterval(() => {
+        setGameState(prev => {
+            if (!prev || (prev.playerStats.recreationAutoClickerBots || 0) === 0) {
+                clearInterval(intervalId);
+                return prev;
+            }
+
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const zoneType = currentSystem?.zoneType;
+            const theme = (zoneType && recreationThemes[zoneType]) ? recreationThemes[zoneType] : recreationThemes['Default'];
+            
+            const totalPartnerShare = (prev.playerStats.recreationContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+            const incomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
+            const incomePerSecond = (prev.playerStats.recreationAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + incomePerSecond,
+            };
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, 1000); // every second
+
+    return () => clearInterval(intervalId);
+  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.recreationLevel, gameState?.playerStats.recreationContract]);
 
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
@@ -962,6 +1006,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const newValue = Math.round(oldValue * (1 + changePercent));
             newPlayerStats.constructionContract.currentMarketValue = newValue;
             newPlayerStats.constructionContract.valueHistory = [...newPlayerStats.constructionContract.valueHistory, newValue].slice(-20);
+          }
+          if (newPlayerStats.recreationContract) {
+            const oldValue = newPlayerStats.recreationContract.currentMarketValue;
+            const changePercent = (Math.random() - 0.5) * 0.1; // -5% to +5% change
+            const newValue = Math.round(oldValue * (1 + changePercent));
+            newPlayerStats.recreationContract.currentMarketValue = newValue;
+            newPlayerStats.recreationContract.valueHistory = [...newPlayerStats.recreationContract.valueHistory, newValue].slice(-20);
           }
 
 
@@ -2156,6 +2207,148 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleRecreationClick = (income: number) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        return { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
+    });
+  };
+
+  const handleUpgradeRecreation = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.recreationLevel >= 25) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." });
+            return prev;
+        }
+        const cost = Math.round(125 * Math.pow(prev.playerStats.recreationLevel, 2.5));
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            recreationLevel: prev.playerStats.recreationLevel + 1,
+        };
+        toast({ title: "Facility Upgraded!", description: `Your recreation facility is now Level ${newPlayerStats.recreationLevel}.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleUpgradeRecreationAutoClicker = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.recreationAutoClickerBots >= 25) {
+            toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 entertainment drones." });
+            return prev;
+        }
+        const cost = Math.round(1250 * Math.pow(1.15, prev.playerStats.recreationAutoClickerBots));
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Deployment Failed", description: `Not enough credits to deploy a drone. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            recreationAutoClickerBots: prev.playerStats.recreationAutoClickerBots + 1,
+        };
+        toast({ title: "Entertainment Drone Deployed!", description: "A new drone has been added to your facility." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handlePurchaseRecreation = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && recreationThemes[zoneType]) ? recreationThemes[zoneType] : recreationThemes['Default'];
+        const incomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
+        const incomePerSecond = prev.playerStats.recreationAutoClickerBots * incomePerClick;
+        const cost = incomePerSecond * 1000;
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Acquisition Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const initialValue = cost * (Math.random() * 0.4 + 0.8);
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            recreationEstablishmentLevel: 1,
+            recreationContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [] }
+        };
+        toast({ title: "Entertainment License Acquired!", description: "You now own this recreation facility." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleExpandRecreation = () => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.recreationContract) return prev;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && recreationThemes[zoneType]) ? recreationThemes[zoneType] : recreationThemes['Default'];
+        const incomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
+        const incomePerSecond = prev.playerStats.recreationAutoClickerBots * incomePerClick;
+        const expansionTiers = [10000, 100000, 1000000, 10000000];
+        const currentLevel = prev.playerStats.recreationEstablishmentLevel;
+        if (currentLevel < 1 || currentLevel > 4) return prev;
+        const cost = incomePerSecond * expansionTiers[currentLevel - 1];
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const investmentValue = cost * (Math.random() * 0.2 + 0.7);
+        const newMarketValue = Math.round(prev.playerStats.recreationContract.currentMarketValue + investmentValue);
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            recreationEstablishmentLevel: currentLevel + 1,
+            recreationContract: {
+                ...prev.playerStats.recreationContract,
+                currentMarketValue: newMarketValue,
+                valueHistory: [...prev.playerStats.recreationContract.valueHistory, newMarketValue].slice(-20),
+            }
+        };
+        toast({ title: "Facility Expanded!", description: `Your recreation facility has grown to Tier ${newPlayerStats.recreationEstablishmentLevel - 1}.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleSellRecreation = () => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.recreationContract) return prev;
+        const salePrice = prev.playerStats.recreationContract.currentMarketValue;
+        const newPlayerStats: PlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + salePrice, recreationLevel: 1, recreationAutoClickerBots: 0, recreationEstablishmentLevel: 0 };
+        delete newPlayerStats.recreationContract;
+        toast({ title: "Assets Liquidated!", description: `You sold the recreation facility for ${salePrice.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleAcceptRecreationPartnerOffer = (offer: PartnershipOffer) => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.recreationContract) return prev;
+        const newPartner: BarPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth + offer.cashOffer,
+            recreationContract: {
+                ...prev.playerStats.recreationContract,
+                partners: [...prev.playerStats.recreationContract.partners, newPartner],
+            }
+        };
+        const totalPartnerShare = newPlayerStats.recreationContract.partners.reduce((acc, p) => acc + p.percentage, 0);
+        if (totalPartnerShare > 1) {
+            toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your recreation facility." });
+            return prev;
+        }
+        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -2229,6 +2422,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleExpandConstruction,
     handleSellConstruction,
     handleAcceptConstructionPartnerOffer,
+    handleRecreationClick,
+    handleUpgradeRecreation,
+    handleUpgradeRecreationAutoClicker,
+    handlePurchaseRecreation,
+    handleExpandRecreation,
+    handleSellRecreation,
+    handleAcceptRecreationPartnerOffer,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
