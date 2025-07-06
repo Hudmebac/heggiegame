@@ -397,40 +397,48 @@ export default function Dashboard() {
   return (
     <div className="bg-background text-foreground min-h-screen p-4 sm:p-6 lg:p-8 font-body">
       <Header playerStats={gameState.playerStats} />
-      <main className="mt-8 grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div className="lg:col-span-2 xl:col-span-3 flex flex-col gap-6">
-          <TradingInterface items={gameState.items} onInitiateTrade={handleInitiateTrade} />
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <MarketChart 
-              priceHistory={gameState.priceHistory} 
-              items={gameState.items.map(i => i.name)}
-              selectedItem={chartItem}
-              onSelectItem={setChartItem}
-            />
-            <GalaxyMap 
-              systems={gameState.systems}
-              routes={gameState.routes}
-              currentSystem={gameState.currentSystem}
-              onTravel={handleInitiateTravel}
-            />
-          </div>
-        </div>
-
-        <div className="lg:col-span-1 xl:col-span-1 flex flex-col gap-6">
+      <main className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
           <PlayerProfile 
             stats={gameState.playerStats} 
             onGenerateAvatar={handleGenerateAvatar} 
             isGeneratingAvatar={isGeneratingAvatar}
             currentSystem={gameState.currentSystem}
           />
+          <Leaderboard data={leaderboardWithPlayer} />
+        </div>
+
+        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
+          <TradingInterface items={gameState.items} onInitiateTrade={handleInitiateTrade} />
+          
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            <div className="xl:col-span-3">
+              <MarketChart 
+                priceHistory={gameState.priceHistory} 
+                items={gameState.items.map(i => i.name)}
+                selectedItem={chartItem}
+                onSelectItem={setChartItem}
+              />
+            </div>
+            <div className="xl:col-span-2">
+              <GalaxyMap 
+                systems={gameState.systems}
+                routes={gameState.routes}
+                currentSystem={gameState.currentSystem}
+                onTravel={handleInitiateTravel}
+              />
+            </div>
+          </div>
+          
            <div className="flex justify-center">
-            <Button onClick={handleSimulateMarket} disabled={isSimulating} className="w-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
+            <Button onClick={handleSimulateMarket} disabled={isSimulating} className="w-full max-w-sm shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
               {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Simulate Market Event
             </Button>
           </div>
+
           {gameState.pirateEncounter && <PirateEncounter pirate={gameState.pirateEncounter} onAction={handlePirateAction} isResolving={isResolvingEncounter || isScanning} />}
-          <Leaderboard data={leaderboardWithPlayer} />
         </div>
       </main>
       
