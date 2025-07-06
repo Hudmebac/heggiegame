@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 
@@ -103,6 +103,11 @@ function generateRandomPirate(): Pirate {
     }
 }
 
+const initialCrew: CrewMember[] = [
+    { id: 'eng-01', name: 'Zara "Sparks" Kosari', role: 'Engineer', description: 'Reduces travel fuel consumption by 5%.', salary: 500 },
+    { id: 'gun-01', name: 'Rook', role: 'Gunner', description: 'Increases weapon effectiveness in combat.', salary: 750 },
+];
+
 const initialGameState: Omit<GameState, 'marketItems'> = {
   playerStats: {
     name: 'You',
@@ -131,6 +136,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
   routes: routes,
   currentSystem: 'Sol',
   quests: [],
+  crew: initialCrew,
 };
 
 interface GameContextType {
@@ -210,6 +216,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const savedState = JSON.parse(savedStateJSON);
                 if (savedState.playerStats && savedState.inventory && savedState.marketItems) {
                      setGameState({
+                        ...initialGameState,
                         ...savedState,
                         playerStats: {
                             ...initialGameState.playerStats,

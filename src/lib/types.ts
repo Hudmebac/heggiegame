@@ -78,6 +78,14 @@ export interface Quest {
   difficulty: 'Low' | 'Medium' | 'High';
 }
 
+export interface CrewMember {
+  id: string;
+  name: string;
+  role: 'Engineer' | 'Navigator' | 'Gunner' | 'Negotiator';
+  description: string;
+  salary: number;
+}
+
 export interface GameState {
   playerStats: PlayerStats;
   inventory: InventoryItem[];
@@ -89,6 +97,7 @@ export interface GameState {
   routes: Route[];
   currentSystem: string;
   quests: Quest[];
+  crew: CrewMember[];
 }
 
 export interface EncounterResult {

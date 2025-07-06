@@ -2,7 +2,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { icon: React.ReactNode, title: string, value: number, max: number, unit: string, progressColorClass: string }) => (
@@ -30,7 +30,7 @@ export default function ShipManagement() {
     );
   }
   
-  const { playerStats: stats, currentSystem: currentSystemName, systems } = gameState;
+  const { playerStats: stats, currentSystem: currentSystemName, systems, crew } = gameState;
   const currentSystem = systems.find(s => s.name === currentSystemName);
 
   // Refuel Logic
@@ -68,6 +68,13 @@ export default function ShipManagement() {
   const nextShieldUpgrade = stats.shieldLevel < shieldUpgrades.length
     ? shieldUpgrades[stats.shieldLevel]
     : null;
+    
+  const crewRoleIcons = {
+    'Engineer': <Wrench className="h-4 w-4 text-amber-400" />,
+    'Navigator': <Navigation className="h-4 w-4 text-sky-400" />,
+    'Gunner': <Crosshair className="h-4 w-4 text-rose-400" />,
+    'Negotiator': <Handshake className="h-4 w-4 text-green-400" />,
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -204,7 +211,7 @@ export default function ShipManagement() {
                     </div>
                 </CardContent>
             </Card>
-             <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
+            <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg font-headline">
                         <Ship className="text-primary"/> Fleet Management
@@ -218,6 +225,38 @@ export default function ShipManagement() {
                     </div>
                     <Button className="w-full" disabled>
                         Purchase New Ship (Coming Soon)
+                    </Button>
+                </CardContent>
+            </Card>
+            <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg font-headline">
+                        <Users className="text-primary"/> Crew Roster
+                    </CardTitle>
+                    <CardDescription>Your loyal (and paid) companions.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {crew.length > 0 ? (
+                        crew.map(member => (
+                            <div key={member.id} className="flex items-center justify-between">
+                                <div>
+                                    <p className="font-medium flex items-center gap-2">
+                                        {crewRoleIcons[member.role]}
+                                        {member.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">{member.description}</p>
+                                </div>
+                                <div className="text-right">
+                                     <p className="font-mono text-sm">{member.salary.toLocaleString()}¢</p>
+                                     <p className="text-xs text-muted-foreground">/ cycle</p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center">Your ship has no crew.</p>
+                    )}
+                    <Button className="w-full mt-4" disabled>
+                        Recruit Crew (Coming Soon)
                     </Button>
                 </CardContent>
             </Card>
