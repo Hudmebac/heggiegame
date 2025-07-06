@@ -128,6 +128,71 @@ export default function ShipCodex() {
                     </div>
                 </CardContent>
             </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Clipboard className="text-primary"/>Ship Blueprint: Hauler Mk. II</CardTitle>
+                    <CardDescription>Detailed schematics and profile for the Hauler Mk. II.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="bg-black/30 p-4 rounded-lg border border-border/50">
+                        <Image
+                            src="https://placehold.co/956x669.png"
+                            alt="Hauler Mk. II Blueprint"
+                            width={956}
+                            height={669}
+                            className="rounded-md w-full h-auto"
+                            data-ai-hint="hauler blueprint"
+                        />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Vessel Profile</h4>
+                        <div className="space-y-2 text-sm border p-4 rounded-lg bg-background/30">
+                            <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>Freighter</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Designation</span><span>Hauler Mk. II</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Manufacturer</span><span>Lakon Spaceways</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Length</span><span>64.2 meters</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Crew Capacity</span><span>6</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Cargo Bay</span><span className="text-right">350 tons (modular pods with HEGGIE-standard seal locks)</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Primary Use</span><span className="text-right">Bulk commodity transport, trade-route endurance runs, corporate freight</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">HEGGIE Clearance</span><span>Tier II</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Layout Overview</h4>
+                        <pre className="p-4 bg-black/50 rounded-lg text-xs font-mono text-cyan-300 overflow-x-auto">
+{`+--------------------------------------------------------+
+|   COCKPIT / BRIDGE                                     | ← Command console & trade terminal interface
+|--------------------------------------------------------|
+|   CREW QUARTERS                                        | ← Six-module living space + mess & survival gear
+|--------------------------------------------------------|
+|   TRADE SYSTEMS BAY                                    | ← HEGGIE holo-terminal, commodity scanner uplink
+|--------------------------------------------------------|
+|   PRIMARY CARGO HOLD                                   | ← Modular container racks, lockable vault pods
+|--------------------------------------------------------|
+|   SHIELD EMITTER ARRAY                                 | ← Midship projector domes w/ flux regulators
+|--------------------------------------------------------|
+|   MAINTENANCE & POWER CONDUITS                         | ← Sub-deck wiring paths & service crawl spaces
+|--------------------------------------------------------|
+|   ENGINE MOUNTING: GravLift-8A                         | ← Rear-mounted propulsion clusters + intake vents
++--------------------------------------------------------+`}
+                        </pre>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Visual Description</h4>
+                        <div className="border p-4 rounded-lg bg-background/30">
+                            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                <li><span className="font-semibold text-foreground">Color Scheme:</span> Industrial matte grey frame with bold HEGGIE-orange struts and signal panels; Lakon’s emblem etched in radiant silver.</li>
+                                <li><span className="font-semibold text-foreground">Markings:</span> HEGGIE Vault Nexus license strip spans mid-fuselage; trade legitimacy glyphs illuminated during customs scans.</li>
+                                <li><span className="font-semibold text-foreground">Shape:</span> Blocky, utilitarian hull with reinforced bow; side-mounted cargo clamps visible beneath ventral plating.</li>
+                                <li><span className="font-semibold text-foreground">Underside:</span> Wide gravity-field landing pads; magnetic cargo latches arranged in two parallel belts.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
