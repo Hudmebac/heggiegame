@@ -161,13 +161,27 @@ export interface SensorUpgrade {
     cost: number;
 }
 
+export interface ShipUpgradeSlots {
+  [key: string]: number;
+}
+
 export interface ShipForSale {
   id: string;
   name: string;
+  type: string;
+  designation: string;
   manufacturer: string;
   description: string;
   cost: number;
+  crewCapacity: number;
   cargo: number;
   fuel: number;
   health: number;
+  defenseRating: number;
+  speedRating: number;
+  shieldEmitterSlots: number;
+  engineClass: string;
+  upgradeSlots: ShipUpgradeSlots;
+  recommendedUse: string;
+  heggieClearance: string;
 }

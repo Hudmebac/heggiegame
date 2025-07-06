@@ -2,7 +2,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart, Briefcase, Radar } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart, Briefcase, Radar, GaugeCircle, Star, KeyRound, ChevronsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import Link from 'next/link';
@@ -215,23 +215,36 @@ export default function ShipManagement() {
             </CardHeader>
             <CardContent className="space-y-4">
                 {SHIPS_FOR_SALE.map(ship => (
-                    <div key={ship.id} className="border p-4 rounded-lg bg-background/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div className="space-y-2">
-                            <h4 className="font-bold text-base">{ship.name}</h4>
-                            <p className="text-xs text-muted-foreground">{ship.manufacturer}</p>
-
-                            <p className="text-sm">{ship.description}</p>
-                            <div className="flex flex-wrap gap-4 text-xs font-mono pt-2">
-                                <span className="flex items-center gap-1.5"><Warehouse className="h-3 w-3" /> {ship.cargo}t</span>
-                                <span className="flex items-center gap-1.5"><Fuel className="h-3 w-3" /> {ship.fuel} SU</span>
-                                <span className="flex items-center gap-1.5"><HeartPulse className="h-3 w-3" /> {ship.health}%</span>
+                    <div key={ship.id} className="border p-4 rounded-lg bg-background/30 flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                            <div className="space-y-2 flex-grow">
+                                <h4 className="font-bold text-base text-primary">{ship.name} <span className="text-sm font-normal text-muted-foreground">({ship.type})</span></h4>
+                                <p className="text-xs text-muted-foreground">{ship.manufacturer}</p>
+                                <p className="text-sm">{ship.description}</p>
+                            </div>
+                            <div className="flex-shrink-0 text-right w-full sm:w-auto">
+                                <p className="text-lg font-mono text-amber-300 mb-2">{ship.cost.toLocaleString()}¢</p>
+                                <Button className="w-full sm:w-auto" onClick={() => handlePurchaseShip(ship)} disabled={stats.netWorth < ship.cost}>
+                                    Purchase
+                                </Button>
                             </div>
                         </div>
-                        <div className="flex-shrink-0 text-right w-full sm:w-auto">
-                            <p className="text-lg font-mono text-amber-300 mb-2">{ship.cost.toLocaleString()}¢</p>
-                            <Button className="w-full sm:w-auto" onClick={() => handlePurchaseShip(ship)} disabled={stats.netWorth < ship.cost}>
-                                Purchase
-                            </Button>
+                        <div className="pt-4 border-t border-border/50 text-xs">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 font-mono">
+                                <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: {ship.cargo}t</span></div>
+                                <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: {ship.fuel} SU</span></div>
+                                <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Health: {ship.health}%</span></div>
+                                <div className="flex items-center gap-2"><GaugeCircle className="h-4 w-4 text-primary/70" /> <span>Speed: {ship.speedRating}</span></div>
+                                <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary/70" /> <span>Defense: {ship.defenseRating}</span></div>
+                                <div className="flex items-center gap-2"><Users className="h-4 w-4 text-primary/70" /> <span>Crew: {ship.crewCapacity}</span></div>
+                                <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary/70" /> <span>Shield Slots: {ship.shieldEmitterSlots}</span></div>
+                                <div className="flex items-center gap-2"><Wrench className="h-4 w-4 text-primary/70" /> <span>Engine: {ship.engineClass}</span></div>
+                            </div>
+                            <div className="mt-4 pt-2 border-t border-border/50 space-y-2 text-sm">
+                                <div className="flex items-start gap-2"><ChevronsUp className="h-4 w-4 text-primary/70 mt-0.5" /> <div><span className="font-bold">Upgrade Slots:</span> <span className="text-muted-foreground">{Object.entries(ship.upgradeSlots).map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`).join(', ')}</span></div></div>
+                                <div className="flex items-start gap-2"><Star className="h-4 w-4 text-primary/70 mt-0.5" /> <div><span className="font-bold">Recommended Use:</span> <span className="text-muted-foreground">{ship.recommendedUse}</span></div></div>
+                                <div className="flex items-start gap-2"><KeyRound className="h-4 w-4 text-primary/70 mt-0.5" /> <div><span className="font-bold">HEGGIE Clearance:</span> <span className="text-muted-foreground">{ship.heggieClearance}</span></div></div>
+                            </div>
                         </div>
                     </div>
                 ))}
