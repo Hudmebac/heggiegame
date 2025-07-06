@@ -37,6 +37,8 @@ export interface PlayerStats {
   shieldLevel: number;
   fleetSize: number;
   pirateRisk: number;
+  shipHealth: number;
+  maxShipHealth: number;
 }
 
 export interface PriceHistory {
@@ -68,11 +70,6 @@ export interface System {
   volatility: number;
 }
 
-export interface Route {
-  from: string;
-  to: string;
-}
-
 export interface Quest {
   title: string;
   description: string;
@@ -99,7 +96,7 @@ export interface EncounterResult {
   narrative: string;
   cargoLost: number;
   creditsLost: number;
-  damageTaken: string;
+  damageTaken: number;
 }
 
 export interface CargoUpgrade {

@@ -2,7 +2,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2 } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { icon: React.ReactNode, title: string, value: number, max: number, unit: string, progressColorClass: string }) => (
@@ -20,7 +20,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 
 
 export default function ShipManagement() {
-  const { gameState, handleRefuel, handleUpgradeShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
+  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
 
   if (!gameState) {
     return (
@@ -30,13 +30,28 @@ export default function ShipManagement() {
     );
   }
   
-  const { playerStats: stats, currentSystem } = gameState;
+  const { playerStats: stats, currentSystem: currentSystemName, systems } = gameState;
+  const currentSystem = systems.find(s => s.name === currentSystemName);
+
+  // Refuel Logic
   const fuelPrice = 2; // credits per unit
   const fuelNeeded = stats.maxFuel - stats.fuel;
   const refuelCost = fuelNeeded * fuelPrice;
-
   const canAffordRefuel = stats.netWorth >= refuelCost;
   const needsRefuel = fuelNeeded > 0;
+
+  // Repair Logic
+  const damageToRepair = stats.maxShipHealth - stats.shipHealth;
+  const needsRepair = damageToRepair > 0;
+  const baseRepairPricePerPoint = 50;
+  const economyModifiers = { 'Industrial': 0.8, 'High-Tech': 0.9, 'Refinery': 1.1, 'Extraction': 1.2, 'Agricultural': 1.3 };
+  const securityModifiers = { 'High': 0.9, 'Medium': 1.0, 'Low': 1.2, 'Anarchy': 1.5 };
+  const economyMod = currentSystem ? economyModifiers[currentSystem.economy] : 1;
+  const securityMod = currentSystem ? securityModifiers[currentSystem.security] : 1;
+  const repairCost = Math.round(damageToRepair * baseRepairPricePerPoint * economyMod * securityMod);
+  const canAffordRepair = stats.netWorth >= repairCost;
+  const isHealthCritical = stats.shipHealth < 15;
+
 
   // Upgrade logic
   const currentCargoTierIndex = cargoUpgrades.findIndex(u => u.capacity >= stats.maxCargo);
@@ -65,27 +80,35 @@ export default function ShipManagement() {
         </CardHeader>
         <CardContent className="space-y-6">
             <StatDisplay 
-            icon={<Fuel className="h-4 w-4 text-amber-400" />}
-            title="Fuel"
-            value={stats.fuel}
-            max={stats.maxFuel}
-            unit=" SU"
-            progressColorClass="from-amber-500 to-orange-500"
+                icon={<HeartPulse className="h-4 w-4 text-rose-400" />}
+                title="Hull Integrity"
+                value={stats.shipHealth}
+                max={stats.maxShipHealth}
+                unit="%"
+                progressColorClass="from-rose-500 to-red-500"
             />
             <StatDisplay 
-            icon={<Warehouse className="h-4 w-4 text-sky-400" />}
-            title="Cargo"
-            value={stats.cargo}
-            max={stats.maxCargo}
-            unit="t"
-            progressColorClass="from-sky-500 to-cyan-500"
+                icon={<Fuel className="h-4 w-4 text-amber-400" />}
+                title="Fuel"
+                value={stats.fuel}
+                max={stats.maxFuel}
+                unit=" SU"
+                progressColorClass="from-amber-500 to-orange-500"
+            />
+            <StatDisplay 
+                icon={<Warehouse className="h-4 w-4 text-sky-400" />}
+                title="Cargo"
+                value={stats.cargo}
+                max={stats.maxCargo}
+                unit="t"
+                progressColorClass="from-sky-500 to-cyan-500"
             />
             <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span>Current Location</span>
-            </div>
-                <span className="font-mono text-primary">{currentSystem} System</span>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span>Current Location</span>
+                </div>
+                <span className="font-mono text-primary">{currentSystemName} System</span>
             </div>
             <div className="flex justify-between items-center text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -97,16 +120,45 @@ export default function ShipManagement() {
                     {stats.insurance ? 'Active' : 'Inactive'}
                 </span>
             </div>
-            <Button className="w-full" onClick={handleRefuel} disabled={!needsRefuel || !canAffordRefuel}>
-              {needsRefuel ? `Refuel Ship (${refuelCost.toLocaleString()}¢)` : 'Fuel Tank Full'}
-            </Button>
         </CardContent>
         </Card>
         <div className="space-y-6">
+             <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg font-headline">
+                        <Wrench className="text-primary"/> Starport Services
+                    </CardTitle>
+                    <CardDescription>Refuel, repair, and upgrade your vessel.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     {isHealthCritical && (
+                        <div className='p-3 rounded-md border border-destructive/50 bg-destructive/10 text-destructive-foreground flex items-start gap-3'>
+                            <AlertTriangle className='h-5 w-5 mt-0.5 flex-shrink-0'/>
+                            <div>
+                                <h4 className='font-bold'>Critical Hull Damage!</h4>
+                                <p className='text-xs'>Travel is not advised. Repair your ship immediately to avoid catastrophic failure.</p>
+                            </div>
+                        </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                        <p>Refuel Ship</p>
+                        <Button onClick={handleRefuel} disabled={!needsRefuel || !canAffordRefuel}>
+                          {needsRefuel ? `Refuel (${refuelCost.toLocaleString()}¢)` : 'Tank Full'}
+                        </Button>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <p>Repair Hull</p>
+                         <Button onClick={handleRepairShip} disabled={!needsRepair || !canAffordRepair}>
+                           {needsRepair ? `Repair (${repairCost.toLocaleString()}¢)` : 'No Damage'}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg font-headline">
-                        <Wrench className="text-primary"/> Ship Upgrades
+                        <ShieldCheck className="text-primary"/> Ship Outfitting
                     </CardTitle>
                     <CardDescription>Improve your vessel's capabilities.</CardDescription>
                 </CardHeader>
@@ -158,7 +210,7 @@ export default function ShipManagement() {
                         <Ship className="text-primary"/> Fleet Management
                     </CardTitle>
                     <CardDescription>Manage your fleet of vessels.</CardDescription>
-                </CardHeader>
+                </Header>
                 <CardContent className="space-y-4 text-left">
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Current Fleet Size</p>

@@ -37,6 +37,7 @@ export const ResolvePirateEncounterInputSchema = z.object({
   playerCargo: z.number().describe("The amount of cargo the player is currently carrying."),
   pirateName: z.string().describe('The name of the pirate.'),
   pirateThreatLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe('The threat level of the pirate.'),
+  shipHealth: z.number().describe("The player's current ship health (0-100)."),
 });
 export type ResolvePirateEncounterInput = z.infer<typeof ResolvePirateEncounterInputSchema>;
 
@@ -45,7 +46,7 @@ export const ResolvePirateEncounterOutputSchema = z.object({
   narrative: z.string().describe('A dramatic, short description of what happened.'),
   cargoLost: z.number().describe('Amount of cargo units lost.'),
   creditsLost: z.number().describe('Amount of credits lost (from bribes or damages).'),
-  damageTaken: z.string().describe('A brief description of any damage taken to the ship.'),
+  damageTaken: z.number().describe('The amount of hull damage taken, from 0 to 100.'),
 });
 export type ResolvePirateEncounterOutput = z.infer<typeof ResolvePirateEncounterOutputSchema>;
 

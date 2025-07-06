@@ -27,18 +27,21 @@ const prompt = ai.definePrompt({
 **Player's Action:** {{{action}}}
 **Player's Net Worth:** {{{playerNetWorth}}} credits
 **Player's Current Cargo:** {{{playerCargo}}} units
+**Player's Ship Health:** {{{shipHealth}}}/100
 **Pirate:** {{{pirateName}}}
 **Pirate Threat Level:** {{{pirateThreatLevel}}}
 
 **Your Task:**
 - Evaluate the player's action against the pirate's threat level.
-- Fighting a high-threat pirate is risky. Evading might be easier against a slow ship but could fail. Bribing depends on the player's net worth and the pirate's greed.
+- Fighting a high-threat pirate is risky. A damaged ship (low health) will be less effective in combat.
+- Evading might be easier against a slow ship but could fail. Bribing depends on the player's net worth and the pirate's greed.
 - Generate a compelling, short narrative describing the event's resolution.
 - Determine the consequences: cargo lost, credits lost (for bribes or repairs), and ship damage.
 - The outcome should be logical. A low-threat pirate might be easily fought off or accept a small bribe. A critical-threat pirate will be very dangerous.
 - If the player bribes, the 'creditsLost' should be a reasonable amount based on their net worth and the pirate threat.
 - If the player fights and loses, they might lose some cargo.
-- If the player successfully evades, there should be no losses.
+- Determine the 'damageTaken' as a numerical value representing health points lost. A minor hit might be 5-10 points, while a critical failure could be 30-50 points.
+- If the player successfully evades, there should be no losses or damage.
 
 Provide the response in the specified JSON format.`,
 });

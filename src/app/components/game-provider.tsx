@@ -106,6 +106,8 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     maxFuel: 100,
     cargo: 0,
     maxCargo: 50,
+    shipHealth: 100,
+    maxShipHealth: 100,
     insurance: true,
     avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
     weaponLevel: 1,
@@ -146,6 +148,7 @@ interface GameContextType {
   setPlayerName: (name: string) => void;
   handleInitiateTravel: (systemName: string) => void;
   handleRefuel: () => void;
+  handleRepairShip: () => void;
   handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
@@ -450,6 +453,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             playerCargo: gameState.playerStats.cargo,
             pirateName: gameState.pirateEncounter!.name,
             pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
+            shipHealth: gameState.playerStats.shipHealth,
         };
         try {
             const result = await resolveEncounter(input);
@@ -459,6 +463,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 if (!prev) return null;
                 const newPlayerStats = { ...prev.playerStats };
                 newPlayerStats.netWorth -= result.creditsLost;
+                newPlayerStats.shipHealth = Math.max(0, newPlayerStats.shipHealth - result.damageTaken);
                 // Cargo loss is complex, would need to randomly select from inventory.
                 // For now, we simulate a flat cargo value loss.
                 const cargoLostValue = result.cargoLost; // This is abstract now.
@@ -564,7 +569,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (!currentSystem) return;
 
       const distance = Math.hypot(travelDestination.x - currentSystem.x, travelDestination.y - currentSystem.y);
-      const fuelCost = Math.round(distance / 5);
+      let fuelCost = Math.round(distance / 5);
+
+      if (gameState.playerStats.shipHealth < 50) {
+        fuelCost = Math.round(fuelCost * 1.25);
+      }
 
       if (gameState.playerStats.fuel < fuelCost) {
           toast({
@@ -655,6 +664,44 @@ export function GameProvider({ children }: { children: ReactNode }) {
       toast({ title: "Refuel Complete", description: `You spent ${totalCost}¢ to refuel your ship.` });
       
       return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleRepairShip = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const currentSystem = systems.find(s => s.name === prev.currentSystem);
+        if (!currentSystem) return prev;
+
+        const damageToRepair = prev.playerStats.maxShipHealth - prev.playerStats.shipHealth;
+        if (damageToRepair <= 0) {
+            toast({ title: "Repairs Not Needed", description: "Ship integrity is at 100%." });
+            return prev;
+        }
+
+        const baseRepairPricePerPoint = 50;
+        const economyModifiers = { 'Industrial': 0.8, 'High-Tech': 0.9, 'Refinery': 1.1, 'Extraction': 1.2, 'Agricultural': 1.3 };
+        const securityModifiers = { 'High': 0.9, 'Medium': 1.0, 'Low': 1.2, 'Anarchy': 1.5 };
+        
+        const economyMod = economyModifiers[currentSystem.economy];
+        const securityMod = securityModifiers[currentSystem.security];
+
+        const totalCost = Math.round(damageToRepair * baseRepairPricePerPoint * economyMod * securityMod);
+
+        if (prev.playerStats.netWorth < totalCost) {
+            toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` });
+            return prev;
+        }
+
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - totalCost,
+            shipHealth: prev.playerStats.maxShipHealth,
+        };
+
+        toast({ title: "Repairs Complete", description: `You spent ${totalCost}¢ to restore your ship's hull.` });
+
+        return { ...prev, playerStats: newPlayerStats };
     });
   };
   
@@ -750,6 +797,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerName,
     handleInitiateTravel,
     handleRefuel,
+    handleRepairShip,
     handleUpgradeShip,
     cargoUpgrades,
     weaponUpgrades,
@@ -778,7 +826,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                         <p><strong>Outcome:</strong> <span className="font-mono">{encounterResult.outcome.replace('_', ' ')}</span></p>
                         <p><strong>Credits Lost:</strong> <span className="font-mono text-amber-400">{encounterResult.creditsLost} ¢</span></p>
                         <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult.cargoLost} (value)</span></p>
-                        <p><strong>Ship Damage:</strong> <span className="font-mono text-destructive">{encounterResult.damageTaken}</span></p>
+                        <p><strong>Hull Damage:</strong> <span className="font-mono text-destructive">{encounterResult.damageTaken}%</span></p>
                     </div>
                     <AlertDialogFooter>
                     <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
