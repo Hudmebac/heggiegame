@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
@@ -13,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 export default function FleetManagement() {
   const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip } = useGame();
-  const [outfittingShip, setOutfittingShip] = useState<PlayerShip | null>(null);
+  const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
   if (!gameState) {
     return <div>Loading Fleet...</div>;
@@ -62,7 +61,7 @@ export default function FleetManagement() {
                   </div>
                 </CardContent>
                 <CardContent className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setOutfittingShip(ship)}>
+                  <Button variant="outline" size="sm" onClick={() => setOutfittingShipId(ship.instanceId)}>
                     <Wrench className="mr-2" /> Outfit
                   </Button>
                   <AlertDialog>
@@ -135,11 +134,11 @@ export default function FleetManagement() {
         </CardContent>
       </Card>
 
-      {outfittingShip && (
+      {outfittingShipId && (
         <ShipOutfittingDialog
-          ship={outfittingShip}
-          isOpen={!!outfittingShip}
-          onOpenChange={(isOpen) => !isOpen && setOutfittingShip(null)}
+          shipInstanceId={outfittingShipId}
+          isOpen={!!outfittingShipId}
+          onOpenChange={(isOpen) => !isOpen && setOutfittingShipId(null)}
         />
       )}
     </div>

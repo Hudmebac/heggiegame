@@ -10,17 +10,20 @@ import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrad
 import { Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar } from 'lucide-react';
 
 interface ShipOutfittingDialogProps {
-  ship: PlayerShip;
+  shipInstanceId: number;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function ShipOutfittingDialog({ ship, isOpen, onOpenChange }: ShipOutfittingDialogProps) {
+export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenChange }: ShipOutfittingDialogProps) {
   const { gameState, handleUpgradeShip, handleDowngradeShip } = useGame();
 
   if (!gameState) return null;
 
+  const ship = gameState.playerStats.fleet.find(s => s.instanceId === shipInstanceId);
   const { playerStats } = gameState;
+  
+  if (!ship) return null;
 
   const getUpgradeCost = (currentLevel: number, upgrades: { level: number; cost: number }[]) => {
     if (currentLevel >= upgrades.length) return Infinity;
