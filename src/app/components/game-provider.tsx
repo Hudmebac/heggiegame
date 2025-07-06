@@ -525,6 +525,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       startSimulationTransition(async () => {
         const stateBeforeTravel = gameState;
         
+        let encounterChance = 0;
+        switch (travelDestination.security) {
+            case 'Anarchy': encounterChance = 0.5; break;
+            case 'Low': encounterChance = 0.3; break;
+            case 'Medium': encounterChance = 0.1; break;
+            case 'High': encounterChance = 0.0; break;
+        }
+
         const travelledState: GameState = {
             ...stateBeforeTravel,
             playerStats: {
@@ -532,7 +540,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 fuel: stateBeforeTravel.playerStats.fuel - fuelCost,
             },
             currentSystem: travelDestination.name,
-            pirateEncounter: Math.random() < 0.3 ? generateRandomPirate() : null,
+            pirateEncounter: Math.random() < encounterChance ? generateRandomPirate() : null,
         };
 
         const marketInput = {
