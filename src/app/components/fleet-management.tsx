@@ -20,7 +20,7 @@ export default function FleetManagement() {
   }
 
   const { playerStats } = gameState;
-  const activeShipInstanceId = playerStats.fleet[0]?.instanceId;
+  const activeShipInstanceId = playerStats.fleet?.[0]?.instanceId;
 
   const getShipBaseData = (shipId: string) => SHIPS_FOR_SALE.find(s => s.id === shipId);
 

@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer, ActiveObjective, QuestTask } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer, ActiveObjective, QuestTask, PlayerShip } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration, runCommercePartnershipOfferGeneration, runIndustryPartnershipOfferGeneration, runConstructionPartnershipOfferGeneration, runRecreationPartnershipOfferGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -86,27 +86,28 @@ function generateRandomPirate(hasNavigator: boolean): Pirate {
 
 const initialCrew: CrewMember[] = [AVAILABLE_CREW[0], AVAILABLE_CREW[1]];
 
-const initialGameState: Omit<GameState, 'marketItems'> = {
-  playerStats: {
-    name: 'You',
-    bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
-    netWorth: 10000,
-    fuel: 100,
-    maxFuel: 100,
-    cargo: 0,
-    maxCargo: 50,
-    shipHealth: 100,
-    maxShipHealth: 100,
-    insurance: true,
-    avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
+const initialShip: PlayerShip = {
+    instanceId: Date.now(),
+    shipId: 'shuttle-s',
+    name: 'My Shuttle',
+    cargoLevel: 1,
     weaponLevel: 1,
     shieldLevel: 1,
     hullLevel: 1,
     fuelLevel: 1,
     sensorLevel: 1,
-    fleetSize: 1,
+};
+
+const initialGameState: Omit<GameState, 'marketItems' | 'playerStats'> & { playerStats: Partial<PlayerStats> } = {
+  playerStats: {
+    name: 'You',
+    bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
+    netWorth: 10000,
+    insurance: true,
+    avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
     pirateRisk: 0,
     reputation: 0,
+    fleet: [initialShip],
     barLevel: 1,
     autoClickerBots: 0,
     establishmentLevel: 0,
@@ -161,9 +162,11 @@ interface GameContextType {
   handlePlanetTravel: (planetName: string) => void;
   handleRefuel: () => void;
   handleRepairShip: () => void;
-  handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
-  handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
+  handleUpgradeShip: (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
+  handleDowngradeShip: (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
   handlePurchaseShip: (ship: ShipForSale) => void;
+  handleSellShip: (shipInstanceId: number) => void;
+  handleSetActiveShip: (shipInstanceId: number) => void;
   handleHireCrew: (crewId: string) => void;
   handleFireCrew: (crewId: string) => void;
   updateTraderBio: (traderName: string, bio: string) => void;
@@ -226,6 +229,43 @@ export function useGame() {
     throw new Error('useGame must be used within a GameProvider');
   }
   return context;
+}
+
+function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
+    if (!playerStats.fleet || playerStats.fleet.length === 0) {
+        return playerStats;
+    }
+
+    const activeShip = playerStats.fleet[0];
+    const newStats = { ...playerStats };
+
+    const cargoTier = cargoUpgrades[activeShip.cargoLevel - 1];
+    newStats.maxCargo = cargoTier ? cargoTier.capacity : 0;
+    newStats.cargoLevel = activeShip.cargoLevel;
+
+    const weaponTier = weaponUpgrades[activeShip.weaponLevel - 1];
+    newStats.weaponLevel = weaponTier ? weaponTier.level : 1;
+
+    const shieldTier = shieldUpgrades[activeShip.shieldLevel - 1];
+    newStats.shieldLevel = shieldTier ? shieldTier.level : 1;
+
+    const hullTier = hullUpgrades[activeShip.hullLevel - 1];
+    newStats.maxShipHealth = hullTier ? hullTier.health : 100;
+    newStats.hullLevel = activeShip.hullLevel;
+
+    const fuelTier = fuelUpgrades[activeShip.fuelLevel - 1];
+    newStats.maxFuel = fuelTier ? fuelTier.capacity : 100;
+    newStats.fuelLevel = activeShip.fuelLevel;
+    
+    const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
+    newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
+
+    // Preserve current values if they are within new limits
+    newStats.cargo = Math.min(newStats.cargo || 0, newStats.maxCargo);
+    newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
+    newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
+
+    return newStats;
 }
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -315,10 +355,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
             savedStateJSON = null;
         }
 
+        const basePlayerStats = syncActiveShipStats(initialGameState.playerStats as PlayerStats);
+        basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
+
         const baseState: GameState = {
             ...initialGameState,
+            playerStats: basePlayerStats,
             marketItems: calculateMarketDataForSystem(SYSTEMS.find(s => s.name === initialGameState.currentSystem) || SYSTEMS[0]),
-        };
+        } as GameState;
 
         if (savedStateJSON) {
             try {
@@ -327,11 +371,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const currentSystemName = savedProgress.currentSystem || baseState.currentSystem;
                 const currentSystem = SYSTEMS.find(s => s.name === currentSystemName) || SYSTEMS[0];
                 
-                const mergedPlayerStats = {
+                let mergedPlayerStats = {
                     ...baseState.playerStats,
                     ...savedProgress.playerStats,
                 };
                 mergedPlayerStats.cargo = calculateCurrentCargo(savedProgress.inventory || baseState.inventory);
+                mergedPlayerStats = syncActiveShipStats(mergedPlayerStats);
                 
                 const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
@@ -373,28 +418,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 bio: trader.bio,
             }));
 
+            const playerStatsWithShip = syncActiveShipStats(initialGameState.playerStats as PlayerStats);
+            playerStatsWithShip.cargo = calculateCurrentCargo(initialGameState.inventory);
+            
             const playerEntry = {
-                trader: initialGameState.playerStats.name,
-                netWorth: initialGameState.playerStats.netWorth,
-                fleetSize: initialGameState.playerStats.fleetSize,
-                bio: initialGameState.playerStats.bio
+                trader: playerStatsWithShip.name,
+                netWorth: playerStatsWithShip.netWorth,
+                fleetSize: playerStatsWithShip.fleet.length,
+                bio: playerStatsWithShip.bio
             };
 
             const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry]
                 .sort((a, b) => b.netWorth - a.netWorth)
                 .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
-            const playerStats = {
-                ...initialGameState.playerStats,
-                cargo: calculateCurrentCargo(initialGameState.inventory)
-            };
-            
             const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem) || SYSTEMS[0];
             const marketItems = calculateMarketDataForSystem(currentSystem);
 
             const newGameState: GameState = {
-                ...initialGameState,
-                playerStats,
+                ...(initialGameState as GameState),
+                playerStats: playerStatsWithShip,
                 marketItems,
                 leaderboard: sortedLeaderboard,
                 quests: questsResult.quests,
@@ -410,7 +453,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
 
     loadGame();
-  }, [calculateMarketDataForSystem, toast]); 
+  }, [calculateMarketDataForSystem]); 
 
   useEffect(() => {
     if (isClient && gameState) {
@@ -497,11 +540,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            const [newState, completedObjectives] = updateObjectiveProgress('bar', { ...prev, playerStats: newPlayerStats });
+            let postObjectiveState = { ...prev, playerStats: newPlayerStats };
+            const [newState, completedObjectives] = updateObjectiveProgress('bar', postObjectiveState);
             
-            completedObjectives.forEach(obj => {
-                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
-            });
+            if (completedObjectives.length > 0) {
+                setTimeout(() => {
+                    completedObjectives.forEach(obj => {
+                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+                    });
+                }, 0);
+            }
             
             return newState;
         });
@@ -537,9 +585,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
             
             const [newState, completedObjectives] = updateObjectiveProgress('residence', { ...prev, playerStats: newPlayerStats });
             
-            completedObjectives.forEach(obj => {
-                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
-            });
+            if (completedObjectives.length > 0) {
+                setTimeout(() => {
+                    completedObjectives.forEach(obj => {
+                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+                    });
+                }, 0);
+            }
 
             return newState;
         });
@@ -575,9 +627,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             const [newState, completedObjectives] = updateObjectiveProgress('commerce', { ...prev, playerStats: newPlayerStats });
             
-            completedObjectives.forEach(obj => {
-                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
-            });
+            if (completedObjectives.length > 0) {
+                setTimeout(() => {
+                    completedObjectives.forEach(obj => {
+                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+                    });
+                }, 0);
+            }
 
             return newState;
         });
@@ -613,9 +669,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             const [newState, completedObjectives] = updateObjectiveProgress('industry', { ...prev, playerStats: newPlayerStats });
             
-            completedObjectives.forEach(obj => {
-                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
-            });
+            if (completedObjectives.length > 0) {
+                setTimeout(() => {
+                    completedObjectives.forEach(obj => {
+                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+                    });
+                }, 0);
+            }
 
             return newState;
         });
@@ -651,9 +711,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
             const [newState, completedObjectives] = updateObjectiveProgress('construction', { ...prev, playerStats: newPlayerStats });
             
-            completedObjectives.forEach(obj => {
-                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
-            });
+            if (completedObjectives.length > 0) {
+                setTimeout(() => {
+                    completedObjectives.forEach(obj => {
+                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+                    });
+                }, 0);
+            }
 
             return newState;
         });
@@ -689,9 +753,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
             
             const [newState, completedObjectives] = updateObjectiveProgress('recreation', { ...prev, playerStats: newPlayerStats });
             
-            completedObjectives.forEach(obj => {
-                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
-            });
+            if (completedObjectives.length > 0) {
+                setTimeout(() => {
+                    completedObjectives.forEach(obj => {
+                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+                    });
+                }, 0);
+            }
 
             return newState;
         });
@@ -718,7 +786,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
           }
           const elapsed = (now - obj.startTime) / 1000;
           if (elapsed >= obj.timeLimit) {
-            toast({ variant: 'destructive', title: 'Objective Failed', description: `You ran out of time for "${obj.title}".` });
+            setTimeout(() => {
+                toast({ variant: 'destructive', title: 'Objective Failed', description: `You ran out of time for "${obj.title}".` });
+            }, 0);
             updated = true;
           } else {
             stillActive.push(obj);
@@ -737,6 +807,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
+    let newGameState: GameState | null = null;
     setGameState(prev => {
       if (!prev) return null;
       
@@ -788,8 +859,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       const repGain = Math.max(1, Math.round(totalCost / 5000));
       newPlayerStats.reputation = Math.min(100, newPlayerStats.reputation + repGain);
-
-      return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory };
+      
+      newGameState = { ...prev, playerStats: newPlayerStats, inventory: updatedInventory };
+      return newGameState;
     });
   };
 
@@ -1231,217 +1303,113 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const handleUpgradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+  const handleUpgradeShip = (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
     setGameState(prev => {
         if (!prev) return null;
+        
+        const fleet = [...prev.playerStats.fleet];
+        const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
+        if (shipIndex === -1) {
+            toast({ variant: "destructive", title: "Error", description: "Ship not found in fleet." });
+            return prev;
+        }
 
+        const shipToUpgrade = { ...fleet[shipIndex] };
+        
         let cost = 0;
-        let newPlayerStats = { ...prev.playerStats };
         let canUpgrade = false;
         let toastTitle = "Upgrade Failed";
         let toastDescription = "An unknown error occurred.";
 
-        if (upgradeType === 'cargo') {
-            const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity === prev.playerStats.maxCargo);
-            if (currentTierIndex !== -1 && currentTierIndex < cargoUpgrades.length - 1) {
-                const currentTier = cargoUpgrades[currentTierIndex];
-                const nextTier = cargoUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost - currentTier.cost;
-                if (prev.playerStats.netWorth >= cost) {
-                    newPlayerStats.netWorth -= cost;
-                    newPlayerStats.maxCargo = nextTier.capacity;
-                    canUpgrade = true;
-                    toastTitle = "Cargo Hold Upgraded!";
-                    toastDescription = `Your maximum cargo capacity is now ${nextTier.capacity}t.`;
-                } else {
-                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
-                }
-            }
-        } else if (upgradeType === 'weapon') {
-            const currentTierIndex = weaponUpgrades.findIndex(u => u.level === prev.playerStats.weaponLevel);
-            if (currentTierIndex !== -1 && currentTierIndex < weaponUpgrades.length - 1) {
-                const currentTier = weaponUpgrades[currentTierIndex];
-                const nextTier = weaponUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost - currentTier.cost;
-                 if (prev.playerStats.netWorth >= cost) {
-                    newPlayerStats.netWorth -= cost;
-                    newPlayerStats.weaponLevel = nextTier.level;
-                    canUpgrade = true;
-                    toastTitle = "Weapons Upgraded!";
-                    toastDescription = `Your ship is now equipped with ${nextTier.name}.`;
-                } else {
-                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
-                }
-            }
-        } else if (upgradeType === 'shield') {
-            const currentTierIndex = shieldUpgrades.findIndex(u => u.level === prev.playerStats.shieldLevel);
-            if (currentTierIndex !== -1 && currentTierIndex < shieldUpgrades.length - 1) {
-                const currentTier = shieldUpgrades[currentTierIndex];
-                const nextTier = shieldUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost - currentTier.cost;
-                 if (prev.playerStats.netWorth >= cost) {
-                    newPlayerStats.netWorth -= cost;
-                    newPlayerStats.shieldLevel = nextTier.level;
-                    canUpgrade = true;
-                    toastTitle = "Shields Upgraded!";
-                    toastDescription = `Your ship is now equipped with a ${nextTier.name}.`;
-                } else {
-                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
-                }
-            }
-        } else if (upgradeType === 'hull') {
-            const currentTierIndex = hullUpgrades.findIndex(u => u.level === prev.playerStats.hullLevel);
-            if (currentTierIndex !== -1 && currentTierIndex < hullUpgrades.length - 1) {
-                const currentTier = hullUpgrades[currentTierIndex];
-                const nextTier = hullUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost - currentTier.cost;
-                if (prev.playerStats.netWorth >= cost) {
-                    newPlayerStats.netWorth -= cost;
-                    newPlayerStats.hullLevel = nextTier.level;
-                    newPlayerStats.maxShipHealth = nextTier.health;
-                    newPlayerStats.shipHealth += (nextTier.health - currentTier.health);
-                    canUpgrade = true;
-                    toastTitle = "Hull Upgraded!";
-                    toastDescription = `Your maximum hull integrity is now ${nextTier.health}.`;
-                } else {
-                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
-                }
-            }
-        } else if (upgradeType === 'fuel') {
-            const currentTierIndex = fuelUpgrades.findIndex(u => u.level === prev.playerStats.fuelLevel);
-            if (currentTierIndex !== -1 && currentTierIndex < fuelUpgrades.length - 1) {
-                const currentTier = fuelUpgrades[currentTierIndex];
-                const nextTier = fuelUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost - currentTier.cost;
-                if (prev.playerStats.netWorth >= cost) {
-                    newPlayerStats.netWorth -= cost;
-                    newPlayerStats.fuelLevel = nextTier.level;
-                    newPlayerStats.maxFuel = nextTier.capacity;
-                    newPlayerStats.fuel += (nextTier.capacity - currentTier.capacity);
-                    canUpgrade = true;
-                    toastTitle = "Fuel Tank Upgraded!";
-                    toastDescription = `Your maximum fuel capacity is now ${nextTier.capacity} SU.`;
-                } else {
-                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
-                }
-            }
-        } else if (upgradeType === 'sensor') {
-            const currentTierIndex = sensorUpgrades.findIndex(u => u.level === prev.playerStats.sensorLevel);
-            if (currentTierIndex !== -1 && currentTierIndex < sensorUpgrades.length - 1) {
-                const currentTier = sensorUpgrades[currentTierIndex];
-                const nextTier = sensorUpgrades[currentTierIndex + 1];
-                cost = nextTier.cost - currentTier.cost;
-                if (prev.playerStats.netWorth >= cost) {
-                    newPlayerStats.netWorth -= cost;
-                    newPlayerStats.sensorLevel = nextTier.level;
-                    canUpgrade = true;
-                    toastTitle = "Sensors Upgraded!";
-                    toastDescription = `Your ship is now equipped with a ${nextTier.name}.`;
-                } else {
-                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
-                }
-            }
-        }
+        const upgradeMap = {
+            cargo: { levels: cargoUpgrades, current: shipToUpgrade.cargoLevel },
+            weapon: { levels: weaponUpgrades, current: shipToUpgrade.weaponLevel },
+            shield: { levels: shieldUpgrades, current: shipToUpgrade.shieldLevel },
+            hull: { levels: hullUpgrades, current: shipToUpgrade.hullLevel },
+            fuel: { levels: fuelUpgrades, current: shipToUpgrade.fuelLevel },
+            sensor: { levels: sensorUpgrades, current: shipToUpgrade.sensorLevel },
+        };
         
-        if (!canUpgrade) {
-            toast({ variant: "destructive", title: "Upgrade Failed", description: cost > 0 ? "Not enough credits." : "Already at max level." });
+        const upgradeInfo = upgradeMap[upgradeType];
+        if (upgradeInfo.current >= upgradeInfo.levels.length) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: "Already at max level." });
             return prev;
         }
 
+        const currentTier = upgradeInfo.levels[upgradeInfo.current - 1];
+        const nextTier = upgradeInfo.levels[upgradeInfo.current];
+        cost = nextTier.cost - (currentTier?.cost || 0);
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        (shipToUpgrade as any)[`${upgradeType}Level`] += 1;
+        canUpgrade = true;
+        toastTitle = `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`;
+        toastDescription = `Your ${shipToUpgrade.name}'s ${upgradeType} is now Mk. ${shipToUpgrade[upgradeType+"Level" as keyof PlayerShip]}.`;
+        
+        fleet[shipIndex] = shipToUpgrade;
+        let newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            fleet
+        };
+
+        // If the upgraded ship is the active one, sync stats
+        if (shipIndex === 0) {
+            newPlayerStats = syncActiveShipStats(newPlayerStats);
+        }
+        
         toast({ title: toastTitle, description: toastDescription });
         return { ...prev, playerStats: newPlayerStats };
     });
   };
   
-  const handleDowngradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+  const handleDowngradeShip = (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
     setGameState(prev => {
         if (!prev) return null;
-
-        let refund = 0;
-        let newPlayerStats = { ...prev.playerStats };
-        let canDowngrade = false;
-        let toastTitle = "Downgrade Successful!";
-        let toastDescription = "";
-        const sellPercentage = 0.75;
-
-        if (upgradeType === 'cargo') {
-            const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity === prev.playerStats.maxCargo);
-            if (currentTierIndex > 0) {
-                const currentTier = cargoUpgrades[currentTierIndex];
-                const previousTier = cargoUpgrades[currentTierIndex - 1];
-                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
-                newPlayerStats.netWorth += refund;
-                newPlayerStats.maxCargo = previousTier.capacity;
-                canDowngrade = true;
-                toastDescription = `Cargo hold downgraded. You received ${refund.toLocaleString()}¢.`;
-            }
-        } else if (upgradeType === 'weapon') {
-            const currentTierIndex = weaponUpgrades.findIndex(u => u.level === prev.playerStats.weaponLevel);
-             if (currentTierIndex > 0) {
-                const currentTier = weaponUpgrades[currentTierIndex];
-                const previousTier = weaponUpgrades[currentTierIndex - 1];
-                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
-                newPlayerStats.netWorth += refund;
-                newPlayerStats.weaponLevel = previousTier.level;
-                canDowngrade = true;
-                toastDescription = `Weapons system downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
-            }
-        } else if (upgradeType === 'shield') {
-            const currentTierIndex = shieldUpgrades.findIndex(u => u.level === prev.playerStats.shieldLevel);
-             if (currentTierIndex > 0) {
-                const currentTier = shieldUpgrades[currentTierIndex];
-                const previousTier = shieldUpgrades[currentTierIndex - 1];
-                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
-                newPlayerStats.netWorth += refund;
-                newPlayerStats.shieldLevel = previousTier.level;
-                canDowngrade = true;
-                toastDescription = `Shields downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
-            }
-        } else if (upgradeType === 'hull') {
-            const currentTierIndex = hullUpgrades.findIndex(u => u.level === prev.playerStats.hullLevel);
-            if (currentTierIndex > 0) {
-                const currentTier = hullUpgrades[currentTierIndex];
-                const previousTier = hullUpgrades[currentTierIndex - 1];
-                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
-                newPlayerStats.netWorth += refund;
-                newPlayerStats.hullLevel = previousTier.level;
-                newPlayerStats.maxShipHealth = previousTier.health;
-                newPlayerStats.shipHealth = Math.min(newPlayerStats.shipHealth, newPlayerStats.maxShipHealth);
-                canDowngrade = true;
-                toastDescription = `Hull integrity downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
-            }
-        } else if (upgradeType === 'fuel') {
-            const currentTierIndex = fuelUpgrades.findIndex(u => u.level === prev.playerStats.fuelLevel);
-            if (currentTierIndex > 0) {
-                const currentTier = fuelUpgrades[currentTierIndex];
-                const previousTier = fuelUpgrades[currentTierIndex - 1];
-                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
-                newPlayerStats.netWorth += refund;
-                newPlayerStats.fuelLevel = previousTier.level;
-                newPlayerStats.maxFuel = previousTier.capacity;
-                newPlayerStats.fuel = Math.min(newPlayerStats.fuel, newPlayerStats.maxFuel);
-                canDowngrade = true;
-                toastDescription = `Fuel tank downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
-            }
-        } else if (upgradeType === 'sensor') {
-            const currentTierIndex = sensorUpgrades.findIndex(u => u.level === prev.playerStats.sensorLevel);
-            if (currentTierIndex > 0) {
-                const currentTier = sensorUpgrades[currentTierIndex];
-                const previousTier = sensorUpgrades[currentTierIndex - 1];
-                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
-                newPlayerStats.netWorth += refund;
-                newPlayerStats.sensorLevel = previousTier.level;
-                canDowngrade = true;
-                toastDescription = `Sensors downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
-            }
-        }
         
-        if (!canDowngrade) {
+        const fleet = [...prev.playerStats.fleet];
+        const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
+        if (shipIndex === -1) return prev;
+
+        const shipToDowngrade = { ...fleet[shipIndex] };
+        
+        const upgradeMap = {
+            cargo: { levels: cargoUpgrades, current: shipToDowngrade.cargoLevel },
+            weapon: { levels: weaponUpgrades, current: shipToDowngrade.weaponLevel },
+            shield: { levels: shieldUpgrades, current: shipToDowngrade.shieldLevel },
+            hull: { levels: hullUpgrades, current: shipToDowngrade.hullLevel },
+            fuel: { levels: fuelUpgrades, current: shipToDowngrade.fuelLevel },
+            sensor: { levels: sensorUpgrades, current: shipToDowngrade.sensorLevel },
+        };
+
+        const upgradeInfo = upgradeMap[upgradeType];
+        if (upgradeInfo.current <= 1) {
             toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." });
             return prev;
         }
 
-        toast({ title: toastTitle, description: toastDescription });
+        const currentTier = upgradeInfo.levels[upgradeInfo.current - 1];
+        const prevTier = upgradeInfo.levels[upgradeInfo.current - 2];
+        const refund = Math.round((currentTier.cost - prevTier.cost) * 0.7);
+
+        (shipToDowngrade as any)[`${upgradeType}Level`] -= 1;
+        
+        fleet[shipIndex] = shipToDowngrade;
+        let newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth + refund,
+            fleet
+        };
+
+        if (shipIndex === 0) {
+            newPlayerStats = syncActiveShipStats(newPlayerStats);
+        }
+        
+        toast({ title: "Downgrade Successful!", description: `Module sold. You received ${refund.toLocaleString()}¢.` });
         return { ...prev, playerStats: newPlayerStats };
     });
   };
@@ -1454,17 +1422,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
             return prev;
         }
 
+        const newShip: PlayerShip = {
+            instanceId: Date.now(),
+            shipId: ship.id,
+            name: ship.name,
+            cargoLevel: 1,
+            weaponLevel: 1,
+            shieldLevel: 1,
+            hullLevel: 1,
+            fuelLevel: 1,
+            sensorLevel: 1,
+        };
+
         const newPlayerStats = {
             ...prev.playerStats,
             netWorth: prev.playerStats.netWorth - ship.cost,
-            fleetSize: prev.playerStats.fleetSize + 1,
+            fleet: [...prev.playerStats.fleet, newShip],
         };
 
         toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` });
 
         const newLeaderboard = prev.leaderboard.map(entry => {
             if (entry.trader === prev.playerStats.name || entry.trader === 'You') {
-                return { ...entry, netWorth: newPlayerStats.netWorth, fleetSize: newPlayerStats.fleetSize };
+                return { ...entry, netWorth: newPlayerStats.netWorth, fleetSize: newPlayerStats.fleet.length };
             }
             return entry;
         }).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({ ...entry, rank: index + 1 }));
@@ -1472,6 +1452,71 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return { ...prev, playerStats: newPlayerStats, leaderboard: newLeaderboard };
     });
   };
+
+    const handleSellShip = (shipInstanceId: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (prev.playerStats.fleet.length <= 1) {
+                toast({ variant: "destructive", title: "Sale Failed", description: "Cannot sell your last ship." });
+                return prev;
+            }
+
+            const shipToSell = prev.playerStats.fleet.find(s => s.instanceId === shipInstanceId);
+            if (!shipToSell) return prev;
+
+            const baseShip = SHIPS_FOR_SALE.find(s => s.id === shipToSell.shipId);
+            if (!baseShip) return prev;
+            
+            let totalValue = baseShip.cost;
+            totalValue += cargoUpgrades[shipToSell.cargoLevel - 1]?.cost || 0;
+            totalValue += weaponUpgrades[shipToSell.weaponLevel - 1]?.cost || 0;
+            totalValue += shieldUpgrades[shipToSell.shieldLevel - 1]?.cost || 0;
+            totalValue += hullUpgrades[shipToSell.hullLevel - 1]?.cost || 0;
+            totalValue += fuelUpgrades[shipToSell.fuelLevel - 1]?.cost || 0;
+            totalValue += sensorUpgrades[shipToSell.sensorLevel - 1]?.cost || 0;
+            
+            const salePrice = Math.round(totalValue * 0.7);
+            
+            let newFleet = prev.playerStats.fleet.filter(s => s.instanceId !== shipInstanceId);
+            let newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + salePrice,
+                fleet: newFleet,
+            };
+
+            const activeShipWasSold = prev.playerStats.fleet[0].instanceId === shipInstanceId;
+            if (activeShipWasSold) {
+                newPlayerStats = syncActiveShipStats(newPlayerStats);
+            }
+
+            toast({ title: "Ship Sold!", description: `You sold ${shipToSell.name} for ${salePrice.toLocaleString()}¢.` });
+            
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
+
+    const handleSetActiveShip = (shipInstanceId: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const shipIndex = prev.playerStats.fleet.findIndex(s => s.instanceId === shipInstanceId);
+            if (shipIndex === -1 || shipIndex === 0) return prev;
+            
+            const newFleet = [...prev.playerStats.fleet];
+            const [shipToActivate] = newFleet.splice(shipIndex, 1);
+            newFleet.unshift(shipToActivate);
+            
+            let newPlayerStats = {
+                ...prev.playerStats,
+                fleet: newFleet,
+            };
+            
+            newPlayerStats = syncActiveShipStats(newPlayerStats);
+
+            toast({ title: "Active Ship Changed", description: `${shipToActivate.name} is now your active vessel.` });
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    };
 
   const handleHireCrew = (crewId: string) => {
     setGameState(prev => {
@@ -1548,17 +1593,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const createClickHandler = (type: QuestTask['type']) => (income: number) => {
+    let completedToastMessages: {title: string, description: string}[] = [];
     setGameState(prev => {
         if (!prev) return null;
         let baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress(type, baseState);
         
         completedObjectives.forEach(obj => {
-            setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            completedToastMessages.push({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
         });
 
         return newState;
     });
+
+    if (completedToastMessages.length > 0) {
+        setTimeout(() => {
+            completedToastMessages.forEach(msg => toast(msg));
+        }, 0);
+    }
   };
 
   const handleBarClick = createClickHandler('bar');
@@ -2484,6 +2536,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleUpgradeShip,
     handleDowngradeShip,
     handlePurchaseShip,
+    handleSellShip,
+    handleSetActiveShip,
     handleHireCrew,
     handleFireCrew,
     updateTraderBio: handleUpdateTraderBio,
