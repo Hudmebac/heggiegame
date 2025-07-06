@@ -13,9 +13,20 @@ interface MarketChartProps {
   items: string[];
   selectedItem: string;
   onSelectItem: (item: string) => void;
+  categories: string[];
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
 }
 
-export default function MarketChart({ priceHistory, items, selectedItem, onSelectItem }: MarketChartProps) {
+export default function MarketChart({ 
+  priceHistory, 
+  items, 
+  selectedItem, 
+  onSelectItem,
+  categories,
+  selectedCategory,
+  onSelectCategory
+}: MarketChartProps) {
   const chartData = priceHistory[selectedItem]?.map((price, index) => ({
     time: index + 1,
     price: price
@@ -39,16 +50,28 @@ export default function MarketChart({ priceHistory, items, selectedItem, onSelec
                 </CardTitle>
                 <CardDescription>Price history for selected commodity.</CardDescription>
             </div>
-            <Select onValueChange={onSelectItem} defaultValue={selectedItem}>
-              <SelectTrigger className="w-[180px] bg-background">
-                <SelectValue placeholder="Select Item" />
-              </SelectTrigger>
-              <SelectContent>
-                {items.map(item => (
-                  <SelectItem key={item} value={item}>{item}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+                <Select onValueChange={onSelectCategory} value={selectedCategory}>
+                  <SelectTrigger className="w-[180px] bg-background">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select onValueChange={onSelectItem} value={selectedItem || ''} disabled={items.length === 0}>
+                  <SelectTrigger className="w-[180px] bg-background">
+                    <SelectValue placeholder="Select Item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {items.map(item => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+            </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -67,7 +90,7 @@ export default function MarketChart({ priceHistory, items, selectedItem, onSelec
           </ChartContainer>
         ) : (
           <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-            Not enough data to display chart.
+            {items.length === 0 ? "No items in this category." : "Not enough data to display chart."}
           </div>
         )}
       </CardContent>
