@@ -6,6 +6,7 @@ import { generateAvatar } from '@/ai/flows/generate-avatar';
 import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
 import { generateBio } from '@/ai/flows/generate-bio';
+import { generateQuests } from '@/ai/flows/generate-quests';
 import { z } from 'zod';
 
 import {
@@ -25,6 +26,7 @@ import {
   GenerateBioInputSchema,
   type GenerateBioInput,
   type GenerateBioOutput,
+  type GenerateQuestsOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -104,5 +106,15 @@ export async function runBioGeneration(input: GenerateBioInput): Promise<Generat
             throw new Error(`Invalid input for bio generation: ${error.message}`);
         }
         throw new Error('Failed to generate bio.');
+    }
+}
+
+export async function runQuestGeneration(): Promise<GenerateQuestsOutput> {
+    try {
+        const result = await generateQuests();
+        return result;
+    } catch (error) {
+        console.error('Error running quest generation:', error);
+        throw new Error('Failed to generate quests.');
     }
 }

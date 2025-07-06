@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useTransition, ReactNode } from 'react';
-import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration } from '@/app/actions';
+import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
+import type { GameState, Item, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest } from '@/lib/types';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -76,6 +76,7 @@ const initialGameState: GameState = {
   systems: systems,
   routes: routes,
   currentSystem: 'Sol',
+  quests: [],
 };
 
 interface GameContextType {
@@ -86,6 +87,7 @@ interface GameContextType {
   isGeneratingAvatar: boolean;
   isGeneratingBio: boolean;
   isScanning: boolean;
+  isGeneratingQuests: boolean;
   chartItem: string;
   setChartItem: (item: string) => void;
   handleTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
@@ -94,6 +96,7 @@ interface GameContextType {
   handlePirateAction: (action: 'fight' | 'evade' | 'bribe' | 'scan') => void;
   handleGenerateAvatar: (description: string) => void;
   handleGenerateBio: () => void;
+  handleGenerateQuests: () => void;
   setPlayerName: (name: string) => void;
   handleInitiateTravel: (systemName: string) => void;
   handleRefuel: () => void;
@@ -117,6 +120,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [isResolvingEncounter, startEncounterTransition] = useTransition();
   const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
   const [isGeneratingBio, startBioGenerationTransition] = useTransition();
+  const [isGeneratingQuests, startQuestGenerationTransition] = useTransition();
   const [isScanning, startScanTransition] = useTransition();
   const [chartItem, setChartItem] = useState<string>(initialGameState.items[0].name);
   const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
@@ -133,6 +137,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const mergedState = {
             ...initialGameState,
             ...parsedState,
+            quests: parsedState.quests || [],
             playerStats: {
               ...initialGameState.playerStats,
               ...parsedState.playerStats,
@@ -362,6 +367,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleGenerateQuests = useCallback(() => {
+    startQuestGenerationTransition(async () => {
+      try {
+        const result = await runQuestGeneration();
+        setGameState(prev => {
+            if (!prev) return null;
+            toast({ title: "New Bounties Posted", description: "The quest board has been updated with new missions." });
+            return { ...prev, quests: result.quests };
+        });
+      } catch (error) {
+          console.error(error);
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+          toast({ variant: "destructive", title: "Quest Generation Failed", description: errorMessage });
+      }
+    });
+  }, [toast]);
+
   const setPlayerName = (name: string) => {
     setGameState(prev => {
         if (!prev) return null;
@@ -460,7 +482,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       
       const fuelNeeded = prev.playerStats.maxFuel - prev.playerStats.fuel;
       if (fuelNeeded <= 0) {
-        toast({ variant: "destructive", title: "Refuel Not Needed", description: "Fuel tank is already full." });
+        toast({ title: "Refuel Not Needed", description: "Fuel tank is already full." });
         return prev;
       }
 
@@ -502,6 +524,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     isGeneratingAvatar,
     isGeneratingBio,
     isScanning,
+    isGeneratingQuests,
     chartItem,
     setChartItem,
     handleTrade,
@@ -510,6 +533,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handlePirateAction,
     handleGenerateAvatar,
     handleGenerateBio,
+    handleGenerateQuests,
     setPlayerName,
     handleInitiateTravel,
     handleRefuel,

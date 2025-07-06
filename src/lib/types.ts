@@ -20,7 +20,7 @@ export interface Item {
 }
 
 export interface PriceHistory {
-  [itemName: string]: number[];
+  [itemName:string]: number[];
 }
 
 export interface LeaderboardEntry {
@@ -48,6 +48,14 @@ export interface Route {
   to: string;
 }
 
+export interface Quest {
+  title: string;
+  description: string;
+  reward: string;
+  type: 'Bounty' | 'Daily' | 'Quest';
+  difficulty: 'Low' | 'Medium' | 'High';
+}
+
 export interface GameState {
   playerStats: PlayerStats;
   items: Item[];
@@ -57,6 +65,7 @@ export interface GameState {
   systems: System[];
   routes: Route[];
   currentSystem: string;
+  quests: Quest[];
 }
 
 export interface EncounterResult {

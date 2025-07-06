@@ -90,3 +90,17 @@ export const GenerateBioOutputSchema = z.object({
   bio: z.string().describe("A short, flavourful biography for the space captain, based on their name."),
 });
 export type GenerateBioOutput = z.infer<typeof GenerateBioOutputSchema>;
+
+// Schemas for generate-quests
+export const QuestSchema = z.object({
+    title: z.string().describe("The title of the quest."),
+    description: z.string().describe("A brief, engaging description of the quest."),
+    reward: z.string().describe("The reward for completing the quest, e.g., '15,000 ¢' or 'Variable'."),
+    type: z.enum(['Bounty', 'Daily', 'Quest']).describe("The type of the quest."),
+    difficulty: z.enum(['Low', 'Medium', 'High']).describe("The difficulty of the quest."),
+});
+
+export const GenerateQuestsOutputSchema = z.object({
+    quests: z.array(QuestSchema).describe("An array of generated quests."),
+});
+export type GenerateQuestsOutput = z.infer<typeof GenerateQuestsOutputSchema>;
