@@ -49,7 +49,7 @@ export const ResolvePirateEncounterOutputSchema = z.object({
   outcome: z.enum(['success', 'failure', 'partial_success']).describe('The result of the encounter.'),
   narrative: z.string().describe('A dramatic, short description of what happened.'),
   cargoLost: z.number().describe('Amount of cargo units lost.'),
-  creditsLost: z.number().describe('Amount of credits lost (from bribes or damages).'),
+  creditsLost: z.number().describe('Amount of credits lost (from bribes or repairs).'),
   damageTaken: z.number().describe('The amount of hull damage taken, from 0 to 100.'),
 });
 export type ResolvePirateEncounterOutput = z.infer<typeof ResolvePirateEncounterOutputSchema>;
@@ -185,3 +185,17 @@ export const GenerateIndustryPartnershipOffersOutputSchema = z.object({
     offers: z.array(IndustryPartnershipOfferSchema).describe("An array of generated partnership offers for the industrial facility."),
 });
 export type GenerateIndustryPartnershipOffersOutput = z.infer<typeof GenerateIndustryPartnershipOffersOutputSchema>;
+
+// Schemas for generate-construction-partnership-offers
+export const GenerateConstructionPartnershipOffersInputSchema = z.object({
+  marketValue: z.number().describe("The current market value of the player's construction project."),
+});
+export type GenerateConstructionPartnershipOffersInput = z.infer<typeof GenerateConstructionPartnershipOffersInputSchema>;
+
+export const ConstructionPartnershipOfferSchema = PartnershipOfferSchema;
+export type ConstructionPartnershipOffer = z.infer<typeof ConstructionPartnershipOfferSchema>;
+
+export const GenerateConstructionPartnershipOffersOutputSchema = z.object({
+    offers: z.array(ConstructionPartnershipOfferSchema).describe("An array of generated partnership offers for the construction project."),
+});
+export type GenerateConstructionPartnershipOffersOutput = z.infer<typeof GenerateConstructionPartnershipOffersOutputSchema>;

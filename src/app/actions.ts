@@ -12,6 +12,7 @@ import { generatePartnershipOffers } from '@/ai/flows/generate-partnership-offer
 import { generateResidencePartnershipOffers } from '@/ai/flows/generate-residence-partnership-offers';
 import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-partnership-offers';
 import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-partnership-offers';
+import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
 import { z } from 'zod';
 
 import {
@@ -45,6 +46,9 @@ import {
   GenerateIndustryPartnershipOffersInputSchema,
   type GenerateIndustryPartnershipOffersInput,
   type GenerateIndustryPartnershipOffersOutput,
+  GenerateConstructionPartnershipOffersInputSchema,
+  type GenerateConstructionPartnershipOffersInput,
+  type GenerateConstructionPartnershipOffersOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -200,5 +204,19 @@ export async function runIndustryPartnershipOfferGeneration(input: GenerateIndus
             throw new Error(`Invalid input for industry partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate industry partnership offers.');
+    }
+}
+
+export async function runConstructionPartnershipOfferGeneration(input: GenerateConstructionPartnershipOffersInput): Promise<GenerateConstructionPartnershipOffersOutput> {
+    try {
+        const validatedInput = GenerateConstructionPartnershipOffersInputSchema.parse(input);
+        const result = await generateConstructionPartnershipOffers(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running construction partnership offer generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for construction partnership offer generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate construction partnership offers.');
     }
 }

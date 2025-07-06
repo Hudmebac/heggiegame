@@ -1,9 +1,8 @@
-
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
 import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration, runCommercePartnershipOfferGeneration, runIndustryPartnershipOfferGeneration } from '@/app/actions';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration, runCommercePartnershipOfferGeneration, runIndustryPartnershipOfferGeneration, runConstructionPartnershipOfferGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -13,6 +12,7 @@ import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
 import { industryThemes } from '@/lib/industry-themes';
+import { constructionThemes } from '@/lib/construction-themes';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -117,6 +117,9 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     industryLevel: 1,
     industryAutoClickerBots: 0,
     industryEstablishmentLevel: 0,
+    constructionLevel: 1,
+    constructionAutoClickerBots: 0,
+    constructionEstablishmentLevel: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -186,6 +189,13 @@ interface GameContextType {
   handleExpandIndustry: () => void;
   handleSellIndustry: () => void;
   handleAcceptIndustryPartnerOffer: (offer: PartnershipOffer) => void;
+  handleConstructionClick: (income: number) => void;
+  handleUpgradeConstruction: () => void;
+  handleUpgradeConstructionAutoClicker: () => void;
+  handlePurchaseConstruction: () => void;
+  handleExpandConstruction: () => void;
+  handleSellConstruction: () => void;
+  handleAcceptConstructionPartnerOffer: (offer: PartnershipOffer) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -535,6 +545,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(intervalId);
   }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.industryLevel, gameState?.playerStats.industryContract]);
+  
+  useEffect(() => {
+    if (!gameState || (gameState.playerStats.constructionAutoClickerBots || 0) === 0) {
+        return;
+    }
+
+    const intervalId = setInterval(() => {
+        setGameState(prev => {
+            if (!prev || (prev.playerStats.constructionAutoClickerBots || 0) === 0) {
+                clearInterval(intervalId);
+                return prev;
+            }
+
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const zoneType = currentSystem?.zoneType;
+            const theme = (zoneType && constructionThemes[zoneType]) ? constructionThemes[zoneType] : constructionThemes['Default'];
+            
+            const totalPartnerShare = (prev.playerStats.constructionContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+            const incomePerClick = theme.baseIncome * prev.playerStats.constructionLevel;
+            const incomePerSecond = (prev.playerStats.constructionAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + incomePerSecond,
+            };
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, 1000); // every second
+
+    return () => clearInterval(intervalId);
+  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.constructionLevel, gameState?.playerStats.constructionContract]);
 
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
@@ -913,6 +955,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const newValue = Math.round(oldValue * (1 + changePercent));
             newPlayerStats.industryContract.currentMarketValue = newValue;
             newPlayerStats.industryContract.valueHistory = [...newPlayerStats.industryContract.valueHistory, newValue].slice(-20);
+          }
+          if (newPlayerStats.constructionContract) {
+            const oldValue = newPlayerStats.constructionContract.currentMarketValue;
+            const changePercent = (Math.random() - 0.5) * 0.1; // -5% to +5% change
+            const newValue = Math.round(oldValue * (1 + changePercent));
+            newPlayerStats.constructionContract.currentMarketValue = newValue;
+            newPlayerStats.constructionContract.valueHistory = [...newPlayerStats.constructionContract.valueHistory, newValue].slice(-20);
           }
 
 
@@ -1965,6 +2014,148 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handleConstructionClick = (income: number) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        return { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
+    });
+  };
+
+  const handleUpgradeConstruction = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.constructionLevel >= 25) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: "Project level is already at maximum." });
+            return prev;
+        }
+        const cost = Math.round(200 * Math.pow(prev.playerStats.constructionLevel, 2.5));
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            constructionLevel: prev.playerStats.constructionLevel + 1,
+        };
+        toast({ title: "Project Upgraded!", description: `Your construction project is now Level ${newPlayerStats.constructionLevel}.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleUpgradeConstructionAutoClicker = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.constructionAutoClickerBots >= 25) {
+            toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 construction bots." });
+            return prev;
+        }
+        const cost = Math.round(2000 * Math.pow(1.15, prev.playerStats.constructionAutoClickerBots));
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Deployment Failed", description: `Not enough credits to deploy a bot. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            constructionAutoClickerBots: prev.playerStats.constructionAutoClickerBots + 1,
+        };
+        toast({ title: "Construction Bot Deployed!", description: "A new bot has been added to your workforce." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handlePurchaseConstruction = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && constructionThemes[zoneType]) ? constructionThemes[zoneType] : constructionThemes['Default'];
+        const incomePerClick = theme.baseIncome * prev.playerStats.constructionLevel;
+        const incomePerSecond = prev.playerStats.constructionAutoClickerBots * incomePerClick;
+        const cost = incomePerSecond * 1000;
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Acquisition Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const initialValue = cost * (Math.random() * 0.4 + 0.8);
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            constructionEstablishmentLevel: 1,
+            constructionContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [] }
+        };
+        toast({ title: "Land Deed Acquired!", description: "You now own this construction project." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleExpandConstruction = () => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.constructionContract) return prev;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && constructionThemes[zoneType]) ? constructionThemes[zoneType] : constructionThemes['Default'];
+        const incomePerClick = theme.baseIncome * prev.playerStats.constructionLevel;
+        const incomePerSecond = prev.playerStats.constructionAutoClickerBots * incomePerClick;
+        const expansionTiers = [10000, 100000, 1000000, 10000000];
+        const currentLevel = prev.playerStats.constructionEstablishmentLevel;
+        if (currentLevel < 1 || currentLevel > 4) return prev;
+        const cost = incomePerSecond * expansionTiers[currentLevel - 1];
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+        const investmentValue = cost * (Math.random() * 0.2 + 0.7);
+        const newMarketValue = Math.round(prev.playerStats.constructionContract.currentMarketValue + investmentValue);
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            constructionEstablishmentLevel: currentLevel + 1,
+            constructionContract: {
+                ...prev.playerStats.constructionContract,
+                currentMarketValue: newMarketValue,
+                valueHistory: [...prev.playerStats.constructionContract.valueHistory, newMarketValue].slice(-20),
+            }
+        };
+        toast({ title: "Project Expanded!", description: `Your construction project has grown to Phase ${newPlayerStats.constructionEstablishmentLevel - 1}.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleSellConstruction = () => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.constructionContract) return prev;
+        const salePrice = prev.playerStats.constructionContract.currentMarketValue;
+        const newPlayerStats: PlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + salePrice, constructionLevel: 1, constructionAutoClickerBots: 0, constructionEstablishmentLevel: 0 };
+        delete newPlayerStats.constructionContract;
+        toast({ title: "Project Sold!", description: `You sold the construction project for ${salePrice.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleAcceptConstructionPartnerOffer = (offer: PartnershipOffer) => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.constructionContract) return prev;
+        const newPartner: BarPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
+        const newPlayerStats: PlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth + offer.cashOffer,
+            constructionContract: {
+                ...prev.playerStats.constructionContract,
+                partners: [...prev.playerStats.constructionContract.partners, newPartner],
+            }
+        };
+        const totalPartnerShare = newPlayerStats.constructionContract.partners.reduce((acc, p) => acc + p.percentage, 0);
+        if (totalPartnerShare > 1) {
+            toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your construction project." });
+            return prev;
+        }
+        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -2031,6 +2222,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleExpandIndustry,
     handleSellIndustry,
     handleAcceptIndustryPartnerOffer,
+    handleConstructionClick,
+    handleUpgradeConstruction,
+    handleUpgradeConstructionAutoClicker,
+    handlePurchaseConstruction,
+    handleExpandConstruction,
+    handleSellConstruction,
+    handleAcceptConstructionPartnerOffer,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
