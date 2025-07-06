@@ -22,7 +22,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 
 
 export default function ShipManagement() {
-  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, handlePurchaseShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
+  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, handlePurchaseShip, cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades } = useGame();
 
   if (!gameState) {
     return (
@@ -68,6 +68,14 @@ export default function ShipManagement() {
   const currentShieldTier = shieldUpgrades[currentShieldTierIndex];
   const nextShieldUpgrade = currentShieldTierIndex < shieldUpgrades.length - 1 ? shieldUpgrades[currentShieldTierIndex + 1] : null;
     
+  const currentHullTierIndex = hullUpgrades.findIndex(u => u.level === stats.hullLevel);
+  const currentHullTier = hullUpgrades[currentHullTierIndex];
+  const nextHullUpgrade = currentHullTierIndex < hullUpgrades.length - 1 ? hullUpgrades[currentHullTierIndex + 1] : null;
+
+  const currentFuelTierIndex = fuelUpgrades.findIndex(u => u.level === stats.fuelLevel);
+  const currentFuelTier = fuelUpgrades[currentFuelTierIndex];
+  const nextFuelUpgrade = currentFuelTierIndex < fuelUpgrades.length - 1 ? fuelUpgrades[currentFuelTierIndex + 1] : null;
+
   const hasEngineer = crew.some(c => c.role === 'Engineer');
   const hasGunner = crew.some(c => c.role === 'Gunner');
   const hasNavigator = crew.some(c => c.role === 'Navigator');
@@ -242,24 +250,22 @@ export default function ShipManagement() {
                           )}
                         </div>
                     </div>
-                     <div>
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <p>Weapons System</p>
-                                <p className="text-xs text-muted-foreground">Current: {currentWeaponTier?.name}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                               {currentWeaponTierIndex > 0 && (
-                                <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('weapon')}>Sell</Button>
-                              )}
-                              {nextWeaponUpgrade ? (
-                                  <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < (nextWeaponUpgrade.cost - currentWeaponTier.cost)}>
-                                      Upgrade ({(nextWeaponUpgrade.cost - currentWeaponTier.cost).toLocaleString()}¢)
-                                  </Button>
-                              ) : (
-                                  <Button disabled>Max Level</Button>
-                              )}
-                            </div>
+                     <div className="flex justify-between items-center">
+                        <div>
+                            <p>Weapons System</p>
+                            <p className="text-xs text-muted-foreground">Current: {currentWeaponTier?.name}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           {currentWeaponTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('weapon')}>Sell</Button>
+                          )}
+                          {nextWeaponUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < (nextWeaponUpgrade.cost - currentWeaponTier.cost)}>
+                                  Upgrade ({(nextWeaponUpgrade.cost - currentWeaponTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
                         </div>
                     </div>
                      <div className="flex justify-between items-center">
@@ -274,6 +280,42 @@ export default function ShipManagement() {
                           {nextShieldUpgrade ? (
                               <Button onClick={() => handleUpgradeShip('shield')} disabled={stats.netWorth < (nextShieldUpgrade.cost - currentShieldTier.cost)}>
                                   Upgrade ({(nextShieldUpgrade.cost - currentShieldTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p>Hull Integrity</p>
+                            <p className="text-xs text-muted-foreground">Current: {currentHullTier?.name} ({stats.maxShipHealth} HP)</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {currentHullTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('hull')}>Sell</Button>
+                          )}
+                          {nextHullUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('hull')} disabled={stats.netWorth < (nextHullUpgrade.cost - currentHullTier.cost)}>
+                                  Upgrade ({(nextHullUpgrade.cost - currentHullTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p>Fuel Tank</p>
+                            <p className="text-xs text-muted-foreground">Current: {currentFuelTier?.name} ({stats.maxFuel} SU)</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {currentFuelTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('fuel')}>Sell</Button>
+                          )}
+                          {nextFuelUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('fuel')} disabled={stats.netWorth < (nextFuelUpgrade.cost - currentFuelTier.cost)}>
+                                  Upgrade ({(nextFuelUpgrade.cost - currentFuelTier.cost).toLocaleString()}¢)
                               </Button>
                           ) : (
                               <Button disabled>Max Level</Button>

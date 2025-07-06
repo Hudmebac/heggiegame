@@ -1,12 +1,12 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 
 import { useToast } from "@/hooks/use-toast";
@@ -94,6 +94,8 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
     weaponLevel: 1,
     shieldLevel: 1,
+    hullLevel: 1,
+    fuelLevel: 1,
     fleetSize: 1,
     pirateRisk: 0,
     reputation: 0,
@@ -132,14 +134,16 @@ interface GameContextType {
   handleInitiateTravel: (systemName: string) => void;
   handleRefuel: () => void;
   handleRepairShip: () => void;
-  handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
-  handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
+  handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => void;
+  handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => void;
   handlePurchaseShip: (ship: ShipForSale) => void;
   handleHireCrew: (crewId: string) => void;
   handleFireCrew: (crewId: string) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
+  hullUpgrades: HullUpgrade[];
+  fuelUpgrades: FuelUpgrade[];
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -761,7 +765,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const handleUpgradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield') => {
+  const handleUpgradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => {
     setGameState(prev => {
         if (!prev) return null;
 
@@ -819,6 +823,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
                 }
             }
+        } else if (upgradeType === 'hull') {
+            const currentTierIndex = hullUpgrades.findIndex(u => u.level === prev.playerStats.hullLevel);
+            if (currentTierIndex !== -1 && currentTierIndex < hullUpgrades.length - 1) {
+                const currentTier = hullUpgrades[currentTierIndex];
+                const nextTier = hullUpgrades[currentTierIndex + 1];
+                cost = nextTier.cost - currentTier.cost;
+                if (prev.playerStats.netWorth >= cost) {
+                    newPlayerStats.netWorth -= cost;
+                    newPlayerStats.hullLevel = nextTier.level;
+                    newPlayerStats.maxShipHealth = nextTier.health;
+                    newPlayerStats.shipHealth += (nextTier.health - currentTier.health);
+                    canUpgrade = true;
+                    toastTitle = "Hull Upgraded!";
+                    toastDescription = `Your maximum hull integrity is now ${nextTier.health}.`;
+                } else {
+                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
+                }
+            }
+        } else if (upgradeType === 'fuel') {
+            const currentTierIndex = fuelUpgrades.findIndex(u => u.level === prev.playerStats.fuelLevel);
+            if (currentTierIndex !== -1 && currentTierIndex < fuelUpgrades.length - 1) {
+                const currentTier = fuelUpgrades[currentTierIndex];
+                const nextTier = fuelUpgrades[currentTierIndex + 1];
+                cost = nextTier.cost - currentTier.cost;
+                if (prev.playerStats.netWorth >= cost) {
+                    newPlayerStats.netWorth -= cost;
+                    newPlayerStats.fuelLevel = nextTier.level;
+                    newPlayerStats.maxFuel = nextTier.capacity;
+                    newPlayerStats.fuel += (nextTier.capacity - currentTier.capacity);
+                    canUpgrade = true;
+                    toastTitle = "Fuel Tank Upgraded!";
+                    toastDescription = `Your maximum fuel capacity is now ${nextTier.capacity} SU.`;
+                } else {
+                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
+                }
+            }
         }
         
         if (!canUpgrade) {
@@ -831,7 +871,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const handleDowngradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield') => {
+  const handleDowngradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => {
     setGameState(prev => {
         if (!prev) return null;
 
@@ -874,6 +914,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 newPlayerStats.shieldLevel = previousTier.level;
                 canDowngrade = true;
                 toastDescription = `Shields downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
+            }
+        } else if (upgradeType === 'hull') {
+            const currentTierIndex = hullUpgrades.findIndex(u => u.level === prev.playerStats.hullLevel);
+            if (currentTierIndex > 0) {
+                const currentTier = hullUpgrades[currentTierIndex];
+                const previousTier = hullUpgrades[currentTierIndex - 1];
+                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
+                newPlayerStats.netWorth += refund;
+                newPlayerStats.hullLevel = previousTier.level;
+                newPlayerStats.maxShipHealth = previousTier.health;
+                newPlayerStats.shipHealth = Math.min(newPlayerStats.shipHealth, newPlayerStats.maxShipHealth);
+                canDowngrade = true;
+                toastDescription = `Hull integrity downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
+            }
+        } else if (upgradeType === 'fuel') {
+            const currentTierIndex = fuelUpgrades.findIndex(u => u.level === prev.playerStats.fuelLevel);
+            if (currentTierIndex > 0) {
+                const currentTier = fuelUpgrades[currentTierIndex];
+                const previousTier = fuelUpgrades[currentTierIndex - 1];
+                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
+                newPlayerStats.netWorth += refund;
+                newPlayerStats.fuelLevel = previousTier.level;
+                newPlayerStats.maxFuel = previousTier.capacity;
+                newPlayerStats.fuel = Math.min(newPlayerStats.fuel, newPlayerStats.maxFuel);
+                canDowngrade = true;
+                toastDescription = `Fuel tank downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
             }
         }
         
@@ -997,6 +1063,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
+    hullUpgrades,
+    fuelUpgrades,
   };
 
   return (

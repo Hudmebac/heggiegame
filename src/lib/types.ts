@@ -37,6 +37,8 @@ export interface PlayerStats {
   avatarUrl: string;
   weaponLevel: number;
   shieldLevel: number;
+  hullLevel: number;
+  fuelLevel: number;
   fleetSize: number;
   pirateRisk: number;
   shipHealth: number;
@@ -136,6 +138,20 @@ export interface ShieldUpgrade {
   level: number;
   name: string;
   cost: number;
+}
+
+export interface HullUpgrade {
+  level: number;
+  name: string;
+  health: number;
+  cost: number;
+}
+
+export interface FuelUpgrade {
+    level: number;
+    name: string;
+    capacity: number;
+    cost: number;
 }
 
 export interface ShipForSale {
