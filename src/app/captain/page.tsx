@@ -1,9 +1,17 @@
+
 'use client';
 import PlayerProfile from '@/app/components/player-profile';
 import { useGame } from '@/app/components/game-provider';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket } from 'lucide-react';
+import { barThemes } from '@/lib/bar-themes';
+import { residenceThemes } from '@/lib/residence-themes';
+import { commerceThemes } from '@/lib/commerce-themes';
+import { industryThemes } from '@/lib/industry-themes';
+import { constructionThemes } from '@/lib/construction-themes';
+import { recreationThemes } from '@/lib/recreation-themes';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -33,12 +41,34 @@ export default function CaptainPage() {
     return null; 
   }
 
-  const { playerStats } = gameState;
+  const { playerStats, currentSystem: currentSystemName, systems } = gameState;
+  const currentSystem = systems.find(s => s.name === currentSystemName);
+  const zoneType = currentSystem?.zoneType;
   
   const leaderboardRank = gameState.leaderboard.find(e => e.trader === playerStats.name)?.rank || gameState.leaderboard.length;
 
   const reputationInfo = getReputationTier(playerStats.reputation);
   const reputationProgress = (Math.max(0, playerStats.reputation) / 100) * 100;
+
+  // --- Income Calculations ---
+  const calculateIncome = (level: number, bots: number, contract: any, themes: any) => {
+    if (!zoneType) return 0;
+    const theme = themes[zoneType] || themes['Default'];
+    const totalPartnerShare = (contract?.partners || []).reduce((acc: number, p: { percentage: number }) => acc + p.percentage, 0);
+    const rawIncomePerClick = theme.baseIncome * level;
+    return Math.round((bots * rawIncomePerClick) * (1 - totalPartnerShare));
+  };
+
+  const portfolio = [
+    { name: 'Bar', icon: Martini, level: playerStats.barLevel, bots: playerStats.autoClickerBots, income: calculateIncome(playerStats.barLevel, playerStats.autoClickerBots, playerStats.barContract, barThemes) },
+    { name: 'Residence', icon: Home, level: playerStats.residenceLevel, bots: playerStats.residenceAutoClickerBots, income: calculateIncome(playerStats.residenceLevel, playerStats.residenceAutoClickerBots, playerStats.residenceContract, residenceThemes) },
+    { name: 'Commerce', icon: Landmark, level: playerStats.commerceLevel, bots: playerStats.commerceAutoClickerBots, income: calculateIncome(playerStats.commerceLevel, playerStats.commerceAutoClickerBots, playerStats.commerceContract, commerceThemes) },
+    { name: 'Industry', icon: Factory, level: playerStats.industryLevel, bots: playerStats.industryAutoClickerBots, income: calculateIncome(playerStats.industryLevel, playerStats.industryAutoClickerBots, playerStats.industryContract, industryThemes) },
+    { name: 'Construction', icon: Building2, level: playerStats.constructionLevel, bots: playerStats.constructionAutoClickerBots, income: calculateIncome(playerStats.constructionLevel, playerStats.constructionAutoClickerBots, playerStats.constructionContract, constructionThemes) },
+    { name: 'Recreation', icon: Ticket, level: playerStats.recreationLevel, bots: playerStats.recreationAutoClickerBots, income: calculateIncome(playerStats.recreationLevel, playerStats.recreationAutoClickerBots, playerStats.recreationContract, recreationThemes) },
+  ];
+
+  const totalPassiveIncome = portfolio.reduce((sum, item) => sum + item.income, 0);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -107,6 +137,48 @@ export default function CaptainPage() {
                    </div>
               </CardContent>
           </Card>
+           <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Briefcase className="text-primary"/>
+                        Business Portfolio
+                    </CardTitle>
+                    <CardDescription>
+                        Overview of your income-generating assets across the galaxy.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Asset</TableHead>
+                                <TableHead className="text-right">Level</TableHead>
+                                <TableHead className="text-right">Bots</TableHead>
+                                <TableHead className="text-right">Income/sec</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {portfolio.map(asset => (
+                                <TableRow key={asset.name}>
+                                    <TableCell className="font-medium flex items-center gap-2">
+                                        <asset.icon className="h-4 w-4 text-muted-foreground" />
+                                        {asset.name}
+                                    </TableCell>
+                                    <TableCell className="text-right font-mono">{asset.level}</TableCell>
+                                    <TableCell className="text-right font-mono">{asset.bots}</TableCell>
+                                    <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
+                                <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                </CardContent>
+            </Card>
       </div>
     </div>
   );
