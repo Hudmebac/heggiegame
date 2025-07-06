@@ -39,6 +39,7 @@ export interface PlayerStats {
   pirateRisk: number;
   shipHealth: number;
   maxShipHealth: number;
+  reputation: number;
 }
 
 export interface PriceHistory {

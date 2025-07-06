@@ -126,6 +126,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     shieldLevel: 1,
     fleetSize: 1,
     pirateRisk: 0,
+    reputation: 0,
   },
   inventory: [{ name: 'Quantum Filament Spools', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -359,6 +360,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const updatedInventory = newInventory.filter(item => item.owned > 0);
       newPlayerStats.cargo = calculateCurrentCargo(updatedInventory);
 
+      const repGain = Math.max(1, Math.round(totalCost / 5000));
+      newPlayerStats.reputation = Math.min(100, newPlayerStats.reputation + repGain);
+
       return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory };
     });
   };
@@ -399,6 +403,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
     
     startEncounterTransition(async () => {
+        const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem)!;
         const input = {
             action,
             playerNetWorth: gameState.playerStats.netWorth,
@@ -419,6 +424,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const newPlayerStats = { ...prev.playerStats };
                 newPlayerStats.netWorth -= result.creditsLost;
                 newPlayerStats.shipHealth = Math.max(0, newPlayerStats.shipHealth - result.damageTaken);
+
+                const securityValue = { 'High': 2, 'Medium': 1, 'Low': -1, 'Anarchy': -2 };
+                let repChange = 0;
+                if (action === 'fight') {
+                    if (result.outcome === 'success') {
+                        repChange = 5 + securityValue[currentSystem.security];
+                    } else {
+                        repChange = -5 + securityValue[currentSystem.security];
+                    }
+                } else if (action === 'bribe') {
+                    repChange = -3;
+                }
+                newPlayerStats.reputation = Math.max(-100, Math.min(100, newPlayerStats.reputation + repChange));
+
                 return { ...prev, playerStats: newPlayerStats };
             });
 
