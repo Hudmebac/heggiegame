@@ -265,18 +265,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (savedStateJSON) {
             try {
                 const savedProgress = JSON.parse(savedStateJSON);
+                
+                const currentSystemName = savedProgress.currentSystem || baseState.currentSystem;
+                const currentSystem = SYSTEMS.find(s => s.name === currentSystemName) || SYSTEMS[0];
+                
                 const mergedPlayerStats = {
                     ...baseState.playerStats,
                     ...savedProgress.playerStats,
                 };
                 mergedPlayerStats.cargo = calculateCurrentCargo(savedProgress.inventory || baseState.inventory);
                 
-                const currentSystemName = savedProgress.currentSystem || baseState.currentSystem;
-                const currentSystem = SYSTEMS.find(s => s.name === currentSystemName) || SYSTEMS[0];
                 const currentPlanetName = savedProgress.currentPlanet || currentSystem.planets[0].name;
 
                 setGameState({
-                    ...baseState,
+                    ...baseState, // Use fresh static data
+                    // Restore dynamic player progress
                     playerStats: mergedPlayerStats,
                     inventory: savedProgress.inventory || baseState.inventory,
                     priceHistory: savedProgress.priceHistory || baseState.priceHistory,
@@ -285,6 +288,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     currentPlanet: currentPlanetName,
                     quests: savedProgress.quests || baseState.quests,
                     crew: savedProgress.crew || baseState.crew,
+                    // Recalculate market data for the current location
                     marketItems: calculateMarketDataForSystem(currentSystem),
                 });
             } catch (error) {
@@ -1249,7 +1253,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   
   const handleExpandEstablishment = () => {
     setGameState(prev => {
-        if (!prev) return null;
+        if (!prev || !prev.playerStats.barContract) return null;
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
         const zoneType = currentSystem?.zoneType;
         const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
@@ -1274,14 +1278,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
             toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
             return prev;
         }
+        
+        const investmentValue = cost * (Math.random() * 0.2 + 0.7); // 70-90% of cost adds to market value
+        const newMarketValue = Math.round(prev.playerStats.barContract.currentMarketValue + investmentValue);
 
-        const newPlayerStats = {
+        const newPlayerStats: PlayerStats = {
             ...prev.playerStats,
             netWorth: prev.playerStats.netWorth - cost,
             establishmentLevel: currentLevel + 1,
+            barContract: {
+                ...prev.playerStats.barContract,
+                currentMarketValue: newMarketValue,
+                valueHistory: [...prev.playerStats.barContract.valueHistory, newMarketValue].slice(-20),
+            }
         };
 
-        toast({ title: "Establishment Expanded!", description: `Your operation has grown to Expansion Level ${newPlayerStats.establishmentLevel - 1}.` });
+        toast({ title: "Establishment Expanded!", description: `Your operation has grown to Expansion Level ${newPlayerStats.establishmentLevel - 1}. Market value increased.` });
         return { ...prev, playerStats: newPlayerStats };
     });
   };
