@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Ship, Rocket, Warehouse, Fuel, ShieldCheck, HeartPulse, Wrench, Sparkles, CheckCircle, Trash2, ShoppingCart } from 'lucide-react';
 import type { PlayerShip, ShipForSale } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 
 export default function FleetManagement() {
   const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip } = useGame();
@@ -38,6 +39,13 @@ export default function FleetManagement() {
             const baseData = getShipBaseData(ship.shipId);
             const isActive = ship.instanceId === activeShipInstanceId;
             if (!baseData) return null;
+            
+            const cargoInfo = cargoUpgrades[ship.cargoLevel - 1];
+            const hullInfo = hullUpgrades[ship.hullLevel - 1];
+            const shieldInfo = shieldUpgrades[ship.shieldLevel - 1];
+            const weaponInfo = weaponUpgrades[ship.weaponLevel - 1];
+            const fuelInfo = fuelUpgrades[ship.fuelLevel - 1];
+            const sensorInfo = sensorUpgrades[ship.sensorLevel - 1];
 
             return (
               <Card key={ship.instanceId} className={cn("bg-card/50", isActive && "border-primary")}>
@@ -51,13 +59,13 @@ export default function FleetManagement() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> Cargo: Lvl {ship.cargoLevel}</div>
-                    <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> Hull: Lvl {ship.hullLevel}</div>
-                    <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary/70" /> Shield: Lvl {ship.shieldLevel}</div>
-                    <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary/70" /> Weapons: Lvl {ship.weaponLevel}</div>
-                    <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> Fuel: Lvl {ship.fuelLevel}</div>
-                    <div className="flex items-center gap-2"><Rocket className="h-4 w-4 text-primary/70" /> Sensors: Lvl {ship.sensorLevel}</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: Lvl {ship.cargoLevel} - {cargoInfo?.capacity}t</span></div>
+                    <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Hull: Lvl {ship.hullLevel} - {hullInfo?.health}HP</span></div>
+                    <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: Lvl {ship.fuelLevel} - {fuelInfo?.capacity} SU</span></div>
+                    <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary/70" /> <span>{shieldInfo?.name}</span></div>
+                    <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary/70" /> <span>{weaponInfo?.name}</span></div>
+                    <div className="flex items-center gap-2"><Rocket className="h-4 w-4 text-primary/70" /> <span>{sensorInfo?.name}</span></div>
                   </div>
                 </CardContent>
                 <CardContent className="flex justify-end gap-2">
