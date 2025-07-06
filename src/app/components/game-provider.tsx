@@ -195,20 +195,44 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [tradeDetails, setTradeDetails] = useState<{ item: MarketItem, type: 'buy' | 'sell' } | null>(null);
   const [travelDestination, setTravelDestination] = useState<System | null>(null);
   
-  const calculateMarketDataForSystem = (system: System): MarketItem[] => {
-        return STATIC_ITEMS.map(staticItem => {
-            const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][system.economy];
-            const supply = Math.round(100 / economyMultiplier);
-            const demand = Math.round(100 * economyMultiplier);
-            const currentPrice = calculatePrice(staticItem.basePrice, supply, demand, economyMultiplier);
-            return {
-                name: staticItem.name,
-                currentPrice,
-                supply,
-                demand,
-            };
+  const calculateMarketDataForSystem = useCallback((system: System): MarketItem[] => {
+        const availableItems: MarketItem[] = [];
+
+        STATIC_ITEMS.forEach(staticItem => {
+            const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category]?.[system.economy] ?? 1.0;
+            const isProducer = economyMultiplier < 1.0;
+            const isConsumer = economyMultiplier > 1.0;
+            
+            let availabilityChance = 0.6; 
+            if (isProducer) {
+                availabilityChance = 1.0; 
+            } else if (isConsumer) {
+                availabilityChance = 0.8; 
+            }
+
+            if (staticItem.category === 'Illegal') {
+                if (system.security === 'Anarchy') availabilityChance = 0.75;
+                else if (system.security === 'Low') availabilityChance = 0.25;
+                else availabilityChance = 0;
+            }
+
+            if (Math.random() < availabilityChance) {
+                const supply = isProducer ? Math.round(150 + Math.random() * 50) : Math.round(20 + Math.random() * 30);
+                const demand = isProducer ? Math.round(20 + Math.random() * 30) : Math.round(150 + Math.random() * 50);
+
+                const currentPrice = calculatePrice(staticItem.basePrice, supply, demand, economyMultiplier);
+                
+                availableItems.push({
+                    name: staticItem.name,
+                    currentPrice,
+                    supply,
+                    demand,
+                });
+            }
         });
-    };
+
+        return availableItems;
+    }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -285,7 +309,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
     };
     loadGame();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [calculateMarketDataForSystem, toast]); 
 
   useEffect(() => {
     if (isClient && gameState) {

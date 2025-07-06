@@ -1,6 +1,670 @@
 import type { StaticItem } from '@/lib/types';
+import spaceCommodities from './space_commodities.json';
+
+const spaceCommoditiesData: { category: string; name: string; rarity: string; description: string; detail: string }[] = spaceCommodities;
 
 export const STATIC_ITEMS: StaticItem[] = [
+  {
+ "category": "Biological",
+ "name": "Lunar Bacterial Sponge",
+ "rarity": "Ultra Rare",
+ "location": "Mare Tranquillitatis",
+ "description": "Absorbs radiation while multiplying in low-grav environments.",
+ "detail": "Highly sought after for terraforming experiments; banned in several colonies due to replication risks.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Silicon Nuggets",
+ "rarity": "Accessible",
+ "location": "Io Mining Grid",
+ "description": "Raw silicon chunks used in quantum processor fabrication.",
+ "detail": "Essential for synth-core circuit production; traded heavily in the Hyperforge Belt.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "VR Training Headsets",
+ "rarity": "Plentiful",
+ "location": "Orbiting Malls",
+ "description": "Immersive headsets for skill acquisition and entertainment.",
+ "detail": "Popular among ex-military personnel for post-service retraining.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "Interstellar Travel Passport Covers",
+ "rarity": "Common",
+ "location": "Earth Orbit Bazaar",
+ "description": "Stylish covers with solar-reactive inks.",
+ "detail": "Favored by tourists and diplomats for flair and function.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Mk. XXIII Plasma Cannons",
+ "rarity": "Rare",
+ "location": "Titan Black Market",
+ "description": "Heavy-duty plasma weaponry for starship combat.",
+ "detail": "Requires dual-core stabilizers; restricted to licensed fleets.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "Nano-Restoration Bot Swarms",
+ "rarity": "Rare",
+ "location": "Cygnus Salvage Belt",
+ "description": "Self-repairing robotic swarms.",
+ "detail": "Used for derelict station recovery and hull patching.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Spicy Nebula Dumplings",
+ "rarity": "Common",
+ "location": "Mars Food Clusters",
+ "description": "Dehydrated dumplings with peppery energy crystals.",
+ "detail": "Popular with long-haul pilots for their kick and shelf life.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Space Bacterial Organism",
+ "rarity": "Rare",
+ "location": "Enceladus Ice Drift",
+ "description": "Microbe that thrives in cryo-oceans.",
+ "detail": "Studied for terraforming enzymes and cryo-resilience.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Zero-G Bubble Baths",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Suspended liquids for weightless relaxation.",
+ "detail": "Used in influencer streams across the system.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Quantum Memory Threads",
+ "rarity": "Ultra Rare",
+ "location": "Andromeda Research Vaults",
+ "description": "Filaments that store quantum states.",
+ "detail": "Used in experimental AI and time-loop simulations.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Grav-Weld Alloy Plates",
+ "rarity": "Rare",
+ "location": "Neptune Forge Rings",
+ "description": "Metal plates fused using gravitational compression.",
+ "detail": "Ideal for hull reinforcement in deep-space vessels.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Starlight Perfume Crystals",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Fragrance crystals that shimmer with ambient light.",
+ "detail": "Popular among diplomats and entertainers for their radiant scent trails.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Cryo-Fruit Capsules",
+ "rarity": "Common",
+ "location": "Europa Agri-Domes",
+ "description": "Flash-frozen fruit blends in nutrient capsules.",
+ "detail": "Favored by spacefarers for compact nutrition and flavor.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "EMP Pulse Mines",
+ "rarity": "Ultra Rare",
+ "location": "Delta Prime Defense Vaults",
+ "description": "Mines that emit disabling electromagnetic pulses.",
+ "detail": "Used in stealth operations; banned in several colonies due to collateral damage risks.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Photosynthetic Skin Gel",
+ "rarity": "Rare",
+ "location": "Ganymede BioLabs",
+ "description": "Gel that enables skin to absorb solar energy.",
+ "detail": "Used in survival kits and long-range expeditions.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Temporal Drift Sensors",
+ "rarity": "Rare",
+ "location": "Chrono Station Theta",
+ "description": "Sensors that detect time anomalies.",
+ "detail": "Essential for time-loop navigation and paradox avoidance.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "Holo-Ad Projectors",
+ "rarity": "Common",
+ "location": "Earth Orbit Bazaar",
+ "description": "Portable holographic advertisement units.",
+ "detail": "Used by traders and influencers to boost visibility.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "AI Companion Cores",
+ "rarity": "Plentiful",
+ "location": "Cygnus Tech Hub",
+ "description": "Modular AI units for personal assistance.",
+ "detail": "Popular among solo pilots and remote researchers.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Fusion Torch Arrays",
+ "rarity": "Rare",
+ "location": "Mercury Refinery Grid",
+ "description": "High-intensity fusion torches for asteroid mining.",
+ "detail": "Requires reinforced suits and shielding protocols.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Neutrino Mapping Chips",
+ "rarity": "Rare",
+ "location": "Orion Deep Labs",
+ "description": "Chips that track neutrino flow across stellar bodies.",
+ "detail": "Used in gravitational field studies and wormhole predictions.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Synthetic Coral Bloom",
+ "rarity": "Accessible",
+ "location": "Pacific Orbital Reef",
+ "description": "Artificial coral clusters for aquatic terraforming.",
+ "detail": "Used in underwater colonies to stabilize ecosystems.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Photon Disruption Grenades",
+ "rarity": "Ultra Rare",
+ "location": "Zeta Tactical Vaults",
+ "description": "Grenades that scramble light-based sensors.",
+ "detail": "Effective in stealth boarding operations.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Gravity Lounge Pods",
+ "rarity": "Plentiful",
+ "location": "Venus Leisure Rings",
+ "description": "Relaxation pods with adjustable gravity fields.",
+ "detail": "Popular in orbital spas and luxury liners.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Thermal Shielding Foam",
+ "rarity": "Common",
+ "location": "Mercury Forge Zone",
+ "description": "Foam that insulates against extreme heat.",
+ "detail": "Used in reactor maintenance and solar panel arrays.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "Micro-Drone Hive Packs",
+ "rarity": "Rare",
+ "location": "Cygnus Tech Hub",
+ "description": "Swarm-controlled micro drones for inspection.",
+ "detail": "Used in hull diagnostics and asteroid mapping.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Solar-Infused Protein Bars",
+ "rarity": "Accessible",
+ "location": "Mars Food Clusters",
+ "description": "Bars charged with solar energy for extended stamina.",
+ "detail": "Favored by miners and survey crews.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "Galactic Brand Tokens",
+ "rarity": "Common",
+ "location": "Earth Orbit Bazaar",
+ "description": "Digital tokens representing brand loyalty.",
+ "detail": "Used in promotional campaigns and trade fairs.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Cryo-Stasis Field Emitters",
+ "rarity": "Rare",
+ "location": "Europa Research Vaults",
+ "description": "Devices that generate localized stasis fields.",
+ "detail": "Used in medical transport and time-sensitive experiments.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Alien Pollen Samples",
+ "rarity": "Ultra Rare",
+ "location": "Kepler Botanical Archives",
+ "description": "Pollen from non-terrestrial flora.",
+ "detail": "Studied for cross-species fertilization and bioengineering.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Graviton Field Stabilizers",
+ "rarity": "Rare",
+ "location": "Orion Research Nexus",
+ "description": "Devices that regulate unstable graviton fields.",
+ "detail": "Used in warp drive calibration and artificial gravity chambers.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Martian Fungal Spores",
+ "rarity": "Common",
+ "location": "Mars BioVaults",
+ "description": "Spores adapted to low-pressure environments.",
+ "detail": "Used in soil enrichment and biofuel production.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Tachyon Disruptor Rifles",
+ "rarity": "Ultra Rare",
+ "location": "Zeta Tactical Vaults",
+ "description": "Rifles that fire tachyon bursts to destabilize targets.",
+ "detail": "Restricted to elite units; requires neural sync implants.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Zero-G Dance Platforms",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Floating stages for gravity-defying performances.",
+ "detail": "Popular in orbital clubs and entertainment hubs.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Mag-Plasma Welding Rods",
+ "rarity": "Rare",
+ "location": "Mercury Forge Zone",
+ "description": "Rods used in magnetic plasma welding systems.",
+ "detail": "Essential for hull repairs and reactor assembly.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "Sentient Maintenance Units",
+ "rarity": "Rare",
+ "location": "Cygnus Tech Hub",
+ "description": "AI-driven bots with adaptive repair protocols.",
+ "detail": "Used in autonomous station upkeep and diagnostics.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Nebula Spice Mix",
+ "rarity": "Common",
+ "location": "Mars Food Clusters",
+ "description": "Blend of exotic spices harvested from orbital farms.",
+ "detail": "Adds flavor and mild stimulant effects to meals.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "Holo-Brand Wristbands",
+ "rarity": "Plentiful",
+ "location": "Earth Orbit Bazaar",
+ "description": "Wearable holographic brand displays.",
+ "detail": "Used in influencer campaigns and trade expos.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Quantum Entanglement Relays",
+ "rarity": "Ultra Rare",
+ "location": "Andromeda Research Vaults",
+ "description": "Relays that transmit data via entangled particles.",
+ "detail": "Used in secure interstellar communication systems.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Cryo-Moss Extract",
+ "rarity": "Rare",
+ "location": "Europa BioDomes",
+ "description": "Extract from moss that thrives in frozen environments.",
+ "detail": "Used in medical salves and anti-inflammatory treatments.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Adaptive Armor Mesh",
+ "rarity": "Rare",
+ "location": "Titan Defense Grid",
+ "description": "Armor that adjusts to kinetic and energy impacts.",
+ "detail": "Standard issue for elite planetary defense forces.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Stellar Mood Lamps",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Lamps that shift color based on ambient emotion.",
+ "detail": "Used in therapy pods and luxury suites.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Ion-Infused Composite Panels",
+ "rarity": "Common",
+ "location": "Neptune Forge Rings",
+ "description": "Panels with ionized layers for energy dispersion.",
+ "detail": "Used in reactor shielding and solar collectors.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "Emotion-Sim AI Modules",
+ "rarity": "Rare",
+ "location": "Cygnus Tech Hub",
+ "description": "Modules that simulate emotional responses.",
+ "detail": "Used in companion bots and diplomatic avatars.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Asteroid Ale",
+ "rarity": "Plentiful",
+ "location": "Ceres Brewing Colonies",
+ "description": "Fermented beverage brewed in low-grav conditions.",
+ "detail": "Popular among miners and freighter crews.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "Galactic Loyalty Chips",
+ "rarity": "Common",
+ "location": "Earth Orbit Bazaar",
+ "description": "Chips that track brand engagement across systems.",
+ "detail": "Used in reward programs and trade analytics.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Stellar Radiation Filters",
+ "rarity": "Rare",
+ "location": "Orion Deep Labs",
+ "description": "Filters that block harmful stellar emissions.",
+ "detail": "Used in observatories and crew habitats.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Terraforming Seed Pods",
+ "rarity": "Rare",
+ "location": "Ganymede BioLabs",
+ "description": "Genetically engineered seeds for planetary seeding.",
+ "detail": "Used in early-stage atmosphere stabilization.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Orbital Strike Beacons",
+ "rarity": "Ultra Rare",
+ "location": "Delta Prime Defense Vaults",
+ "description": "Beacons that guide precision orbital bombardments.",
+ "detail": "Restricted to high-clearance tactical units.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Zero-G Massage Gel",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Gel that activates under microgravity conditions.",
+ "detail": "Used in spa treatments and recovery pods.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Plasma Coil Stabilizers",
+ "rarity": "Rare",
+ "location": "Mercury Refinery Grid",
+ "description": "Stabilizers for high-voltage plasma conduits.",
+ "detail": "Used in fusion reactors and ship engines.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "Self-Learning Repair Drones",
+ "rarity": "Rare",
+ "location": "Cygnus Salvage Belt",
+ "description": "Drones that adapt repair protocols over time.",
+ "detail": "Used in autonomous fleet maintenance.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Comet Ice Cream",
+ "rarity": "Common",
+ "location": "Europa Agri-Domes",
+ "description": "Frozen dessert made from comet water.",
+ "detail": "Popular among tourists and station dwellers.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "Holo-Event Tickets",
+ "rarity": "Plentiful",
+ "location": "Earth Orbit Bazaar",
+ "description": "Digital tickets for system-wide holo-events.",
+ "detail": "Used in entertainment and promotional campaigns.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Nano-Particle Analyzers",
+ "rarity": "Rare",
+ "location": "Andromeda Research Vaults",
+ "description": "Devices that scan and classify nano-scale particles.",
+ "detail": "Used in material science and medical diagnostics.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Alien DNA Helix Samples",
+ "rarity": "Mythic",
+ "location": "Kepler Botanical Archives",
+ "description": "Genetic material from non-terrestrial organisms.",
+ "detail": "Studied for evolutionary insights and bioengineering.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Phase Cloaking Modules",
+ "rarity": "Ultra Rare",
+ "location": "Zeta Tactical Vaults",
+ "description": "Modules that bend light and radar signatures.",
+ "detail": "Used in stealth ships and covert operations.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Stellar Sound Pods",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Pods that play ambient stellar frequencies.",
+ "detail": "Used in meditation and sleep therapy.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Industrial",
+ "name": "Quantum Flux Regulators",
+ "rarity": "Rare",
+ "location": "Neptune Forge Rings",
+ "description": "Regulators that stabilize quantum energy flow.",
+ "detail": "Used in experimental reactors and warp cores.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Robotic",
+ "name": "AI-Piloted Survey Drones",
+ "rarity": "Rare",
+ "location": "Cygnus Tech Hub",
+ "description": "Drones that autonomously map planetary surfaces.",
+ "detail": "Used in colonization and resource scouting.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Food",
+ "name": "Plasma-Grilled Protein Slabs",
+ "rarity": "Common",
+ "location": "Mars Food Clusters",
+ "description": "Protein-rich slabs grilled with plasma arcs.",
+ "detail": "Favored by athletes and heavy labor crews.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Marketing",
+ "name": "System-Wide Brand Beacons",
+ "rarity": "Plentiful",
+ "location": "Earth Orbit Bazaar",
+ "description": "Beacons that broadcast brand signals across systems.",
+ "detail": "Used in mega-corp campaigns and trade expos.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Dimensional Rift Monitors",
+ "rarity": "Ultra Rare",
+ "location": "Chrono Station Theta",
+ "description": "Monitors that detect unstable dimensional rifts.",
+ "detail": "Used in anomaly research and containment protocols.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Biological",
+ "name": "Synthetic Bone Matrix",
+ "rarity": "Rare",
+ "location": "Europa BioDomes",
+ "description": "Lab-grown bone structures for medical use.",
+ "detail": "Used in trauma recovery and augmentation.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Military",
+ "name": "Orbital EMP Cannons",
+ "rarity": "Ultra Rare",
+ "location": "Delta Prime Defense Vaults",
+ "description": "Cannons that disable electronics from orbit.",
+ "detail": "Used in planetary lockdown scenarios.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Pleasure",
+ "name": "Stellar Cocktail Synthesizers",
+ "rarity": "Accessible",
+ "location": "Venus Leisure Rings",
+ "description": "Machines that mix drinks based on star charts.",
+ "detail": "Popular in themed bars and cruise liners.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  {
+ "category": "Scientific",
+ "name": "Dark Matter Containment Vials",
+ "rarity": "Mythic",
+ "location": "Sagittarius A* Research Core",
+ "description": "Vials designed to isolate trace dark matter particles.",
+ "detail": "Used in gravitational field experiments and exotic propulsion prototypes.",
+ "basePrice": 1000,
+ "cargoSpace": 1
+  },
+  ...spaceCommoditiesData.map(item => ({ ...item, basePrice: 1000, cargoSpace: 1 })),
   // Biological
   {
     category: 'Biological',
