@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { MarketItem, InventoryItem, StaticItem } from '@/lib/types';
+import type { MarketItem, InventoryItem, StaticItem, ItemCategory } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Coins, Package, Search } from 'lucide-
 import { Input } from '@/components/ui/input';
 import { STATIC_ITEMS } from '@/lib/items';
 import ItemDetailDialog from './item-detail-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TradingInterfaceProps {
   marketItems: MarketItem[];
@@ -18,27 +19,35 @@ interface TradingInterfaceProps {
 
 interface DisplayItem extends MarketItem {
     owned: number;
+    category: ItemCategory;
 }
 
 type SortKey = keyof DisplayItem;
+
+const allCategories = ['All', ...Array.from(new Set(STATIC_ITEMS.map(item => item.category)))];
 
 export default function TradingInterface({ marketItems, inventory, onInitiateTrade }: TradingInterfaceProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
   const [selectedItemForDetail, setSelectedItemForDetail] = useState<StaticItem | null>(null);
 
   const displayItems: DisplayItem[] = marketItems.map(marketItem => {
     const inventoryItem = inventory.find(i => i.name === marketItem.name);
+    const staticItem = STATIC_ITEMS.find(i => i.name === marketItem.name)!;
     return {
       ...marketItem,
       owned: inventoryItem ? inventoryItem.owned : 0,
+      category: staticItem.category,
     };
   });
 
-  const filteredItems = displayItems.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = displayItems.filter(item => {
+    const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const categoryMatch = categoryFilter === 'All' || item.category === categoryFilter;
+    return nameMatch && categoryMatch;
+  });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     const aValue = a[sortKey];
@@ -86,15 +95,27 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
                   </CardTitle>
                   <CardDescription>Buy and sell goods from across the galaxy. Prices fluctuate based on supply and demand.</CardDescription>
               </div>
-              <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                      type="search"
-                      placeholder="Search commodities..."
-                      className="pl-8 sm:w-[200px] md:w-[250px] bg-background"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              <div className="flex items-center gap-2">
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-[180px] bg-background">
+                        <SelectValue placeholder="Filter by category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allCategories.map(cat => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                  </Select>
+                  <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                          type="search"
+                          placeholder="Search commodities..."
+                          className="pl-8 sm:w-[200px] md:w-[250px] bg-background"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                  </div>
               </div>
           </div>
         </CardHeader>
@@ -104,6 +125,7 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
               <TableHeader>
                 <TableRow>
                   <SortableHeader tkey="name" label="Item Name" className="w-2/5" />
+                  <SortableHeader tkey="category" label="Category" />
                   <SortableHeader tkey="currentPrice" label="Price (¢)" />
                   <SortableHeader tkey="supply" label="Supply" />
                   <SortableHeader tkey="demand" label="Demand" />
@@ -120,6 +142,7 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
                             {item.name}
                         </button>
                     </TableCell>
+                    <TableCell>{item.category}</TableCell>
                     <TableCell className="font-mono text-amber-300">{item.currentPrice.toLocaleString()}</TableCell>
                     <TableCell className="font-mono text-sky-300">{item.supply}</TableCell>
                     <TableCell className="font-mono text-rose-300">{item.demand}</TableCell>
