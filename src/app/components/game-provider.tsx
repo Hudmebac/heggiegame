@@ -454,6 +454,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             pirateName: gameState.pirateEncounter!.name,
             pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
             shipHealth: gameState.playerStats.shipHealth,
+            weaponLevel: gameState.playerStats.weaponLevel,
+            shieldLevel: gameState.playerStats.shieldLevel,
         };
         try {
             const result = await resolveEncounter(input);
@@ -716,7 +718,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         let toastDescription = "An unknown error occurred.";
 
         if (upgradeType === 'cargo') {
-            const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity >= prev.playerStats.maxCargo);
+            const currentTierIndex = cargoUpgrades.findIndex(u => u.capacity === prev.playerStats.maxCargo);
             if (currentTierIndex !== -1 && currentTierIndex < cargoUpgrades.length - 1) {
                 const nextTier = cargoUpgrades[currentTierIndex + 1];
                 cost = nextTier.cost;

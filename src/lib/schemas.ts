@@ -38,6 +38,8 @@ export const ResolvePirateEncounterInputSchema = z.object({
   pirateName: z.string().describe('The name of the pirate.'),
   pirateThreatLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe('The threat level of the pirate.'),
   shipHealth: z.number().describe("The player's current ship health (0-100)."),
+  weaponLevel: z.number().describe("The player's current weapon upgrade level."),
+  shieldLevel: z.number().describe("The player's current shield upgrade level."),
 });
 export type ResolvePirateEncounterInput = z.infer<typeof ResolvePirateEncounterInputSchema>;
 
