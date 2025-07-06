@@ -2,7 +2,7 @@
 import PlayerProfile from '@/app/components/player-profile';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Coins, Star, Trophy } from 'lucide-react';
+import { Coins, Trophy } from 'lucide-react';
 
 export default function CaptainPage() {
   const { gameState, handleGenerateAvatar, isGeneratingAvatar, handleGenerateBio, isGeneratingBio, setPlayerName } = useGame();
