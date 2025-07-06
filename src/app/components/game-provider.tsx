@@ -402,10 +402,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             
             setGameState(newGameState);
             setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
-            toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
+            setTimeout(() => toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." }), 0);
         } catch(e) {
             console.error("Failed to generate new game state", e);
-            toast({ variant: "destructive", title: "Initialization Failed", description: "Could not contact game services. Please refresh."});
+            setTimeout(() => toast({ variant: "destructive", title: "Initialization Failed", description: "Could not contact game services. Please refresh."}), 0);
         }
     };
 
@@ -434,7 +434,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [gameState, isClient]);
 
-  const updateObjectiveProgress = useCallback((objectiveType: QuestTask['type'], state: GameState): GameState => {
+  const updateObjectiveProgress = useCallback((objectiveType: QuestTask['type'], state: GameState): [GameState, ActiveObjective[]] => {
     let newPlayerStats = { ...state.playerStats };
     const completedObjectives: ActiveObjective[] = [];
 
@@ -465,12 +465,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
             if (!isNaN(rewardAmount)) {
                 newPlayerStats.netWorth += rewardAmount;
             }
-            toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
         });
     }
 
-    return { ...state, playerStats: newPlayerStats, activeObjectives: newActiveObjectives };
-  }, [toast]);
+    const newState = { ...state, playerStats: newPlayerStats, activeObjectives: newActiveObjectives };
+    return [newState, completedObjectives];
+  }, []);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.autoClickerBots || 0) === 0) {
@@ -497,14 +497,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            const newState = updateObjectiveProgress('bar', { ...prev, playerStats: newPlayerStats });
-
+            const [newState, completedObjectives] = updateObjectiveProgress('bar', { ...prev, playerStats: newPlayerStats });
+            
+            completedObjectives.forEach(obj => {
+                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            });
+            
             return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel, gameState?.playerStats.barContract, updateObjectiveProgress]);
+  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel, gameState?.playerStats.barContract, updateObjectiveProgress, toast]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.residenceAutoClickerBots || 0) === 0) {
@@ -530,14 +534,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
+            
+            const [newState, completedObjectives] = updateObjectiveProgress('residence', { ...prev, playerStats: newPlayerStats });
+            
+            completedObjectives.forEach(obj => {
+                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            });
 
-            const newState = updateObjectiveProgress('residence', { ...prev, playerStats: newPlayerStats });
             return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.residenceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.residenceLevel, gameState?.playerStats.residenceContract, updateObjectiveProgress]);
+  }, [gameState?.playerStats.residenceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.residenceLevel, gameState?.playerStats.residenceContract, updateObjectiveProgress, toast]);
   
   useEffect(() => {
     if (!gameState || (gameState.playerStats.commerceAutoClickerBots || 0) === 0) {
@@ -564,13 +573,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            const newState = updateObjectiveProgress('commerce', { ...prev, playerStats: newPlayerStats });
+            const [newState, completedObjectives] = updateObjectiveProgress('commerce', { ...prev, playerStats: newPlayerStats });
+            
+            completedObjectives.forEach(obj => {
+                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            });
+
             return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.commerceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.commerceLevel, gameState?.playerStats.commerceContract, updateObjectiveProgress]);
+  }, [gameState?.playerStats.commerceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.commerceLevel, gameState?.playerStats.commerceContract, updateObjectiveProgress, toast]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.industryAutoClickerBots || 0) === 0) {
@@ -597,13 +611,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            const newState = updateObjectiveProgress('industry', { ...prev, playerStats: newPlayerStats });
+            const [newState, completedObjectives] = updateObjectiveProgress('industry', { ...prev, playerStats: newPlayerStats });
+            
+            completedObjectives.forEach(obj => {
+                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            });
+
             return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.industryLevel, gameState?.playerStats.industryContract, updateObjectiveProgress]);
+  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.industryLevel, gameState?.playerStats.industryContract, updateObjectiveProgress, toast]);
   
   useEffect(() => {
     if (!gameState || (gameState.playerStats.constructionAutoClickerBots || 0) === 0) {
@@ -630,13 +649,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            const newState = updateObjectiveProgress('construction', { ...prev, playerStats: newPlayerStats });
+            const [newState, completedObjectives] = updateObjectiveProgress('construction', { ...prev, playerStats: newPlayerStats });
+            
+            completedObjectives.forEach(obj => {
+                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            });
+
             return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.constructionLevel, gameState?.playerStats.constructionContract, updateObjectiveProgress]);
+  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.constructionLevel, gameState?.playerStats.constructionContract, updateObjectiveProgress, toast]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.recreationAutoClickerBots || 0) === 0) {
@@ -662,13 +686,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
-            const newState = updateObjectiveProgress('recreation', { ...prev, playerStats: newPlayerStats });
+            
+            const [newState, completedObjectives] = updateObjectiveProgress('recreation', { ...prev, playerStats: newPlayerStats });
+            
+            completedObjectives.forEach(obj => {
+                setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+            });
+
             return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.recreationLevel, gameState?.playerStats.recreationContract, updateObjectiveProgress]);
+  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.recreationLevel, gameState?.playerStats.recreationContract, updateObjectiveProgress, toast]);
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -872,9 +902,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const result = await runQuestGeneration();
         setGameState(prev => {
             if (!prev) return null;
-            toast({ title: "New Bounties Posted", description: "The quest board has been updated with new missions." });
             return { ...prev, quests: result.quests };
         });
+        toast({ title: "New Bounties Posted", description: "The quest board has been updated with new missions." });
       } catch (error) {
           console.error(error);
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -1520,8 +1550,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const createClickHandler = (type: QuestTask['type']) => (income: number) => {
     setGameState(prev => {
         if (!prev) return null;
-        let newState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
-        newState = updateObjectiveProgress(type, newState);
+        let baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
+        const [newState, completedObjectives] = updateObjectiveProgress(type, baseState);
+        
+        completedObjectives.forEach(obj => {
+            setTimeout(() => toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` }), 0);
+        });
+
         return newState;
     });
   };
