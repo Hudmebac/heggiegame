@@ -3,6 +3,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ItemCodex from "@/app/components/encyclopedia/item-codex";
 import ShipCodex from "@/app/components/encyclopedia/ship-codex";
+import AnatomyCodex from "@/app/components/encyclopedia/anatomy-codex";
+import UpgradesCodex from "@/app/components/encyclopedia/upgrades-codex";
 import LoreCodex from "@/app/components/encyclopedia/lore-codex";
 import SystemCodex from "@/app/components/encyclopedia/system-codex";
 
@@ -14,9 +16,11 @@ export default function EncyclopediaPage() {
                 <p className="text-muted-foreground">An archive of all known commodities, ships, and galactic lore.</p>
             </div>
             <Tabs defaultValue="commodities" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="commodities">Commodities</TabsTrigger>
-                    <TabsTrigger value="ships">Ships & Upgrades</TabsTrigger>
+                    <TabsTrigger value="ships">Ships</TabsTrigger>
+                    <TabsTrigger value="anatomy">Anatomy</TabsTrigger>
+                    <TabsTrigger value="upgrades">Upgrades</TabsTrigger>
                     <TabsTrigger value="lore">Lore</TabsTrigger>
                     <TabsTrigger value="systems">Systems</TabsTrigger>
                 </TabsList>
@@ -25,6 +29,12 @@ export default function EncyclopediaPage() {
                 </TabsContent>
                 <TabsContent value="ships">
                     <ShipCodex />
+                </TabsContent>
+                <TabsContent value="anatomy">
+                    <AnatomyCodex />
+                </TabsContent>
+                 <TabsContent value="upgrades">
+                    <UpgradesCodex />
                 </TabsContent>
                 <TabsContent value="lore">
                     <LoreCodex />
