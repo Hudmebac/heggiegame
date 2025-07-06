@@ -55,12 +55,11 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="https://placehold.co/956x669.png"
+                            src="/ship/images/s-class-shuttle-blueprint.png"
                             alt="S-Class Shuttle Blueprint"
                             width={956}
                             height={669}
                             className="rounded-md w-full h-auto"
-                            data-ai-hint="shuttle blueprint"
                         />
                     </div>
                     <div>
@@ -115,12 +114,11 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="https://placehold.co/956x669.png"
+                            src="/ship/images/hauler-mk2-blueprint.png"
                             alt="Hauler Mk. II Blueprint"
                             width={956}
                             height={669}
                             className="rounded-md w-full h-auto"
-                            data-ai-hint="hauler blueprint"
                         />
                     </div>
                     <div>
@@ -180,12 +178,11 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="https://placehold.co/956x669.png"
+                            src="/ship/images/viper-escort-blueprint.png"
                             alt="Viper Combat Escort Blueprint"
                             width={956}
                             height={669}
                             className="rounded-md w-full h-auto"
-                            data-ai-hint="viper blueprint"
                         />
                     </div>
                     <div>
@@ -245,12 +242,11 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="https://placehold.co/956x669.png"
+                            src="/ship/images/leviathan-freighter-blueprint.png"
                             alt="Leviathan Super-Freighter Blueprint"
                             width={956}
                             height={669}
                             className="rounded-md w-full h-auto"
-                            data-ai-hint="freighter blueprint"
                         />
                     </div>
                     <div>
