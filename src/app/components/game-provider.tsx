@@ -153,7 +153,6 @@ interface GameContextType {
   setChartItem: (item: string) => void;
   handleTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
   handleInitiateTrade: (itemName: string, type: 'buy' | 'sell') => void;
-  handleSimulateMarket: () => void;
   handlePirateAction: (action: 'fight' | 'evade' | 'bribe' | 'scan') => void;
   handleGenerateAvatar: (description: string) => void;
   handleGenerateBio: (name?: string) => void;
@@ -372,69 +371,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleSimulateMarket = () => {
-    if (!gameState) return;
-    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
-    if (!currentSystem) return;
-
-    startSimulationTransition(async () => {
-      try {
-        const eventResult = await runEventGeneration();
-        const eventDescription = eventResult.eventDescription;
-
-        const input = {
-          items: gameState.marketItems,
-          systemEconomy: currentSystem.economy,
-          systemVolatility: currentSystem.volatility,
-          eventDescription,
-        };
-
-        const result = await runMarketSimulation(input);
-
-        setGameState(prev => {
-          if (!prev) return null;
-
-          const newMarketItems: MarketItem[] = [...prev.marketItems];
-          const newPriceHistory: PriceHistory = { ...prev.priceHistory };
-
-          result.forEach(update => {
-            const itemIndex = newMarketItems.findIndex(i => i.name === update.name);
-            if (itemIndex !== -1) {
-              const staticItem = STATIC_ITEMS.find(si => si.name === update.name)!;
-              const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][currentSystem.economy];
-              
-              newMarketItems[itemIndex].supply = update.newSupply;
-              newMarketItems[itemIndex].demand = update.newDemand;
-              newMarketItems[itemIndex].currentPrice = calculatePrice(staticItem.basePrice, update.newSupply, update.newDemand, economyMultiplier);
-
-              if (newPriceHistory[update.name]) {
-                newPriceHistory[update.name] = [...newPriceHistory[update.name], newMarketItems[itemIndex].currentPrice].slice(-20);
-              } else {
-                newPriceHistory[update.name] = [newMarketItems[itemIndex].currentPrice];
-              }
-            }
-          });
-
-          const newLeaderboard = prev.leaderboard.map(entry => {
-              if (entry.trader !== prev.playerStats.name && entry.trader !== 'You') {
-                  const changePercent = (Math.random() - 0.45) * 0.1; // Fluctuation between -4.5% and +5.5%
-                  const newNetWorth = Math.round(entry.netWorth * (1 + changePercent));
-                  return { ...entry, netWorth: newNetWorth > 100000 ? newNetWorth : 100000 };
-              }
-              return entry;
-          });
-
-          return { ...prev, marketItems: newMarketItems, priceHistory: newPriceHistory, leaderboard: newLeaderboard };
-        });
-        toast({ title: "Galactic News Flash!", description: `${eventDescription} The leaderboard has been updated.` });
-      } catch (error) {
-        console.error(error);
-        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-        toast({ variant: "destructive", title: "Simulation Failed", description: errorMessage });
-      }
-    });
-  };
-
   const handlePirateAction = (action: 'fight' | 'evade' | 'bribe' | 'scan') => {
     if (!gameState || !gameState.pirateEncounter) return;
 
@@ -577,37 +513,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const handleConfirmTravel = () => {
-      if (!gameState || !travelDestination) return;
+    if (!gameState || !travelDestination) return;
 
-      const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
-      if (!currentSystem) return;
+    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem)!;
 
-      const distance = Math.hypot(travelDestination.x - currentSystem.x, travelDestination.y - currentSystem.y);
-      let fuelCost = Math.round(distance / 5);
-      
-      const hasEngineer = gameState.crew.some(c => c.role === 'Engineer');
-      if (hasEngineer) {
-          fuelCost = Math.round(fuelCost * 0.95);
-      }
+    const distance = Math.hypot(travelDestination.x - currentSystem.x, travelDestination.y - currentSystem.y);
+    let fuelCost = Math.round(distance / 5);
+    
+    const hasEngineer = gameState.crew.some(c => c.role === 'Engineer');
+    if (hasEngineer) {
+        fuelCost = Math.round(fuelCost * 0.95);
+    }
 
-      if (gameState.playerStats.shipHealth < 50) {
-        fuelCost = Math.round(fuelCost * 1.25);
-      }
+    if (gameState.playerStats.shipHealth < 50) {
+      fuelCost = Math.round(fuelCost * 1.25);
+    }
 
-      if (gameState.playerStats.fuel < fuelCost) {
-          toast({
-              variant: "destructive",
-              title: "Travel Failed",
-              description: `Not enough fuel. You need ${fuelCost} SU, but you only have ${gameState.playerStats.fuel}.`
-          });
-          setTravelDestination(null);
-          return;
-      }
-      
-      setTravelDestination(null);
+    if (gameState.playerStats.fuel < fuelCost) {
+        toast({
+            variant: "destructive",
+            title: "Travel Failed",
+            description: `Not enough fuel. You need ${fuelCost} SU, but you only have ${gameState.playerStats.fuel}.`
+        });
+        setTravelDestination(null);
+        return;
+    }
+    
+    setTravelDestination(null);
 
-      startSimulationTransition(async () => {
-        
+    startSimulationTransition(async () => {
+      try {
         let baseEncounterChance = 0;
         switch (travelDestination.security) {
             case 'Anarchy': baseEncounterChance = 0.4; break;
@@ -619,15 +554,49 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const totalEncounterChance = baseEncounterChance + gameState.playerStats.pirateRisk;
         const pirateEncounter = Math.random() < totalEncounterChance ? generateRandomPirate() : null;
 
-        const newMarketItems = calculateMarketDataForSystem(travelDestination);
+        const eventResult = await runEventGeneration();
+        const eventDescription = eventResult.eventDescription;
+
+        const baseMarketItems = calculateMarketDataForSystem(travelDestination);
         
+        const simulationInput = {
+          items: baseMarketItems,
+          systemEconomy: travelDestination.economy,
+          systemVolatility: travelDestination.volatility,
+          eventDescription,
+        };
+
+        const simulationResult = await runMarketSimulation(simulationInput);
+        
+        const newMarketItems: MarketItem[] = [...baseMarketItems];
+        simulationResult.forEach(update => {
+            const itemIndex = newMarketItems.findIndex(i => i.name === update.name);
+            if (itemIndex !== -1) {
+              const staticItem = STATIC_ITEMS.find(si => si.name === update.name)!;
+              const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][travelDestination.economy];
+              
+              newMarketItems[itemIndex].supply = update.newSupply;
+              newMarketItems[itemIndex].demand = update.newDemand;
+              newMarketItems[itemIndex].currentPrice = calculatePrice(staticItem.basePrice, update.newSupply, update.newDemand, economyMultiplier);
+            }
+        });
+        
+        const updatedLeaderboard = gameState.leaderboard.map(entry => {
+            if (entry.trader !== gameState.playerStats.name && entry.trader !== 'You') {
+                const changePercent = (Math.random() - 0.45) * 0.1; // Fluctuation between -4.5% and +5.5%
+                const newNetWorth = Math.round(entry.netWorth * (1 + changePercent));
+                return { ...entry, netWorth: newNetWorth > 100000 ? newNetWorth : 100000 };
+            }
+            return entry;
+        });
+
         setGameState(prev => {
           if (!prev) return null;
           
           const newPlayerStats = {
               ...prev.playerStats,
               fuel: prev.playerStats.fuel - fuelCost,
-              pirateRisk: pirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05) // Decay risk if no encounter
+              pirateRisk: pirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05)
           };
 
           const newPriceHistory = { ...prev.priceHistory };
@@ -646,14 +615,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
               pirateEncounter,
               marketItems: newMarketItems,
               priceHistory: newPriceHistory,
+              leaderboard: updatedLeaderboard,
           }
         });
 
         toast({
-            title: "Arrival",
-            description: `You have arrived at the ${travelDestination.name} system. Your journey consumed ${fuelCost} fuel units.`
+            title: "Arrival: Galactic News Flash!",
+            description: `${eventDescription} You arrived safely at ${travelDestination.name}.`
         });
-      });
+      } catch (error) {
+        console.error(error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({ variant: "destructive", title: "Warp Drive Malfunction", description: errorMessage });
+        setTravelDestination(null);
+      }
+    });
   };
 
   const handleRefuel = () => {
@@ -900,7 +876,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setChartItem,
     handleTrade,
     handleInitiateTrade,
-    handleSimulateMarket,
     handlePirateAction,
     handleGenerateAvatar,
     handleGenerateBio,

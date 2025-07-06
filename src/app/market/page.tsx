@@ -13,8 +13,6 @@ export default function MarketPage() {
   const { 
     gameState, 
     handleInitiateTrade, 
-    handleSimulateMarket, 
-    isSimulating,
     chartItem,
     setChartItem
   } = useGame();
@@ -66,13 +64,6 @@ export default function MarketPage() {
             selectedCategory={chartCategory}
             onSelectCategory={setChartCategory}
         />
-        
-        <div className="flex justify-center">
-            <Button onClick={handleSimulateMarket} disabled={isSimulating} className="w-full max-w-sm shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-                {isSimulating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Simulate Market Event
-            </Button>
-        </div>
     </div>
   );
 }
