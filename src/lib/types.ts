@@ -124,3 +124,14 @@ export interface ShieldUpgrade {
   name: string;
   cost: number;
 }
+
+export interface ShipForSale {
+  id: string;
+  name: string;
+  manufacturer: string;
+  description: string;
+  cost: number;
+  cargo: number;
+  fuel: number;
+  health: number;
+}

@@ -2,8 +2,9 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { icon: React.ReactNode, title: string, value: number, max: number, unit: string, progressColorClass: string }) => (
   <div>
@@ -20,7 +21,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 
 
 export default function ShipManagement() {
-  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
+  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, handlePurchaseShip, cargoUpgrades, weaponUpgrades, shieldUpgrades } = useGame();
 
   if (!gameState) {
     return (
@@ -233,18 +234,31 @@ export default function ShipManagement() {
             <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg font-headline">
-                        <Ship className="text-primary"/> Fleet Management
+                        <ShoppingCart className="text-primary"/> Shipyard
                     </CardTitle>
-                    <CardDescription>Manage your fleet of vessels.</CardDescription>
+                    <CardDescription>Purchase new vessels to expand your fleet. Your current fleet size is {stats.fleetSize}.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4 text-left">
-                    <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground">Current Fleet Size</p>
-                        <p className="font-mono text-primary">{stats.fleetSize} {stats.fleetSize > 1 ? 'Ships' : 'Ship'}</p>
-                    </div>
-                    <Button className="w-full" disabled>
-                        Purchase New Ship (Coming Soon)
-                    </Button>
+                <CardContent className="space-y-4">
+                    {SHIPS_FOR_SALE.map(ship => (
+                        <div key={ship.id} className="border p-4 rounded-lg bg-background/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-bold text-base">{ship.name}</h4>
+                                <p className="text-xs text-muted-foreground">{ship.manufacturer}</p>
+                                <p className="text-sm">{ship.description}</p>
+                                <div className="flex flex-wrap gap-4 text-xs font-mono pt-2">
+                                    <span className="flex items-center gap-1.5"><Warehouse className="h-3 w-3" /> {ship.cargo}t</span>
+                                    <span className="flex items-center gap-1.5"><Fuel className="h-3 w-3" /> {ship.fuel} SU</span>
+                                    <span className="flex items-center gap-1.5"><HeartPulse className="h-3 w-3" /> {ship.health}%</span>
+                                </div>
+                            </div>
+                            <div className="flex-shrink-0 text-right w-full sm:w-auto">
+                                <p className="text-lg font-mono text-amber-300 mb-2">{ship.cost.toLocaleString()}¢</p>
+                                <Button className="w-full sm:w-auto" onClick={() => handlePurchaseShip(ship)} disabled={stats.netWorth < ship.cost}>
+                                    Purchase
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
                 </CardContent>
             </Card>
             <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">

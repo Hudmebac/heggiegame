@@ -1,9 +1,10 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
+import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -163,6 +164,7 @@ interface GameContextType {
   handleRepairShip: () => void;
   handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
   handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield') => void;
+  handlePurchaseShip: (ship: ShipForSale) => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -842,6 +844,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const handlePurchaseShip = (ship: ShipForSale) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.netWorth < ship.cost) {
+            toast({ variant: "destructive", title: "Purchase Failed", description: "Insufficient credits." });
+            return prev;
+        }
+
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - ship.cost,
+            fleetSize: prev.playerStats.fleetSize + 1,
+        };
+
+        toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` });
+
+        const newLeaderboard = prev.leaderboard.map(entry => {
+            if (entry.trader === prev.playerStats.name || entry.trader === 'You') {
+                return { ...entry, netWorth: newPlayerStats.netWorth, fleetSize: newPlayerStats.fleetSize };
+            }
+            return entry;
+        }).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+        return { ...prev, playerStats: newPlayerStats, leaderboard: newLeaderboard };
+    });
+  };
+
   const handleCloseEncounterDialog = () => {
     setEncounterResult(null);
     setGameState(prev => {
@@ -876,6 +905,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleRepairShip,
     handleUpgradeShip,
     handleDowngradeShip,
+    handlePurchaseShip,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,
