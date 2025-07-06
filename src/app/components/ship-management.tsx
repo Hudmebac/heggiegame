@@ -2,7 +2,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart, Briefcase } from 'lucide-react';
+import { Fuel, Warehouse, Shield, BadgeCheck, MapPin, Wrench, ShieldCheck, Ship, Loader2, HeartPulse, AlertTriangle, GitCommitHorizontal, Users, Navigation, Crosshair, Handshake, ShoppingCart, Briefcase, Radar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import Link from 'next/link';
@@ -22,7 +22,7 @@ const StatDisplay = ({ icon, title, value, max, unit, progressColorClass }: { ic
 
 
 export default function ShipManagement() {
-  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, handlePurchaseShip, cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades } = useGame();
+  const { gameState, handleRefuel, handleRepairShip, handleUpgradeShip, handleDowngradeShip, handlePurchaseShip, cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } = useGame();
 
   if (!gameState) {
     return (
@@ -75,6 +75,10 @@ export default function ShipManagement() {
   const currentFuelTierIndex = fuelUpgrades.findIndex(u => u.level === stats.fuelLevel);
   const currentFuelTier = fuelUpgrades[currentFuelTierIndex];
   const nextFuelUpgrade = currentFuelTierIndex < fuelUpgrades.length - 1 ? fuelUpgrades[currentFuelTierIndex + 1] : null;
+  
+  const currentSensorTierIndex = sensorUpgrades.findIndex(u => u.level === stats.sensorLevel);
+  const currentSensorTier = sensorUpgrades[currentSensorTierIndex];
+  const nextSensorUpgrade = currentSensorTierIndex < sensorUpgrades.length - 1 ? sensorUpgrades[currentSensorTierIndex + 1] : null;
 
   const hasEngineer = crew.some(c => c.role === 'Engineer');
   const hasGunner = crew.some(c => c.role === 'Gunner');
@@ -316,6 +320,24 @@ export default function ShipManagement() {
                           {nextFuelUpgrade ? (
                               <Button onClick={() => handleUpgradeShip('fuel')} disabled={stats.netWorth < (nextFuelUpgrade.cost - currentFuelTier.cost)}>
                                   Upgrade ({(nextFuelUpgrade.cost - currentFuelTier.cost).toLocaleString()}¢)
+                              </Button>
+                          ) : (
+                              <Button disabled>Max Level</Button>
+                          )}
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p>Sensor Suite</p>
+                            <p className="text-xs text-muted-foreground">Current: {currentSensorTier?.name}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {currentSensorTierIndex > 0 && (
+                            <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('sensor')}>Sell</Button>
+                          )}
+                          {nextSensorUpgrade ? (
+                              <Button onClick={() => handleUpgradeShip('sensor')} disabled={stats.netWorth < (nextSensorUpgrade.cost - currentSensorTier.cost)}>
+                                  Upgrade ({(nextSensorUpgrade.cost - currentSensorTier.cost).toLocaleString()}¢)
                               </Button>
                           ) : (
                               <Button disabled>Max Level</Button>

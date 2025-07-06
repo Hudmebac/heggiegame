@@ -78,6 +78,7 @@ export const ScanPirateVesselInputSchema = z.object({
   pirateName: z.string().describe('The name of the pirate.'),
   pirateShipType: z.string().describe('The type of the pirate ship.'),
   pirateThreatLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe('The threat level of the pirate.'),
+  sensorLevel: z.number().describe("The player's current sensor upgrade level."),
 });
 export type ScanPirateVesselInput = z.infer<typeof ScanPirateVesselInputSchema>;
 

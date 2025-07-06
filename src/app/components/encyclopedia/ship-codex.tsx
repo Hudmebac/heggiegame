@@ -1,8 +1,8 @@
 'use client';
 import { SHIPS_FOR_SALE } from "@/lib/ships";
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades } from "@/lib/upgrades";
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from "@/lib/upgrades";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Warehouse, Fuel, HeartPulse, ShieldCheck, Crosshair, Package, Rocket } from 'lucide-react';
+import { Warehouse, Fuel, HeartPulse, ShieldCheck, Crosshair, Package, Rocket, Radar } from 'lucide-react';
 
 const shipAnatomyData = [
     { area: 'Hull', description: 'The outer shell of the ship; structural integrity and armor plating.', gameUse: 'Shields, armor, breach points.' },
@@ -70,7 +70,7 @@ export default function ShipCodex() {
                 </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2"><Package className="text-primary"/>Cargo Upgrades</CardTitle>
@@ -103,6 +103,45 @@ export default function ShipCodex() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {shieldUpgrades.map(upgrade => (
+                            <div key={upgrade.level} className="flex justify-between items-center text-sm">
+                                <span>{upgrade.name}</span>
+                                <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2"><HeartPulse className="text-primary"/>Hull Upgrades</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {hullUpgrades.map(upgrade => (
+                            <div key={upgrade.level} className="flex justify-between items-center text-sm">
+                                <span>{upgrade.name} ({upgrade.health} HP)</span>
+                                <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2"><Fuel className="text-primary"/>Fuel Upgrades</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {fuelUpgrades.map(upgrade => (
+                            <div key={upgrade.level} className="flex justify-between items-center text-sm">
+                                <span>{upgrade.name} ({upgrade.capacity} SU)</span>
+                                <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2"><Radar className="text-primary"/>Sensor Upgrades</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {sensorUpgrades.map(upgrade => (
                             <div key={upgrade.level} className="flex justify-between items-center text-sm">
                                 <span>{upgrade.name}</span>
                                 <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>

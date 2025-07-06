@@ -39,6 +39,7 @@ export interface PlayerStats {
   shieldLevel: number;
   hullLevel: number;
   fuelLevel: number;
+  sensorLevel: number;
   fleetSize: number;
   pirateRisk: number;
   shipHealth: number;
@@ -151,6 +152,12 @@ export interface FuelUpgrade {
     level: number;
     name: string;
     capacity: number;
+    cost: number;
+}
+
+export interface SensorUpgrade {
+    level: number;
+    name: string;
     cost: number;
 }
 

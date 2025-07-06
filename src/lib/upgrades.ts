@@ -1,4 +1,4 @@
-import type { CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade } from '@/lib/types';
+import type { CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade } from '@/lib/types';
 
 export const cargoUpgrades: CargoUpgrade[] = [
     { capacity: 50, cost: 0 },
@@ -63,4 +63,17 @@ export const fuelUpgrades: FuelUpgrade[] = [
     { level: 8, name: 'Plasma Injector Tank', capacity: 400, cost: 420000 },
     { level: 9, name: 'Zero-Point Fuel Module', capacity: 500, cost: 880000 },
     { level: 10, name: 'Pocket Dimension Silo', capacity: 650, cost: 1800000 },
+];
+
+export const sensorUpgrades: SensorUpgrade[] = [
+    { level: 1, name: 'Basic Scanner', cost: 0 },
+    { level: 2, name: 'Rangefinder Mk. II', cost: 6000 },
+    { level: 3, name: 'Deep-Wave Scanner', cost: 18000 },
+    { level: 4, name: 'Triangulation Matrix', cost: 45000 },
+    { level: 5, name: 'Phased-Array Suite', cost: 110000 },
+    { level: 6, name: 'Subspace Echo-locator', cost: 250000 },
+    { level: 7, name: 'Gravimetric Sensor', cost: 550000 },
+    { level: 8, name: 'Quantum Triangulator', cost: 1200000 },
+    { level: 9, name: 'Precognitive Array', cost: 2800000 },
+    { level: 10, name: "'Oracle' Divination Engine", cost: 6500000 },
 ];

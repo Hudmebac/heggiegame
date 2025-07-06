@@ -1,12 +1,12 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 
 import { useToast } from "@/hooks/use-toast";
@@ -96,6 +96,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     shieldLevel: 1,
     hullLevel: 1,
     fuelLevel: 1,
+    sensorLevel: 1,
     fleetSize: 1,
     pirateRisk: 0,
     reputation: 0,
@@ -134,8 +135,8 @@ interface GameContextType {
   handleInitiateTravel: (systemName: string) => void;
   handleRefuel: () => void;
   handleRepairShip: () => void;
-  handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => void;
-  handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => void;
+  handleUpgradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
+  handleDowngradeShip: (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
   handlePurchaseShip: (ship: ShipForSale) => void;
   handleHireCrew: (crewId: string) => void;
   handleFireCrew: (crewId: string) => void;
@@ -144,6 +145,7 @@ interface GameContextType {
   shieldUpgrades: ShieldUpgrade[];
   hullUpgrades: HullUpgrade[];
   fuelUpgrades: FuelUpgrade[];
+  sensorUpgrades: SensorUpgrade[];
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -607,6 +609,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     pirateName: pirateEncounterObject.name,
                     pirateShipType: pirateEncounterObject.shipType,
                     pirateThreatLevel: pirateEncounterObject.threatLevel,
+                    sensorLevel: gameState.playerStats.sensorLevel,
                 });
                 scannedPirateEncounter = {
                     ...pirateEncounterObject,
@@ -765,7 +768,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const handleUpgradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => {
+  const handleUpgradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
     setGameState(prev => {
         if (!prev) return null;
 
@@ -859,6 +862,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
                 }
             }
+        } else if (upgradeType === 'sensor') {
+            const currentTierIndex = sensorUpgrades.findIndex(u => u.level === prev.playerStats.sensorLevel);
+            if (currentTierIndex !== -1 && currentTierIndex < sensorUpgrades.length - 1) {
+                const currentTier = sensorUpgrades[currentTierIndex];
+                const nextTier = sensorUpgrades[currentTierIndex + 1];
+                cost = nextTier.cost - currentTier.cost;
+                if (prev.playerStats.netWorth >= cost) {
+                    newPlayerStats.netWorth -= cost;
+                    newPlayerStats.sensorLevel = nextTier.level;
+                    canUpgrade = true;
+                    toastTitle = "Sensors Upgraded!";
+                    toastDescription = `Your ship is now equipped with a ${nextTier.name}.`;
+                } else {
+                    toastDescription = `Not enough credits. You need ${cost.toLocaleString()}¢.`;
+                }
+            }
         }
         
         if (!canUpgrade) {
@@ -871,7 +890,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  const handleDowngradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel') => {
+  const handleDowngradeShip = (upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
     setGameState(prev => {
         if (!prev) return null;
 
@@ -940,6 +959,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 newPlayerStats.fuel = Math.min(newPlayerStats.fuel, newPlayerStats.maxFuel);
                 canDowngrade = true;
                 toastDescription = `Fuel tank downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
+            }
+        } else if (upgradeType === 'sensor') {
+            const currentTierIndex = sensorUpgrades.findIndex(u => u.level === prev.playerStats.sensorLevel);
+            if (currentTierIndex > 0) {
+                const currentTier = sensorUpgrades[currentTierIndex];
+                const previousTier = sensorUpgrades[currentTierIndex - 1];
+                refund = Math.round((currentTier.cost - previousTier.cost) * sellPercentage);
+                newPlayerStats.netWorth += refund;
+                newPlayerStats.sensorLevel = previousTier.level;
+                canDowngrade = true;
+                toastDescription = `Sensors downgraded to ${previousTier.name}. You received ${refund.toLocaleString()}¢.`;
             }
         }
         
@@ -1065,6 +1095,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     shieldUpgrades,
     hullUpgrades,
     fuelUpgrades,
+    sensorUpgrades,
   };
 
   return (
