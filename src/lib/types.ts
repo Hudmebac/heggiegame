@@ -47,6 +47,7 @@ export interface PlayerStats {
   reputation: number;
   barLevel: number;
   autoClickerBots: number;
+  establishmentLevel: number;
 }
 
 export interface PriceHistory {

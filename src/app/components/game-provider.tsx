@@ -104,6 +104,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     reputation: 0,
     barLevel: 1,
     autoClickerBots: 0,
+    establishmentLevel: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -148,6 +149,8 @@ interface GameContextType {
   handleBarClick: (income: number) => void;
   handleUpgradeBar: () => void;
   handleUpgradeAutoClicker: () => void;
+  handlePurchaseEstablishment: () => void;
+  handleExpandEstablishment: () => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -245,34 +248,57 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsClient(true);
     const loadGame = async () => {
-        let savedState;
+        let savedStateJSON;
         try {
-            const savedStateJSON = localStorage.getItem('heggieGameState');
-            if (savedStateJSON) {
-                savedState = JSON.parse(savedStateJSON);
-            }
+            savedStateJSON = localStorage.getItem('heggieGameState');
         } catch (error) {
-            console.error("Failed to parse saved game state, starting fresh:", error);
-            savedState = null;
+            console.error("Failed to access local storage, starting fresh:", error);
+            savedStateJSON = null;
         }
 
-        const currentSystem = SYSTEMS.find(s => s.name === (savedState?.currentSystem || initialGameState.currentSystem)) || SYSTEMS[0];
-        const marketItems = calculateMarketDataForSystem(currentSystem);
+        const baseState: GameState = {
+            ...initialGameState,
+            systems: SYSTEMS, 
+            routes: ROUTES, 
+            marketItems: calculateMarketDataForSystem(SYSTEMS.find(s => s.name === initialGameState.currentSystem) || SYSTEMS[0]),
+        };
 
-        if (savedState && savedState.playerStats) {
-            const playerStats = {
-                ...initialGameState.playerStats,
-                ...savedState.playerStats,
-            };
-            playerStats.cargo = calculateCurrentCargo(savedState.inventory || initialGameState.inventory);
+        if (savedStateJSON) {
+            try {
+                const savedProgress = JSON.parse(savedStateJSON);
+                const mergedPlayerStats = {
+                    ...baseState.playerStats,
+                    ...savedProgress.playerStats,
+                };
+                mergedPlayerStats.cargo = calculateCurrentCargo(savedProgress.inventory || baseState.inventory);
 
-            setGameState({
-                ...initialGameState,
-                ...savedState,
-                playerStats,
-                marketItems,
-            });
+                const currentSystemName = savedProgress.currentSystem || baseState.currentSystem;
+                const currentSystem = SYSTEMS.find(s => s.name === currentSystemName) || SYSTEMS[0];
+
+                setGameState({
+                    ...baseState,
+                    playerStats: mergedPlayerStats,
+                    inventory: savedProgress.inventory || baseState.inventory,
+                    priceHistory: savedProgress.priceHistory || baseState.priceHistory,
+                    leaderboard: savedProgress.leaderboard || baseState.leaderboard,
+                    currentSystem: currentSystemName,
+                    currentPlanet: savedProgress.currentPlanet || currentSystem.planets[0].name,
+                    quests: savedProgress.quests || baseState.quests,
+                    crew: savedProgress.crew || baseState.crew,
+                    marketItems: calculateMarketDataForSystem(currentSystem),
+                });
+            } catch (error) {
+                console.error("Failed to parse saved game state, starting fresh:", error);
+                // Fallback to generating a fresh state
+                generateNewGameState();
+            }
         } else {
+            generateNewGameState();
+        }
+    };
+    
+    const generateNewGameState = async () => {
+        try {
             const [tradersResult, questsResult] = await Promise.all([
                 runTraderGeneration(),
                 runQuestGeneration()
@@ -301,6 +327,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 cargo: calculateCurrentCargo(initialGameState.inventory)
             };
             
+            const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem) || SYSTEMS[0];
+            const marketItems = calculateMarketDataForSystem(currentSystem);
+
             const newGameState: GameState = {
                 ...initialGameState,
                 playerStats,
@@ -312,8 +341,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
             setGameState(newGameState);
             setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
             toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
+        } catch(e) {
+            console.error("Failed to generate new game state", e);
+            toast({ variant: "destructive", title: "Initialization Failed", description: "Could not contact game services. Please refresh."});
         }
     };
+
     loadGame();
   }, [calculateMarketDataForSystem, toast]); 
 
@@ -1146,6 +1179,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleUpgradeAutoClicker = () => {
     setGameState(prev => {
         if (!prev) return null;
+        if ((prev.playerStats.autoClickerBots || 0) >= 25) {
+            toast({ variant: "destructive", title: "Limit Reached", description: `You cannot purchase more than 25 bots.` });
+            return prev;
+        }
         const cost = Math.round(1000 * Math.pow(1.15, prev.playerStats.autoClickerBots || 0));
         if (prev.playerStats.netWorth < cost) {
             toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits to buy a bot. You need ${cost.toLocaleString()}¢.` });
@@ -1157,6 +1194,72 @@ export function GameProvider({ children }: { children: ReactNode }) {
             autoClickerBots: (prev.playerStats.autoClickerBots || 0) + 1,
         };
         toast({ title: "Auto-Clicker Bot Purchased!", description: "A new bot has been added to your staff." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handlePurchaseEstablishment = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
+        const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
+        const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick;
+        
+        const cost = incomePerSecond * 1000;
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            establishmentLevel: 1,
+        };
+
+        toast({ title: "Establishment Purchased!", description: `You are now the proud owner of this fine establishment.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+  
+  const handleExpandEstablishment = () => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
+        const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
+        const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick;
+
+        const expansionTiers = [
+            10000, // Level 1 -> 2
+            100000, // Level 2 -> 3
+            1000000, // Level 3 -> 4
+            10000000, // Level 4 -> 5
+        ];
+
+        const currentLevel = prev.playerStats.establishmentLevel;
+        if (currentLevel < 1 || currentLevel > 4) {
+            return prev;
+        }
+
+        const cost = incomePerSecond * expansionTiers[currentLevel - 1];
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const newPlayerStats = {
+            ...prev.playerStats,
+            netWorth: prev.playerStats.netWorth - cost,
+            establishmentLevel: currentLevel + 1,
+        };
+
+        toast({ title: "Establishment Expanded!", description: `Your operation has grown to Expansion Level ${newPlayerStats.establishmentLevel - 1}.` });
         return { ...prev, playerStats: newPlayerStats };
     });
   };
@@ -1202,6 +1305,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleBarClick,
     handleUpgradeBar,
     handleUpgradeAutoClicker,
+    handlePurchaseEstablishment,
+    handleExpandEstablishment,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,

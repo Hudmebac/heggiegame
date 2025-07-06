@@ -1,32 +1,65 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Martini, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
+import { Martini, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 
 export default function BarClicker() {
-    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker } = useGame();
+    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment } = useGame();
     const [feedbackMessages, setFeedbackMessages] = useState<{ id: number, x: number, y: number, amount: number }[]>([]);
 
     if (!gameState) {
         return null;
     }
 
+    const { playerStats } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
     
-    const incomePerClick = theme.baseIncome * gameState.playerStats.barLevel;
-    const upgradeCost = Math.round(100 * Math.pow(gameState.playerStats.barLevel, 2.5));
-    const canAffordUpgrade = gameState.playerStats.netWorth >= upgradeCost;
+    const incomePerClick = theme.baseIncome * playerStats.barLevel;
+    const upgradeCost = Math.round(100 * Math.pow(playerStats.barLevel, 2.5));
+    const canAffordUpgrade = playerStats.netWorth >= upgradeCost;
 
-    const botCost = Math.round(1000 * Math.pow(1.15, gameState.playerStats.autoClickerBots));
-    const canAffordBot = gameState.playerStats.netWorth >= botCost;
-    const incomePerSecond = gameState.playerStats.autoClickerBots * incomePerClick;
+    const botCost = Math.round(1000 * Math.pow(1.15, playerStats.autoClickerBots));
+    const canAffordBot = playerStats.netWorth >= botCost;
+    const incomePerSecond = playerStats.autoClickerBots * incomePerClick;
+    const isBotLimitReached = playerStats.autoClickerBots >= 25;
 
+    // Establishment upgrade logic
+    const expansionTiers = [
+        { level: 1, costMultiplier: 1000, label: "Purchase Establishment" },
+        { level: 2, costMultiplier: 10000, label: "Expand Establishment (Level 1)" },
+        { level: 3, costMultiplier: 100000, label: "Expand Establishment (Level 2)" },
+        { level: 4, costMultiplier: 1000000, label: "Expand Establishment (Level 3)" },
+        { level: 5, costMultiplier: 10000000, label: "Expand to Galactic Franchise" },
+    ];
+    
+    const currentEstablishmentLevel = playerStats.establishmentLevel;
+    const nextExpansionTier = currentEstablishmentLevel < expansionTiers.length ? expansionTiers[currentEstablishmentLevel] : null;
+
+    let expansionCost = 0;
+    let canAffordExpansion = false;
+    let expansionButtonLabel = "Max Level Reached";
+    let expansionHandler = () => {};
+
+    if (nextExpansionTier) {
+        expansionCost = incomePerSecond * nextExpansionTier.costMultiplier;
+        canAffordExpansion = playerStats.netWorth >= expansionCost;
+        expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
+        expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseEstablishment : handleExpandEstablishment;
+    }
+
+    const getEstablishmentLevelLabel = (level: number) => {
+        if (level === 0) return 'Not Purchased';
+        if (level === 1) return 'Purchased';
+        if (level === 5) return 'Galactic Franchise';
+        return `Expansion Level ${level - 1}`;
+    };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         handleBarClick(incomePerClick);
@@ -78,7 +111,7 @@ export default function BarClicker() {
                         <p className="text-muted-foreground">Current Net Worth</p>
                         <p className="text-3xl font-mono text-amber-300 flex items-center justify-center gap-2">
                             <Coins />
-                            {(gameState.playerStats.netWorth || 0).toLocaleString()} ¢
+                            {(playerStats.netWorth || 0).toLocaleString()} ¢
                         </p>
                     </div>
                 </CardContent>
@@ -95,7 +128,7 @@ export default function BarClicker() {
                 <CardContent className="space-y-4">
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Current Bar Level</span>
-                        <span className="font-mono">{gameState.playerStats.barLevel}</span>
+                        <span className="font-mono">{playerStats.barLevel}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
@@ -109,15 +142,32 @@ export default function BarClicker() {
 
                     <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">Auto-Clicker Bots</span>
-                        <span className="font-mono">{gameState.playerStats.autoClickerBots}</span>
+                        <span className="font-mono">{playerStats.autoClickerBots} / 25</span>
                     </div>
                      <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground flex items-center gap-1.5"><Bot className="h-4 w-4"/> Income Per Second</span>
                         <span className="font-mono text-amber-300">{incomePerSecond.toLocaleString()}¢</span>
                     </div>
-                    <Button className="w-full" onClick={handleUpgradeAutoClicker} disabled={!canAffordBot}>
-                        Buy Bot ({botCost.toLocaleString()}¢)
-                    </Button>
+                    
+                    {!isBotLimitReached ? (
+                        <Button className="w-full" onClick={handleUpgradeAutoClicker} disabled={!canAffordBot}>
+                            Buy Bot ({botCost.toLocaleString()}¢)
+                        </Button>
+                    ) : (
+                        <div className="pt-4 border-t border-border/50"></div>
+                    )}
+                    
+                    {isBotLimitReached && (
+                        <>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground flex items-center gap-1.5"><Building2 className="h-4 w-4"/> Establishment Level</span>
+                                <span className="font-mono">{getEstablishmentLevelLabel(currentEstablishmentLevel)}</span>
+                            </div>
+                            <Button className="w-full" onClick={expansionHandler} disabled={!canAffordExpansion || !nextExpansionTier}>
+                                {expansionButtonLabel}
+                            </Button>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>
