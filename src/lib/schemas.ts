@@ -100,12 +100,20 @@ export const GenerateBioOutputSchema = z.object({
 export type GenerateBioOutput = z.infer<typeof GenerateBioOutputSchema>;
 
 // Schemas for generate-quests
+export const QuestTaskSchema = z.object({
+    type: z.enum(['bar', 'residence', 'commerce', 'industry', 'construction', 'recreation']).describe("The type of business operation related to the task."),
+    target: z.number().describe("The number of actions required to complete the task."),
+    description: z.string().describe("A player-facing description of the task, e.g., 'Serve Patrons' or 'Fulfil Industry Orders'."),
+});
+
 export const QuestSchema = z.object({
     title: z.string().describe("The title of the quest."),
     description: z.string().describe("A brief, engaging description of the quest."),
     reward: z.string().describe("The reward for completing the quest, e.g., '15,000 ¢' or 'Variable'."),
-    type: z.enum(['Bounty', 'Daily', 'Quest']).describe("The type of the quest."),
+    type: z.enum(['Bounty', 'Daily', 'Quest', 'Objective']).describe("The type of the quest."),
     difficulty: z.enum(['Low', 'Medium', 'High']).describe("The difficulty of the quest."),
+    tasks: z.array(QuestTaskSchema).optional().describe("For 'Objective' quests, an array of one or more tasks to complete."),
+    timeLimit: z.number().optional().describe("For 'Objective' quests, the time limit in seconds to complete all tasks."),
 });
 
 export const GenerateQuestsOutputSchema = z.object({

@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType, StaticItem, HullUpgrade, FuelUpgrade, SensorUpgrade, Planet, BarContract, BarPartner, PartnershipOffer, ActiveObjective, QuestTask } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration, runPartnershipOfferGeneration, runResidencePartnershipOfferGeneration, runCommercePartnershipOfferGeneration, runIndustryPartnershipOfferGeneration, runConstructionPartnershipOfferGeneration, runRecreationPartnershipOfferGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -135,6 +135,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
   currentSystem: 'Sol',
   currentPlanet: 'Earth',
   quests: [],
+  activeObjectives: [],
   crew: initialCrew,
 };
 
@@ -166,6 +167,7 @@ interface GameContextType {
   handleHireCrew: (crewId: string) => void;
   handleFireCrew: (crewId: string) => void;
   updateTraderBio: (traderName: string, bio: string) => void;
+  handleAcceptObjective: (quest: Quest) => void;
   handleBarClick: (income: number) => void;
   handleUpgradeBar: () => void;
   handleUpgradeAutoClicker: () => void;
@@ -343,6 +345,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
                     currentSystem: currentSystemName,
                     currentPlanet: currentPlanetName,
                     quests: savedProgress.quests || baseState.quests,
+                    activeObjectives: savedProgress.activeObjectives || baseState.activeObjectives,
                     crew: savedProgress.crew || baseState.crew,
                     // Recalculate market data for the current location
                     marketItems: calculateMarketDataForSystem(currentSystem),
@@ -421,6 +424,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             currentSystem: gameState.currentSystem,
             currentPlanet: gameState.currentPlanet,
             quests: gameState.quests,
+            activeObjectives: gameState.activeObjectives,
             crew: gameState.crew,
         };
         localStorage.setItem('heggieGameState', JSON.stringify(stateToSave));
@@ -429,6 +433,44 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [gameState, isClient]);
+
+  const updateObjectiveProgress = useCallback((objectiveType: QuestTask['type'], state: GameState): GameState => {
+    let newPlayerStats = { ...state.playerStats };
+    const completedObjectives: ActiveObjective[] = [];
+
+    const newActiveObjectives = state.activeObjectives.map(obj => {
+        let updatedObj = { ...obj };
+        let progressMade = false;
+
+        if (updatedObj.tasks?.some(t => t.type === objectiveType)) {
+            const newProgress = { ...updatedObj.progress };
+            newProgress[objectiveType] = (newProgress[objectiveType] || 0) + 1;
+            updatedObj = { ...updatedObj, progress: newProgress };
+            progressMade = true;
+        }
+
+        if (progressMade) {
+            const isComplete = updatedObj.tasks?.every(task => (updatedObj.progress[task.type] || 0) >= task.target);
+            if (isComplete) {
+                completedObjectives.push(updatedObj);
+                return null;
+            }
+        }
+        return updatedObj;
+    }).filter(Boolean) as ActiveObjective[];
+
+    if (completedObjectives.length > 0) {
+        completedObjectives.forEach(obj => {
+            const rewardAmount = parseInt(obj.reward.replace(/[^0-9]/g, ''), 10);
+            if (!isNaN(rewardAmount)) {
+                newPlayerStats.netWorth += rewardAmount;
+            }
+            toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
+        });
+    }
+
+    return { ...state, playerStats: newPlayerStats, activeObjectives: newActiveObjectives };
+  }, [toast]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.autoClickerBots || 0) === 0) {
@@ -455,12 +497,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            return { ...prev, playerStats: newPlayerStats };
+            const newState = updateObjectiveProgress('bar', { ...prev, playerStats: newPlayerStats });
+
+            return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel, gameState?.playerStats.barContract]);
+  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.playerStats.barLevel, gameState?.playerStats.barContract, updateObjectiveProgress]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.residenceAutoClickerBots || 0) === 0) {
@@ -487,12 +531,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            return { ...prev, playerStats: newPlayerStats };
+            const newState = updateObjectiveProgress('residence', { ...prev, playerStats: newPlayerStats });
+            return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.residenceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.residenceLevel, gameState?.playerStats.residenceContract]);
+  }, [gameState?.playerStats.residenceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.residenceLevel, gameState?.playerStats.residenceContract, updateObjectiveProgress]);
   
   useEffect(() => {
     if (!gameState || (gameState.playerStats.commerceAutoClickerBots || 0) === 0) {
@@ -519,12 +564,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            return { ...prev, playerStats: newPlayerStats };
+            const newState = updateObjectiveProgress('commerce', { ...prev, playerStats: newPlayerStats });
+            return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.commerceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.commerceLevel, gameState?.playerStats.commerceContract]);
+  }, [gameState?.playerStats.commerceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.commerceLevel, gameState?.playerStats.commerceContract, updateObjectiveProgress]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.industryAutoClickerBots || 0) === 0) {
@@ -551,12 +597,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            return { ...prev, playerStats: newPlayerStats };
+            const newState = updateObjectiveProgress('industry', { ...prev, playerStats: newPlayerStats });
+            return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.industryLevel, gameState?.playerStats.industryContract]);
+  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.industryLevel, gameState?.playerStats.industryContract, updateObjectiveProgress]);
   
   useEffect(() => {
     if (!gameState || (gameState.playerStats.constructionAutoClickerBots || 0) === 0) {
@@ -583,12 +630,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
 
-            return { ...prev, playerStats: newPlayerStats };
+            const newState = updateObjectiveProgress('construction', { ...prev, playerStats: newPlayerStats });
+            return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.constructionLevel, gameState?.playerStats.constructionContract]);
+  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.constructionLevel, gameState?.playerStats.constructionContract, updateObjectiveProgress]);
 
   useEffect(() => {
     if (!gameState || (gameState.playerStats.recreationAutoClickerBots || 0) === 0) {
@@ -614,13 +662,48 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth + incomePerSecond,
             };
-
-            return { ...prev, playerStats: newPlayerStats };
+            const newState = updateObjectiveProgress('recreation', { ...prev, playerStats: newPlayerStats });
+            return newState;
         });
     }, 1000); // every second
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.recreationLevel, gameState?.playerStats.recreationContract]);
+  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.recreationLevel, gameState?.playerStats.recreationContract, updateObjectiveProgress]);
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setGameState(prev => {
+        if (!prev || !prev.activeObjectives?.length) {
+          return prev;
+        }
+
+        const now = Date.now();
+        const stillActive: ActiveObjective[] = [];
+        let updated = false;
+
+        for (const obj of prev.activeObjectives) {
+          if (!obj.timeLimit || !obj.startTime) {
+              stillActive.push(obj);
+              continue;
+          }
+          const elapsed = (now - obj.startTime) / 1000;
+          if (elapsed >= obj.timeLimit) {
+            toast({ variant: 'destructive', title: 'Objective Failed', description: `You ran out of time for "${obj.title}".` });
+            updated = true;
+          } else {
+            stillActive.push(obj);
+          }
+        }
+
+        if (updated) {
+          return { ...prev, activeObjectives: stillActive };
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [toast]);
 
 
   const handleTrade = (itemName: string, type: 'buy' | 'sell', amount: number) => {
@@ -1414,16 +1497,41 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const handleBarClick = (income: number) => {
+  const handleAcceptObjective = (quest: Quest) => {
     setGameState(prev => {
-        if (!prev) return null;
-        const newPlayerStats = {
-            ...prev.playerStats,
-            netWorth: prev.playerStats.netWorth + income,
+        if (!prev || quest.type !== 'Objective' || !quest.timeLimit) return prev;
+
+        const newObjective: ActiveObjective = {
+            ...quest,
+            progress: {}, // Initialize progress
+            startTime: Date.now(),
         };
-        return { ...prev, playerStats: newPlayerStats };
+
+        toast({ title: "Objective Started!", description: `You have ${quest.timeLimit} seconds to complete "${quest.title}".` });
+
+        return {
+            ...prev,
+            quests: prev.quests.filter(q => q.title !== quest.title),
+            activeObjectives: [...prev.activeObjectives, newObjective],
+        };
     });
   };
+
+  const createClickHandler = (type: QuestTask['type']) => (income: number) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        let newState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
+        newState = updateObjectiveProgress(type, newState);
+        return newState;
+    });
+  };
+
+  const handleBarClick = createClickHandler('bar');
+  const handleResidenceClick = createClickHandler('residence');
+  const handleCommerceClick = createClickHandler('commerce');
+  const handleIndustryClick = createClickHandler('industry');
+  const handleConstructionClick = createClickHandler('construction');
+  const handleRecreationClick = createClickHandler('recreation');
 
   const handleUpgradeBar = () => {
     setGameState(prev => {
@@ -1603,17 +1711,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const handleResidenceClick = (income: number) => {
-        setGameState(prev => {
-            if (!prev) return null;
-            const newPlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth + income,
-            };
-            return { ...prev, playerStats: newPlayerStats };
-        });
-    };
-
     const handleUpgradeResidence = () => {
         setGameState(prev => {
             if (!prev) return null;
@@ -1763,17 +1860,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
     
-    const handleCommerceClick = (income: number) => {
-        setGameState(prev => {
-            if (!prev) return null;
-            const newPlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth + income,
-            };
-            return { ...prev, playerStats: newPlayerStats };
-        });
-    };
-
     const handleUpgradeCommerce = () => {
         setGameState(prev => {
             if (!prev) return null;
@@ -1923,13 +2009,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
-  const handleIndustryClick = (income: number) => {
-    setGameState(prev => {
-        if (!prev) return null;
-        return { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
-    });
-  };
-
   const handleUpgradeIndustry = () => {
     setGameState(prev => {
         if (!prev) return null;
@@ -2065,13 +2144,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const handleConstructionClick = (income: number) => {
-    setGameState(prev => {
-        if (!prev) return null;
-        return { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
-    });
-  };
-
   const handleUpgradeConstruction = () => {
     setGameState(prev => {
         if (!prev) return null;
@@ -2204,13 +2276,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
         toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
         return { ...prev, playerStats: newPlayerStats };
-    });
-  };
-
-  const handleRecreationClick = (income: number) => {
-    setGameState(prev => {
-        if (!prev) return null;
-        return { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
     });
   };
 
@@ -2387,6 +2452,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleHireCrew,
     handleFireCrew,
     updateTraderBio: handleUpdateTraderBio,
+    handleAcceptObjective,
     handleBarClick,
     handleUpgradeBar,
     handleUpgradeAutoClicker,

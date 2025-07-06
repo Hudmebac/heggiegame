@@ -129,21 +129,25 @@ export interface Route {
   to: string;
 }
 
+export interface QuestTask {
+    type: 'bar' | 'residence' | 'commerce' | 'industry' | 'construction' | 'recreation';
+    target: number;
+    description: string;
+}
+
 export interface Quest {
   title: string;
   description: string;
   reward: string;
-  type: 'Bounty' | 'Daily' | 'Quest';
+  type: 'Bounty' | 'Daily' | 'Quest' | 'Objective';
   difficulty: 'Low' | 'Medium' | 'High';
+  tasks?: QuestTask[];
+  timeLimit?: number;
 }
 
-export interface CrewMember {
-  id: string;
-  name: string;
-  role: 'Engineer' | 'Navigator' | 'Gunner' | 'Negotiator';
-  description: string;
-  salary: number;
-  hiringFee: number;
+export interface ActiveObjective extends Quest {
+    progress: { [key in QuestTask['type']]?: number };
+    startTime: number;
 }
 
 export interface GameState {
@@ -158,6 +162,7 @@ export interface GameState {
   currentSystem: string;
   currentPlanet: string;
   quests: Quest[];
+  activeObjectives: ActiveObjective[];
   crew: CrewMember[];
 }
 
