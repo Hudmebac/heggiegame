@@ -57,28 +57,28 @@ export default function ShipManagement() {
 
   // Upgrade logic
   const currentCargoTierIndex = cargoUpgrades.findIndex(u => u.capacity === stats.maxCargo);
-  const currentCargoTier = cargoUpgrades[currentCargoTierIndex];
-  const nextCargoUpgrade = currentCargoTierIndex < cargoUpgrades.length - 1 ? cargoUpgrades[currentTierIndex + 1] : null;
+  const currentCargoTier = currentCargoTierIndex !== -1 ? cargoUpgrades[currentCargoTierIndex] : null;
+  const nextCargoUpgrade = currentCargoTier && currentCargoTierIndex < cargoUpgrades.length - 1 ? cargoUpgrades[currentCargoTierIndex + 1] : null;
 
   const currentWeaponTierIndex = weaponUpgrades.findIndex(u => u.level === stats.weaponLevel);
-  const currentWeaponTier = weaponUpgrades[currentWeaponTierIndex];
-  const nextWeaponUpgrade = currentWeaponTierIndex < weaponUpgrades.length - 1 ? weaponUpgrades[currentWeaponTierIndex + 1] : null;
+  const currentWeaponTier = currentWeaponTierIndex !== -1 ? weaponUpgrades[currentWeaponTierIndex] : null;
+  const nextWeaponUpgrade = currentWeaponTier && currentWeaponTierIndex < weaponUpgrades.length - 1 ? weaponUpgrades[currentWeaponTierIndex + 1] : null;
 
   const currentShieldTierIndex = shieldUpgrades.findIndex(u => u.level === stats.shieldLevel);
-  const currentShieldTier = shieldUpgrades[currentShieldTierIndex];
-  const nextShieldUpgrade = currentShieldTierIndex < shieldUpgrades.length - 1 ? shieldUpgrades[currentShieldTierIndex + 1] : null;
+  const currentShieldTier = currentShieldTierIndex !== -1 ? shieldUpgrades[currentShieldTierIndex] : null;
+  const nextShieldUpgrade = currentShieldTier && currentShieldTierIndex < shieldUpgrades.length - 1 ? shieldUpgrades[currentShieldTierIndex + 1] : null;
     
   const currentHullTierIndex = hullUpgrades.findIndex(u => u.level === stats.hullLevel);
-  const currentHullTier = hullUpgrades[currentHullTierIndex];
-  const nextHullUpgrade = currentHullTierIndex < hullUpgrades.length - 1 ? hullUpgrades[currentHullTierIndex + 1] : null;
+  const currentHullTier = currentHullTierIndex !== -1 ? hullUpgrades[currentHullTierIndex] : null;
+  const nextHullUpgrade = currentHullTier && currentHullTierIndex < hullUpgrades.length - 1 ? hullUpgrades[currentHullTierIndex + 1] : null;
 
   const currentFuelTierIndex = fuelUpgrades.findIndex(u => u.level === stats.fuelLevel);
-  const currentFuelTier = fuelUpgrades[currentFuelTierIndex];
-  const nextFuelUpgrade = currentFuelTierIndex < fuelUpgrades.length - 1 ? fuelUpgrades[currentFuelTierIndex + 1] : null;
+  const currentFuelTier = currentFuelTierIndex !== -1 ? fuelUpgrades[currentFuelTierIndex] : null;
+  const nextFuelUpgrade = currentFuelTier && currentFuelTierIndex < fuelUpgrades.length - 1 ? fuelUpgrades[currentFuelTierIndex + 1] : null;
   
   const currentSensorTierIndex = sensorUpgrades.findIndex(u => u.level === stats.sensorLevel);
-  const currentSensorTier = sensorUpgrades[currentSensorTierIndex];
-  const nextSensorUpgrade = currentSensorTierIndex < sensorUpgrades.length - 1 ? sensorUpgrades[currentSensorTierIndex + 1] : null;
+  const currentSensorTier = currentSensorTierIndex !== -1 ? sensorUpgrades[currentSensorTierIndex] : null;
+  const nextSensorUpgrade = currentSensorTier && currentSensorTierIndex < sensorUpgrades.length - 1 ? sensorUpgrades[currentSensorTierIndex + 1] : null;
 
   const hasEngineer = crew.some(c => c.role === 'Engineer');
   const hasGunner = crew.some(c => c.role === 'Gunner');
@@ -99,13 +99,13 @@ export default function ShipManagement() {
                 <div className="flex justify-between items-center">
                     <div>
                         <p>Cargo Hold</p>
-                        <p className="text-xs text-muted-foreground">Current: {stats.maxCargo}t Capacity</p>
+                        <p className="text-xs text-muted-foreground">Current: {currentCargoTier?.capacity}t Capacity</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {currentCargoTierIndex > 0 && (
                         <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('cargo')}>Sell</Button>
                       )}
-                      {nextCargoUpgrade ? (
+                      {nextCargoUpgrade && currentCargoTier ? (
                           <Button onClick={() => handleUpgradeShip('cargo')} disabled={stats.netWorth < (nextCargoUpgrade.cost - currentCargoTier.cost)}>
                               Upgrade ({(nextCargoUpgrade.cost - currentCargoTier.cost).toLocaleString()}¢)
                           </Button>
@@ -123,7 +123,7 @@ export default function ShipManagement() {
                        {currentWeaponTierIndex > 0 && (
                         <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('weapon')}>Sell</Button>
                       )}
-                      {nextWeaponUpgrade ? (
+                      {nextWeaponUpgrade && currentWeaponTier ? (
                           <Button onClick={() => handleUpgradeShip('weapon')} disabled={stats.netWorth < (nextWeaponUpgrade.cost - currentWeaponTier.cost)}>
                               Upgrade ({(nextWeaponUpgrade.cost - currentWeaponTier.cost).toLocaleString()}¢)
                           </Button>
@@ -141,7 +141,7 @@ export default function ShipManagement() {
                       {currentShieldTierIndex > 0 && (
                         <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('shield')}>Sell</Button>
                       )}
-                      {nextShieldUpgrade ? (
+                      {nextShieldUpgrade && currentShieldTier ? (
                           <Button onClick={() => handleUpgradeShip('shield')} disabled={stats.netWorth < (nextShieldUpgrade.cost - currentShieldTier.cost)}>
                               Upgrade ({(nextShieldUpgrade.cost - currentShieldTier.cost).toLocaleString()}¢)
                           </Button>
@@ -159,7 +159,7 @@ export default function ShipManagement() {
                       {currentHullTierIndex > 0 && (
                         <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('hull')}>Sell</Button>
                       )}
-                      {nextHullUpgrade ? (
+                      {nextHullUpgrade && currentHullTier ? (
                           <Button onClick={() => handleUpgradeShip('hull')} disabled={stats.netWorth < (nextHullUpgrade.cost - currentHullTier.cost)}>
                               Upgrade ({(nextHullUpgrade.cost - currentHullTier.cost).toLocaleString()}¢)
                           </Button>
@@ -177,7 +177,7 @@ export default function ShipManagement() {
                       {currentFuelTierIndex > 0 && (
                         <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('fuel')}>Sell</Button>
                       )}
-                      {nextFuelUpgrade ? (
+                      {nextFuelUpgrade && currentFuelTier ? (
                           <Button onClick={() => handleUpgradeShip('fuel')} disabled={stats.netWorth < (nextFuelUpgrade.cost - currentFuelTier.cost)}>
                               Upgrade ({(nextFuelUpgrade.cost - currentFuelTier.cost).toLocaleString()}¢)
                           </Button>
@@ -195,7 +195,7 @@ export default function ShipManagement() {
                       {currentSensorTierIndex > 0 && (
                         <Button variant="outline" size="sm" onClick={() => handleDowngradeShip('sensor')}>Sell</Button>
                       )}
-                      {nextSensorUpgrade ? (
+                      {nextSensorUpgrade && currentSensorTier ? (
                           <Button onClick={() => handleUpgradeShip('sensor')} disabled={stats.netWorth < (nextSensorUpgrade.cost - currentSensorTier.cost)}>
                               Upgrade ({(nextSensorUpgrade.cost - currentSensorTier.cost).toLocaleString()}¢)
                           </Button>
