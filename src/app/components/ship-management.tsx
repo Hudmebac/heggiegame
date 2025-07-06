@@ -210,7 +210,7 @@ export default function ShipManagement() {
                         <Ship className="text-primary"/> Fleet Management
                     </CardTitle>
                     <CardDescription>Manage your fleet of vessels.</CardDescription>
-                </Header>
+                </CardHeader>
                 <CardContent className="space-y-4 text-left">
                     <div className="flex justify-between items-center">
                         <p className="text-muted-foreground">Current Fleet Size</p>
