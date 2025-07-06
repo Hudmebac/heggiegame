@@ -196,6 +196,71 @@ export default function ShipCodex() {
 
             <Card>
                 <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Clipboard className="text-primary"/>Ship Blueprint: Viper Combat Escort</CardTitle>
+                    <CardDescription>Detailed schematics and profile for the Viper Combat Escort.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="bg-black/30 p-4 rounded-lg border border-border/50">
+                        <Image
+                            src="https://placehold.co/956x669.png"
+                            alt="Viper Combat Escort Blueprint"
+                            width={956}
+                            height={669}
+                            className="rounded-md w-full h-auto"
+                            data-ai-hint="viper blueprint"
+                        />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Vessel Profile</h4>
+                        <div className="space-y-2 text-sm border p-4 rounded-lg bg-background/30">
+                            <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>Escort</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Designation</span><span>Viper Combat Escort</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Manufacturer</span><span>Faulcon deLacy</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Length</span><span>32.7 meters</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Crew Capacity</span><span>2</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Cargo Bay</span><span className="text-right">10 tons (tactical pod capacity)</span></div>
+                            <div className="flex justify-between items-start gap-4"><span className="text-muted-foreground shrink-0">Primary Use</span><span className="text-right">Bounty hunting, security patrol, HEGGIE convoy defense</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">HEGGIE Clearance</span><span>Tier III</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Layout Overview</h4>
+                        <pre className="p-4 bg-black/50 rounded-lg text-xs font-mono text-cyan-300 overflow-x-auto">
+{`+-------------------------------------------------------+
+|   COCKPIT / BRIDGE                                    | ← Combat controls, encrypted HEGGIE ops terminal
+|-------------------------------------------------------|
+|   CREW CORE                                           | ← Two-seat tactical pod, oxygen buffer tanks
+|-------------------------------------------------------|
+|   WEAPON BAY                                          | ← Internal mount racks: pulse cannons, ion disruptors
+|-------------------------------------------------------|
+|   SHIELD EMITTER CLUSTER                             | ← Triple dome array, stacked mid-deck
+|-------------------------------------------------------|
+|   STEALTH CORE MODULE                                 | ← EM dampeners, subspace masking coils
+|-------------------------------------------------------|
+|   ENGINE BLOCK: TalonDrive-VX                         | ← High-thrust propulsion, afterburner ring
+|-------------------------------------------------------|
+|   THRUSTER VEINS                                      | ← Vectoring exhaust ports for agility maneuvering
++-------------------------------------------------------+`}
+                        </pre>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-primary mb-2">Visual Description</h4>
+                        <div className="border p-4 rounded-lg bg-background/30">
+                            <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                                <li><span className="font-semibold text-foreground">Color Scheme:</span> Sleek carbon-black hull with bold HEGGIE-orange slash striping across fins and emitter rings.</li>
+                                <li><span className="font-semibold text-foreground">Markings:</span> Faulcon deLacy crest on both engine mounts; HEGGIE “Tier III Escort” badge engraved near the canopy hatch.</li>
+                                <li><span className="font-semibold text-foreground">Shape:</span> Viper profile—angular nose, sharp swept wings, ventral fins for stabilizing drift.</li>
+                                <li><span className="font-semibold text-foreground">Underside:</span> Reinforced heat-resistant shielding, plasma recoil dampeners, and magnetic emergency clamp.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2"><Rocket className="text-primary"/>Core Ship Anatomy</CardTitle>
                     <CardDescription>An overview of the key areas and components of a typical starship.</CardDescription>
                 </CardHeader>
