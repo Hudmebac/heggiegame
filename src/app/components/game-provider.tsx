@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import TradeDialog from './trade-dialog';
-import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recycle } from 'lucide-react';
+import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recycle, Info } from 'lucide-react';
 import PirateEncounter from './pirate-encounter';
 
 const systems: System[] = [
@@ -154,7 +154,7 @@ interface GameContextType {
   setChartItem: (item: string) => void;
   handleTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
   handleInitiateTrade: (itemName: string, type: 'buy' | 'sell') => void;
-  handlePirateAction: (action: 'fight' | 'evade' | 'bribe' | 'scan') => void;
+  handlePirateAction: (action: 'fight' | 'evade' | 'bribe') => void;
   handleGenerateAvatar: (description: string) => void;
   handleGenerateBio: (name?: string) => void;
   handleGenerateQuests: () => void;
@@ -375,32 +375,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handlePirateAction = (action: 'fight' | 'evade' | 'bribe' | 'scan') => {
+  const handlePirateAction = (action: 'fight' | 'evade' | 'bribe') => {
     if (!gameState || !gameState.pirateEncounter) return;
-
-    if (action === 'scan') {
-        startScanTransition(async () => {
-            const input = {
-                pirateName: gameState.pirateEncounter!.name,
-                pirateShipType: gameState.pirateEncounter!.shipType,
-                pirateThreatLevel: gameState.pirateEncounter!.threatLevel,
-            };
-            try {
-                const result = await runPirateScan(input);
-                setGameState(prev => {
-                    if (!prev || !prev.pirateEncounter) return prev;
-                    const newPirateEncounter = { ...prev.pirateEncounter, scanResult: result.scanReport };
-                    return { ...prev, pirateEncounter: newPirateEncounter };
-                });
-                toast({ title: "Scan Complete", description: "Tactical data available." });
-            } catch (error) {
-                console.error(error);
-                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                toast({ variant: "destructive", title: "Scan Failed", description: errorMessage });
-            }
-        });
-        return;
-    }
     
     startEncounterTransition(async () => {
         const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem)!;
@@ -571,7 +547,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
 
         const totalEncounterChance = baseEncounterChance + gameState.playerStats.pirateRisk;
-        const pirateEncounter = Math.random() < totalEncounterChance ? generateRandomPirate() : null;
+        const pirateEncounterObject = Math.random() < totalEncounterChance ? generateRandomPirate() : null;
+
+        let scannedPirateEncounter: Pirate | null = null;
+        if (pirateEncounterObject) {
+            try {
+                const scanResult = await runPirateScan({
+                    pirateName: pirateEncounterObject.name,
+                    pirateShipType: pirateEncounterObject.shipType,
+                    pirateThreatLevel: pirateEncounterObject.threatLevel,
+                });
+                scannedPirateEncounter = {
+                    ...pirateEncounterObject,
+                    scanResult: scanResult.scanReport,
+                };
+            } catch (e) {
+                console.error("Failed to scan pirate vessel on encounter", e);
+                scannedPirateEncounter = pirateEncounterObject; // Proceed without scan result on error
+            }
+        }
 
         const eventResult = await runEventGeneration();
         const eventDescription = eventResult.eventDescription;
@@ -615,7 +609,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const newPlayerStats = {
               ...prev.playerStats,
               fuel: prev.playerStats.fuel - fuelCost,
-              pirateRisk: pirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05)
+              pirateRisk: scannedPirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05)
           };
 
           const newPriceHistory = { ...prev.priceHistory };
@@ -631,7 +625,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               ...prev,
               playerStats: newPlayerStats,
               currentSystem: travelDestination.name,
-              pirateEncounter,
+              pirateEncounter: scannedPirateEncounter,
               marketItems: newMarketItems,
               priceHistory: newPriceHistory,
               leaderboard: updatedLeaderboard,
