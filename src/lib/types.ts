@@ -45,6 +45,7 @@ export interface PlayerStats {
   shipHealth: number;
   maxShipHealth: number;
   reputation: number;
+  barLevel: number;
 }
 
 export interface PriceHistory {

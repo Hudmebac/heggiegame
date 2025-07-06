@@ -101,11 +101,12 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     fleetSize: 1,
     pirateRisk: 0,
     reputation: 0,
+    barLevel: 1,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
   leaderboard: [
-    { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1 },
+    { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1, bio: 'A new captain on the star-lanes.' },
   ],
   pirateEncounter: null,
   systems: SYSTEMS,
@@ -145,6 +146,7 @@ interface GameContextType {
   handleFireCrew: (crewId: string) => void;
   updateTraderBio: (traderName: string, bio: string) => void;
   handleBarClick: () => void;
+  handleUpgradeBar: () => void;
   cargoUpgrades: CargoUpgrade[];
   weaponUpgrades: WeaponUpgrade[];
   shieldUpgrades: ShieldUpgrade[];
@@ -244,89 +246,63 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const loadGame = async () => {
         try {
             const savedStateJSON = localStorage.getItem('heggieGameState');
+            let savedState;
             if (savedStateJSON) {
-                const savedState = JSON.parse(savedStateJSON);
-                
-                if (savedState.playerStats && savedState.inventory) {
-                    const currentSystemFromSave = SYSTEMS.find(s => s.name === savedState.currentSystem)!;
-                    
-                    const firstMarketItemName = savedState.marketItems?.[0]?.name;
-                    const isMarketDataStale = !firstMarketItemName || !STATIC_ITEMS.some(si => si.name === firstMarketItemName);
-                    
-                    const marketItems = isMarketDataStale || !savedState.marketItems
-                        ? calculateMarketDataForSystem(currentSystemFromSave)
-                        : savedState.marketItems;
-
-                    const validInventory = savedState.inventory.filter((item: InventoryItem) => 
-                        STATIC_ITEMS.some(si => si.name === item.name)
-                    );
-                    
-                    const planetExists = currentSystemFromSave.planets.some(p => p.name === savedState.currentPlanet);
-                    if (!planetExists) {
-                        savedState.currentPlanet = currentSystemFromSave.planets[0].name;
-                    }
-
-                    setGameState({
-                        ...initialGameState,
-                        ...savedState,
-                        marketItems,
-                        inventory: validInventory,
-                        playerStats: {
-                            ...initialGameState.playerStats,
-                            ...savedState.playerStats,
-                            cargo: calculateCurrentCargo(validInventory),
-                        },
-                        systems: SYSTEMS, 
-                        routes: ROUTES,
-                    });
-                    setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
-                    return;
-                }
+                savedState = JSON.parse(savedStateJSON);
             }
-
-            // New game initialization
-            const [tradersResult, questsResult] = await Promise.all([
-                runTraderGeneration(),
-                runQuestGeneration()
-            ]);
-
-            const newLeaderboard: Omit<LeaderboardEntry, 'rank'>[] = tradersResult.traders.map(t => ({
-                trader: t.name,
-                netWorth: t.netWorth,
-                fleetSize: t.fleetSize,
-                bio: t.bio,
-            }));
-
-            const playerStats = {
-                ...initialGameState.playerStats,
-                cargo: calculateCurrentCargo(initialGameState.inventory)
-            };
             
-            newLeaderboard.push({
-                trader: 'You',
-                netWorth: playerStats.netWorth,
-                fleetSize: playerStats.fleetSize
-            });
-            
-            const sortedLeaderboard = newLeaderboard
-                .sort((a, b) => b.netWorth - a.netWorth)
-                .map((entry, index) => ({ ...entry, rank: index + 1 }));
+            if (savedState && savedState.playerStats && savedState.inventory) {
+                // If a save exists, load it, but overwrite static data
+                setGameState({
+                    ...initialGameState,
+                    ...savedState,
+                    systems: SYSTEMS, 
+                    routes: ROUTES,
+                });
+            } else {
+                 // New game initialization
+                const [tradersResult, questsResult] = await Promise.all([
+                    runTraderGeneration(),
+                    runQuestGeneration()
+                ]);
 
-            const currentSystem = initialGameState.systems.find(s => s.name === initialGameState.currentSystem)!;
-            const marketItems = calculateMarketDataForSystem(currentSystem);
+                const newLeaderboard: Omit<LeaderboardEntry, 'rank'>[] = tradersResult.traders.map(t => ({
+                    trader: t.name,
+                    netWorth: t.netWorth,
+                    fleetSize: t.fleetSize,
+                    bio: t.bio,
+                }));
 
-            const newGameState: GameState = {
-                ...initialGameState,
-                playerStats,
-                marketItems,
-                leaderboard: sortedLeaderboard,
-                quests: questsResult.quests,
-            };
-            
-            setGameState(newGameState);
-            setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
-            toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
+                const playerStats = {
+                    ...initialGameState.playerStats,
+                    cargo: calculateCurrentCargo(initialGameState.inventory)
+                };
+                
+                newLeaderboard.push({
+                    trader: 'You',
+                    netWorth: playerStats.netWorth,
+                    fleetSize: playerStats.fleetSize
+                });
+                
+                const sortedLeaderboard = newLeaderboard
+                    .sort((a, b) => b.netWorth - a.netWorth)
+                    .map((entry, index) => ({ ...entry, rank: index + 1 }));
 
+                const currentSystem = initialGameState.systems.find(s => s.name === initialGameState.currentSystem)!;
+                const marketItems = calculateMarketDataForSystem(currentSystem);
+
+                const newGameState: GameState = {
+                    ...initialGameState,
+                    playerStats,
+                    marketItems,
+                    leaderboard: sortedLeaderboard,
+                    quests: questsResult.quests,
+                };
+                
+                setGameState(newGameState);
+                setChartItem(marketItems[0]?.name || STATIC_ITEMS[0].name);
+                toast({ title: "Welcome, Captain!", description: "Your journey begins. Check the quest board for your first missions." });
+            }
         } catch (error) {
             console.error("Failed to load or initialize game state:", error);
             // Fallback to a default state
@@ -343,20 +319,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isClient && gameState) {
       try {
-        const player = gameState.leaderboard.find(e => e.trader === 'You' || e.trader === gameState.playerStats.name);
-
-        const leaderboardWithPlayer = gameState.leaderboard.map(entry => {
-            if (player && entry.rank === player.rank) {
-                return { ...entry, trader: gameState.playerStats.name, netWorth: gameState.playerStats.netWorth, fleetSize: gameState.playerStats.fleetSize || 1 };
-            }
-            if(entry.trader === 'You' && !player) { // First time name change
-                 return { ...entry, trader: gameState.playerStats.name, netWorth: gameState.playerStats.netWorth, fleetSize: gameState.playerStats.fleetSize || 1 };
-            }
-            return entry;
-        }).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({ ...entry, rank: index + 1 }));
-        
-        const { systems, routes, ...dynamicState } = gameState;
-        const stateToSave = { ...dynamicState, leaderboard: leaderboardWithPlayer };
+        const stateToSave = {
+            playerStats: gameState.playerStats,
+            inventory: gameState.inventory,
+            priceHistory: gameState.priceHistory,
+            leaderboard: gameState.leaderboard,
+            currentSystem: gameState.currentSystem,
+            currentPlanet: gameState.currentPlanet,
+            quests: gameState.quests,
+            crew: gameState.crew,
+            marketItems: gameState.marketItems, // Save market items for the current system
+        };
         localStorage.setItem('heggieGameState', JSON.stringify(stateToSave));
       } catch (error) {
         console.error("Failed to save game state to local storage:", error);
@@ -1114,12 +1087,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleBarClick = () => {
     setGameState(prev => {
         if (!prev) return null;
-        const incomePerClick = 10;
+        const incomePerClick = 10 * prev.playerStats.barLevel;
         const newPlayerStats = {
             ...prev.playerStats,
             netWorth: prev.playerStats.netWorth + incomePerClick,
         };
         return { ...prev, playerStats: newPlayerStats };
+    });
+  };
+
+  const handleUpgradeBar = () => {
+    setGameState(prev => {
+      if (!prev) return null;
+      const upgradeCost = Math.round(100 * Math.pow(prev.playerStats.barLevel, 2.5));
+      if (prev.playerStats.netWorth < upgradeCost) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        return prev;
+      }
+      const newPlayerStats = {
+        ...prev.playerStats,
+        netWorth: prev.playerStats.netWorth - upgradeCost,
+        barLevel: prev.playerStats.barLevel + 1,
+      };
+      toast({ title: "Bar Upgraded!", description: `Your establishment is now Level ${newPlayerStats.barLevel}.` });
+      return { ...prev, playerStats: newPlayerStats };
     });
   };
 
@@ -1162,6 +1153,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     handleFireCrew,
     updateTraderBio: handleUpdateTraderBio,
     handleBarClick,
+    handleUpgradeBar,
     cargoUpgrades,
     weaponUpgrades,
     shieldUpgrades,

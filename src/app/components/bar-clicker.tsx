@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Martini, Coins } from 'lucide-react';
+import { Martini, Coins, ChevronsUp, DollarSign } from 'lucide-react';
 import type { ZoneType } from '@/lib/types';
 
 // New themes based on system type
@@ -53,14 +53,16 @@ const barThemes: Record<ZoneType | 'Default', { name: (planetName: string) => st
 
 
 export default function BarClicker() {
-    const { gameState, handleBarClick } = useGame();
+    const { gameState, handleBarClick, handleUpgradeBar } = useGame();
     const [feedbackMessages, setFeedbackMessages] = useState<{ id: number, x: number, y: number, amount: number }[]>([]);
 
     if (!gameState) {
         return null;
     }
 
-    const incomePerClick = 10;
+    const incomePerClick = 10 * gameState.playerStats.barLevel;
+    const upgradeCost = Math.round(100 * Math.pow(gameState.playerStats.barLevel, 2.5));
+    const canAffordUpgrade = gameState.playerStats.netWorth >= upgradeCost;
     
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
     const zoneType = currentSystem?.zoneType;
@@ -119,6 +121,29 @@ export default function BarClicker() {
                             {gameState.playerStats.netWorth.toLocaleString()} ¢
                         </p>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <ChevronsUp className="text-primary"/>
+                        Bar Upgrades
+                    </CardTitle>
+                    <CardDescription>Invest in your establishment to increase your earnings.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Current Bar Level</span>
+                        <span className="font-mono">{gameState.playerStats.barLevel}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
+                        <span className="font-mono text-amber-300">{incomePerClick}¢</span>
+                    </div>
+                     <Button className="w-full" onClick={handleUpgradeBar} disabled={!canAffordUpgrade}>
+                        Upgrade Bar ({upgradeCost.toLocaleString()}¢)
+                    </Button>
                 </CardContent>
             </Card>
         </div>
