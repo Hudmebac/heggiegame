@@ -6,19 +6,23 @@ import { Progress } from '@/components/ui/progress';
 import { Coins, Trophy, Handshake } from 'lucide-react';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
-    Hated: { label: 'Hated', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
-    Disliked: { label: 'Disliked', color: 'text-orange-400', progressColor: 'from-orange-500 to-orange-400' },
-    Neutral: { label: 'Neutral', color: 'text-muted-foreground', progressColor: 'from-gray-500 to-gray-400' },
-    Liked: { label: 'Liked', color: 'text-sky-400', progressColor: 'from-sky-500 to-sky-400' },
-    Honored: { label: 'Honored', color: 'text-primary', progressColor: 'from-blue-500 to-primary' },
+    Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
+    Rookie: { label: 'Rookie', color: 'text-muted-foreground', progressColor: 'from-gray-500 to-gray-400' },
+    Spacer: { label: 'Spacer', color: 'text-sky-400', progressColor: 'from-sky-500 to-sky-400' },
+    Broker: { label: 'Broker', color: 'text-blue-400', progressColor: 'from-blue-500 to-blue-400' },
+    Strategist: { label: 'Strategist', color: 'text-indigo-400', progressColor: 'from-indigo-500 to-indigo-400' },
+    Magnate: { label: 'Magnate', color: 'text-purple-400', progressColor: 'from-purple-500 to-purple-400' },
+    'Galactic Syndicate': { label: 'Galactic Syndicate', color: 'text-primary', progressColor: 'from-amber-400 to-primary' },
 };
 
 function getReputationTier(score: number) {
-    if (score <= -75) return reputationTiers.Hated;
-    if (score <= -25) return reputationTiers.Disliked;
-    if (score < 25) return reputationTiers.Neutral;
-    if (score < 75) return reputationTiers.Liked;
-    return reputationTiers.Honored;
+    if (score < 0) return reputationTiers.Outcast;
+    if (score < 20) return reputationTiers.Rookie;
+    if (score < 40) return reputationTiers.Spacer;
+    if (score < 60) return reputationTiers.Broker;
+    if (score < 80) return reputationTiers.Strategist;
+    if (score < 100) return reputationTiers.Magnate;
+    return reputationTiers['Galactic Syndicate'];
 }
 
 
@@ -34,7 +38,7 @@ export default function CaptainPage() {
   const leaderboardRank = gameState.leaderboard.find(e => e.trader === playerStats.name)?.rank || gameState.leaderboard.length;
 
   const reputationInfo = getReputationTier(playerStats.reputation);
-  const reputationProgress = ((playerStats.reputation + 100) / 200) * 100;
+  const reputationProgress = (Math.max(0, playerStats.reputation) / 100) * 100;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -96,9 +100,9 @@ export default function CaptainPage() {
                    <div>
                        <Progress value={reputationProgress} className="h-2 [&>div]:bg-gradient-to-r" indicatorClassName={reputationInfo.progressColor} />
                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                           <span>Hated</span>
-                           <span>Neutral</span>
-                           <span>Honored</span>
+                           <span>Outcast</span>
+                           <span>Rookie</span>
+                           <span>Syndicate</span>
                        </div>
                    </div>
               </CardContent>

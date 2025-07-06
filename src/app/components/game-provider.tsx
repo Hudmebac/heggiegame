@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useTransition, ReactNode, useCallback } from 'react';
-import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale } from '@/lib/types';
+import type { GameState, MarketItem, PriceHistory, EncounterResult, System, Route, Pirate, PlayerStats, Quest, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, LeaderboardEntry, InventoryItem, SystemEconomy, ItemCategory, CrewMember, ShipForSale, ZoneType } from '@/lib/types';
 import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration, runPirateScan, runBioGeneration, runQuestGeneration, runTraderGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
@@ -14,11 +14,11 @@ import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recyc
 import PirateEncounter from './pirate-encounter';
 
 const systems: System[] = [
-    { name: 'Sol', x: 20, y: 30, security: 'High', economy: 'Industrial', volatility: 0.1 },
-    { name: 'Kepler-186f', x: 45, y: 65, security: 'Medium', economy: 'Agricultural', volatility: 0.3 },
-    { name: 'Sirius', x: 75, y: 25, security: 'High', economy: 'High-Tech', volatility: 0.2 },
-    { name: 'Proxima Centauri', x: 80, y: 80, security: 'Low', economy: 'Extraction', volatility: 0.5 },
-    { name: 'TRAPPIST-1', x: 5, y: 85, security: 'Anarchy', economy: 'Refinery', volatility: 0.8 },
+    { name: 'Sol', x: 20, y: 30, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World' },
+    { name: 'Kepler-186f', x: 45, y: 65, security: 'Medium', economy: 'Agricultural', volatility: 0.3, zoneType: 'Frontier Outpost' },
+    { name: 'Sirius', x: 75, y: 25, security: 'High', economy: 'High-Tech', volatility: 0.2, zoneType: 'Trade Hub' },
+    { name: 'Proxima Centauri', x: 80, y: 80, security: 'Low', economy: 'Extraction', volatility: 0.5, zoneType: 'Mining Colony' },
+    { name: 'TRAPPIST-1', x: 5, y: 85, security: 'Anarchy', economy: 'Refinery', volatility: 0.8, zoneType: 'Ancient Ruins' },
 ];
 
 const routes: Route[] = [
@@ -80,6 +80,9 @@ const ECONOMY_MULTIPLIERS: Record<ItemCategory, Record<SystemEconomy, number>> =
     'Technology':   { 'Agricultural': 1.3, 'High-Tech': 0.7, 'Industrial': 1.1, 'Extraction': 1.2, 'Refinery': 1.2 },
     'Minerals':     { 'Agricultural': 1.2, 'High-Tech': 1.1, 'Industrial': 0.9, 'Extraction': 0.7, 'Refinery': 0.8 },
     'Illegal':      { 'Agricultural': 1.1, 'High-Tech': 1.2, 'Industrial': 1.0, 'Extraction': 1.3, 'Refinery': 1.4 },
+    'Marketing':    { 'Agricultural': 1.0, 'High-Tech': 1.0, 'Industrial': 1.0, 'Extraction': 1.0, 'Refinery': 1.0 },
+    'Scientific':   { 'Agricultural': 1.2, 'High-Tech': 0.8, 'Industrial': 1.1, 'Extraction': 1.1, 'Refinery': 1.0 },
+    'Robotic':      { 'Agricultural': 1.3, 'High-Tech': 0.9, 'Industrial': 0.8, 'Extraction': 1.2, 'Refinery': 1.1 },
 };
 
 function calculatePrice(basePrice: number, supply: number, demand: number, economyMultiplier: number): number {
@@ -128,7 +131,7 @@ const initialGameState: Omit<GameState, 'marketItems'> = {
     pirateRisk: 0,
     reputation: 0,
   },
-  inventory: [{ name: 'Quantum Filament Spools', owned: 5 }],
+  inventory: [{ name: 'Quantum Filament Spools (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
   leaderboard: [
     { rank: 1, trader: 'You', netWorth: 10000, fleetSize: 1 },
@@ -197,6 +200,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   
   const calculateMarketDataForSystem = useCallback((system: System): MarketItem[] => {
         const availableItems: MarketItem[] = [];
+        const zoneType = system.zoneType;
 
         STATIC_ITEMS.forEach(staticItem => {
             const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category]?.[system.economy] ?? 1.0;
@@ -204,17 +208,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
             const isConsumer = economyMultiplier > 1.0;
             
             let availabilityChance = 0.6; 
-            if (isProducer) {
-                availabilityChance = 1.0; 
-            } else if (isConsumer) {
-                availabilityChance = 0.8; 
-            }
+            if (isProducer) availabilityChance = 1.0; 
+            else if (isConsumer) availabilityChance = 0.8; 
 
             if (staticItem.category === 'Illegal') {
                 if (system.security === 'Anarchy') availabilityChance = 0.75;
                 else if (system.security === 'Low') availabilityChance = 0.25;
                 else availabilityChance = 0;
             }
+            
+            if (zoneType === 'Mining Colony' && staticItem.category === 'Minerals') {
+                availabilityChance *= 1.5;
+            }
+            if (zoneType === 'Frontier Outpost' && staticItem.category === 'Illegal') {
+                availabilityChance = system.security === 'Anarchy' ? 0.8 : 0.4;
+            }
+            if (zoneType === 'Trade Hub') {
+                availabilityChance *= 1.2;
+            }
+            if (zoneType === 'Ancient Ruins' && (staticItem.grade === 'Quantum' || staticItem.grade === 'Singularity')) {
+                availabilityChance = 0.05;
+            } else if (zoneType !== 'Ancient Ruins' && (staticItem.grade === 'Quantum' || staticItem.grade === 'Singularity')) {
+                availabilityChance = 0;
+            }
+            
+            if (staticItem.grade === 'Salvaged') {
+                if(zoneType === 'Frontier Outpost' || system.security === 'Anarchy') {
+                    availabilityChance *= 1.5;
+                } else {
+                    availabilityChance *= 0.5;
+                }
+            }
+
 
             if (Math.random() < availabilityChance) {
                 const supply = isProducer ? Math.round(150 + Math.random() * 50) : Math.round(20 + Math.random() * 30);
@@ -344,7 +369,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
       const newPlayerStats = { ...prev.playerStats };
       const newInventory = [...prev.inventory];
-      const inventoryItemIndex = newInventory.findIndex(i => i.name === itemName);
+      const inventoryItemIndex = newNewInventory.findIndex(i => i.name === itemName);
       let inventoryItem = newInventory[inventoryItemIndex];
 
       const totalCost = marketItem.currentPrice * amount;

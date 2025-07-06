@@ -1,9 +1,11 @@
-export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal';
-export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare';
+export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
+export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
+export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
 
 export interface StaticItem {
   category: ItemCategory;
   name: string;
+  grade: ItemGrade;
   rarity: ItemRarity;
   description: string;
   detail: string;
@@ -61,6 +63,8 @@ export interface Pirate {
 }
 
 export type SystemEconomy = 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';
+export type ZoneType = 'Core World' | 'Frontier Outpost' | 'Mining Colony' | 'Trade Hub' | 'Corporate Zone' | 'Diplomatic Station' | 'Ancient Ruins';
+
 
 export interface System {
   name: string;
@@ -69,6 +73,7 @@ export interface System {
   security: 'High' | 'Medium' | 'Low' | 'Anarchy';
   economy: SystemEconomy;
   volatility: number;
+  zoneType: ZoneType;
 }
 
 export interface Quest {
