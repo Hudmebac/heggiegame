@@ -3,6 +3,7 @@
 import { simulateMarketPrices, type SimulateMarketPricesInput, type SimulateMarketPricesOutput } from '@/ai/flows/simulate-market-prices';
 import { resolvePirateEncounter, type ResolvePirateEncounterInput, type ResolvePirateEncounterOutput } from '@/ai/flows/resolve-pirate-encounter';
 import { generateAvatar, type GenerateAvatarInput, type GenerateAvatarOutput } from '@/ai/flows/generate-avatar';
+import { generateGameEvent, type GenerateGameEventOutput } from '@/ai/flows/generate-game-event';
 import { z } from 'zod';
 
 const SimulateMarketPricesInputSchema = z.object({
@@ -70,5 +71,15 @@ export async function runAvatarGeneration(input: GenerateAvatarInput): Promise<G
             throw new Error(`Invalid input for avatar generation: ${error.message}`);
         }
         throw new Error('Failed to generate avatar.');
+    }
+}
+
+export async function runEventGeneration(): Promise<GenerateGameEventOutput> {
+    try {
+        const result = await generateGameEvent();
+        return result;
+    } catch (error) {
+        console.error('Error running event generation:', error);
+        throw new Error('Failed to generate game event.');
     }
 }

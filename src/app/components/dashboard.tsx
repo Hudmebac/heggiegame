@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import type { GameState, Item, PriceHistory, EncounterResult } from '@/lib/types';
-import { runMarketSimulation, resolveEncounter, runAvatarGeneration } from '@/app/actions';
+import { runMarketSimulation, resolveEncounter, runAvatarGeneration, runEventGeneration } from '@/app/actions';
 
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
@@ -151,12 +151,15 @@ export default function Dashboard() {
 
   const handleSimulateMarket = () => {
     startMarketTransition(async () => {
-      const input = {
-        items: gameState.items.map(({ name, currentPrice, supply, demand }) => ({ name, currentPrice, supply, demand })),
-        eventDescription: 'A surprise solar flare has disrupted major trade routes.',
-      };
-
       try {
+        const eventResult = await runEventGeneration();
+        const eventDescription = eventResult.eventDescription;
+
+        const input = {
+          items: gameState.items.map(({ name, currentPrice, supply, demand }) => ({ name, currentPrice, supply, demand })),
+          eventDescription,
+        };
+
         const result = await runMarketSimulation(input);
         setGameState(prev => {
           const newItems = [...prev.items];
@@ -176,7 +179,7 @@ export default function Dashboard() {
 
           return { ...prev, items: newItems, priceHistory: newPriceHistory };
         });
-        toast({ title: "Market Update", description: "Prices have fluctuated across the galaxy." });
+        toast({ title: "Galactic News Flash!", description: eventDescription });
       } catch (error) {
         console.error(error);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
