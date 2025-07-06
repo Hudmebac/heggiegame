@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import TradeDialog from './trade-dialog';
-import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recycle, Info } from 'lucide-react';
+import { Loader2, ShieldCheck, AlertTriangle, Factory, Wheat, Cpu, Hammer, Recycle, Info, Orbit as PlanetIcon, Send, Globe } from 'lucide-react';
 import PirateEncounter from './pirate-encounter';
 
 const pirateNames = ['Dread Captain "Scar" Ironheart', 'Admiral "Voidgazer" Kael', 'Captain "Mad" Mel', 'Commander "Hex" Stryker'];
@@ -347,7 +347,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
             return entry;
         }).sort((a, b) => b.netWorth - a.netWorth).map((entry, index) => ({ ...entry, rank: index + 1 }));
         
-        const stateToSave = { ...gameState, leaderboard: leaderboardWithPlayer };
+        const { systems, routes, ...dynamicState } = gameState;
+        const stateToSave = { ...dynamicState, leaderboard: leaderboardWithPlayer };
         localStorage.setItem('heggieGameState', JSON.stringify(stateToSave));
       } catch (error) {
         console.error("Failed to save game state to local storage:", error);
