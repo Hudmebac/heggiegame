@@ -5,7 +5,8 @@ import type { Item } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ArrowDown, ArrowUp, ArrowUpDown, Coins, Package } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Coins, Package, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface TradingInterfaceProps {
   items: Item[];
@@ -17,8 +18,13 @@ type SortKey = keyof Item | 'value';
 export default function TradingInterface({ items, onInitiateTrade }: TradingInterfaceProps) {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const sortedItems = [...items].sort((a, b) => {
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedItems = [...filteredItems].sort((a, b) => {
     const aValue = sortKey === 'value' ? a.currentPrice * a.cargoSpace : a[sortKey];
     const bValue = sortKey === 'value' ? b.currentPrice * b.cargoSpace : b[sortKey];
 
@@ -48,11 +54,25 @@ export default function TradingInterface({ items, onInitiateTrade }: TradingInte
   return (
     <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg flex-grow flex flex-col">
       <CardHeader>
-        <CardTitle className="font-headline text-lg flex items-center gap-2">
-          <Coins className="text-primary" />
-          Commodity Market
-        </CardTitle>
-        <CardDescription>Buy and sell goods from across the galaxy. Prices fluctuate based on supply and demand.</CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+                <CardTitle className="font-headline text-lg flex items-center gap-2">
+                <Coins className="text-primary" />
+                Commodity Market
+                </CardTitle>
+                <CardDescription>Buy and sell goods from across the galaxy. Prices fluctuate based on supply and demand.</CardDescription>
+            </div>
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search commodities..."
+                    className="pl-8 sm:w-[200px] md:w-[250px] bg-background"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </div>
       </CardHeader>
       <CardContent className="flex-grow p-0">
         <div className="overflow-x-auto">
