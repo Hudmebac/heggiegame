@@ -10,6 +10,7 @@ import { generateQuests } from '@/ai/flows/generate-quests';
 import { generateTraders } from '@/ai/flows/generate-traders';
 import { generatePartnershipOffers } from '@/ai/flows/generate-partnership-offers';
 import { generateResidencePartnershipOffers } from '@/ai/flows/generate-residence-partnership-offers';
+import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-partnership-offers';
 import { z } from 'zod';
 
 import {
@@ -37,6 +38,9 @@ import {
   GenerateResidencePartnershipOffersInputSchema,
   type GenerateResidencePartnershipOffersInput,
   type GenerateResidencePartnershipOffersOutput,
+  GenerateCommercePartnershipOffersInputSchema,
+  type GenerateCommercePartnershipOffersInput,
+  type GenerateCommercePartnershipOffersOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -164,5 +168,19 @@ export async function runResidencePartnershipOfferGeneration(input: GenerateResi
             throw new Error(`Invalid input for residence partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate residence partnership offers.');
+    }
+}
+
+export async function runCommercePartnershipOfferGeneration(input: GenerateCommercePartnershipOffersInput): Promise<GenerateCommercePartnershipOffersOutput> {
+    try {
+        const validatedInput = GenerateCommercePartnershipOffersInputSchema.parse(input);
+        const result = await generateCommercePartnershipOffers(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running commerce partnership offer generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for commerce partnership offer generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate commerce partnership offers.');
     }
 }

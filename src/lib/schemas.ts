@@ -157,3 +157,17 @@ export const GenerateResidencePartnershipOffersOutputSchema = z.object({
     offers: z.array(ResidencePartnershipOfferSchema).describe("An array of generated partnership offers for the residence."),
 });
 export type GenerateResidencePartnershipOffersOutput = z.infer<typeof GenerateResidencePartnershipOffersOutputSchema>;
+
+// Schemas for generate-commerce-partnership-offers
+export const GenerateCommercePartnershipOffersInputSchema = z.object({
+  marketValue: z.number().describe("The current market value of the player's commerce hub."),
+});
+export type GenerateCommercePartnershipOffersInput = z.infer<typeof GenerateCommercePartnershipOffersInputSchema>;
+
+export const CommercePartnershipOfferSchema = PartnershipOfferSchema;
+export type CommercePartnershipOffer = z.infer<typeof CommercePartnershipOfferSchema>;
+
+export const GenerateCommercePartnershipOffersOutputSchema = z.object({
+    offers: z.array(CommercePartnershipOfferSchema).describe("An array of generated partnership offers for the commerce hub."),
+});
+export type GenerateCommercePartnershipOffersOutput = z.infer<typeof GenerateCommercePartnershipOffersOutputSchema>;

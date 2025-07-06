@@ -65,6 +65,10 @@ export interface PlayerStats {
   residenceAutoClickerBots: number;
   residenceEstablishmentLevel: number;
   residenceContract?: BarContract;
+  commerceLevel: number;
+  commerceAutoClickerBots: number;
+  commerceEstablishmentLevel: number;
+  commerceContract?: BarContract;
 }
 
 export interface PriceHistory {
