@@ -107,6 +107,13 @@ export default function ShipManagement() {
                 unit="t"
                 progressColorClass="from-sky-500 to-cyan-500"
             />
+             <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <AlertTriangle className="h-4 w-4 text-orange-400" />
+                    <span>Pirate Threat Level</span>
+                </div>
+                <span className="font-mono text-orange-400">{(stats.pirateRisk * 100).toFixed(0)}%</span>
+            </div>
             <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="h-4 w-4 text-primary" />

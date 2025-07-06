@@ -480,11 +480,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 const newPlayerStats = { ...prev.playerStats };
                 newPlayerStats.netWorth -= result.creditsLost;
                 newPlayerStats.shipHealth = Math.max(0, newPlayerStats.shipHealth - result.damageTaken);
-                // Cargo loss is complex, would need to randomly select from inventory.
-                // For now, we simulate a flat cargo value loss.
-                const cargoLostValue = result.cargoLost; // This is abstract now.
-                newPlayerStats.pirateRisk = 0; // Encounter resolved, risk reset.
-
                 return { ...prev, playerStats: newPlayerStats };
             });
 
@@ -624,7 +619,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const newPlayerStats = {
               ...prev.playerStats,
               fuel: prev.playerStats.fuel - fuelCost,
-              pirateRisk: pirateEncounter ? prev.playerStats.pirateRisk : Math.max(0, prev.playerStats.pirateRisk - 0.05) // Decay risk if no encounter
+              pirateRisk: pirateEncounter ? 0 : Math.max(0, prev.playerStats.pirateRisk - 0.05) // Decay risk if no encounter
           };
 
           const newPriceHistory = { ...prev.priceHistory };
