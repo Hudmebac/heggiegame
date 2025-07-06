@@ -43,15 +43,20 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
   const [selectedItemForDetail, setSelectedItemForDetail] = useState<StaticItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const displayItems: DisplayItem[] = marketItems.map(marketItem => {
-    const inventoryItem = inventory.find(i => i.name === marketItem.name);
-    const staticItem = STATIC_ITEMS.find(i => i.name === marketItem.name)!;
-    return {
-      ...marketItem,
-      owned: inventoryItem ? inventoryItem.owned : 0,
-      category: staticItem.category,
-    };
-  });
+  const displayItems: DisplayItem[] = marketItems
+    .map(marketItem => {
+      const inventoryItem = inventory.find(i => i.name === marketItem.name);
+      const staticItem = STATIC_ITEMS.find(i => i.name === marketItem.name);
+      if (!staticItem) {
+        return null;
+      }
+      return {
+        ...marketItem,
+        owned: inventoryItem ? inventoryItem.owned : 0,
+        category: staticItem.category,
+      };
+    })
+    .filter((item): item is DisplayItem => item !== null);
 
   const filteredItems = displayItems.filter(item => {
     const nameMatch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
