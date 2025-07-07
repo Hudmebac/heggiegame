@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import type { PlayerStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Loader2, User, Bot } from 'lucide-react';
+import { Sparkles, Loader2, User, Shuffle } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,11 +17,12 @@ interface PlayerProfileProps {
   onGenerateAvatar: (description: string) => void;
   isGeneratingAvatar: boolean;
   onGenerateBio: (name?: string) => void;
+  isGeneratingBio: boolean;
   onNameChange: (name: string) => void;
 }
 
 
-export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAvatar, onGenerateBio, onNameChange }: PlayerProfileProps) {
+export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAvatar, onGenerateBio, isGeneratingBio, onNameChange }: PlayerProfileProps) {
   const [avatarPrompt, setAvatarPrompt] = useState('A futuristic space trader pilot, male, with a cybernetic eye');
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(stats.name);
@@ -88,9 +89,9 @@ export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAva
          <div className='space-y-1'>
             <Label htmlFor="captain-bio" className="text-xs text-muted-foreground">Biography</Label>
             <Textarea id="captain-bio" value={stats.bio} readOnly className="h-24 bg-background/30" />
-            <Button onClick={() => onGenerateBio()} variant="outline" className="w-full">
-                <Bot className="mr-2 h-4 w-4" />
-                Generate New Bio
+            <Button onClick={() => onGenerateBio()} variant="outline" className="w-full" disabled={isGeneratingBio}>
+                {isGeneratingBio ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shuffle className="mr-2 h-4 w-4" />}
+                Randomize Bio
             </Button>
         </div>
       </CardContent>
