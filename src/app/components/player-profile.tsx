@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import type { PlayerStats } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, User, Shuffle, Image as ImageIcon, Check } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Loader2, User, Shuffle, Image as ImageIcon, Check, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface PlayerProfileProps {
   stats: PlayerStats;
@@ -19,6 +20,7 @@ interface PlayerProfileProps {
   onGenerateBio: (name?: string) => void;
   isGeneratingBio: boolean;
   onNameChange: (name: string) => void;
+  onResetGame: () => void;
 }
 
 // These paths point to files in the `public` directory.
@@ -51,7 +53,7 @@ const predefinedAvatars = [
     '/images/avatars/avatar_25.png',
    ];
 
-export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange }: PlayerProfileProps) {
+export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange, onResetGame }: PlayerProfileProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(stats.name);
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
@@ -82,7 +84,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
   }
 
   return (
-    <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg">
+    <Card className="bg-card/70 backdrop-blur-sm border-border/50 shadow-lg flex flex-col h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-headline">
             <User className="text-primary"/>
@@ -90,7 +92,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
         </CardTitle>
         <CardDescription>Edit your captain's appearance, name, and biography.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 flex-grow">
         <div className="flex justify-center">
             <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
                 <DialogTrigger asChild>
@@ -184,6 +186,29 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
             </Button>
         </div>
       </CardContent>
+      <CardFooter className="p-6 mt-auto border-t border-border/50">
+        <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                    <RefreshCw className="mr-2 h-4 w-4" /> Start Over
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. All of your progress, including your net worth, ships, upgrades, and business ventures will be permanently deleted.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={onResetGame}>
+                        Yes, Start a New Game
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+      </CardFooter>
     </Card>
   );
 }

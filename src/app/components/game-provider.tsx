@@ -61,6 +61,7 @@ interface GameContextType {
     handleDowngradeShip: (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
     handleSetActiveShip: (shipInstanceId: number) => void;
     updateTraderBio: (traderName: string, bio: string) => void;
+    handleResetGame: () => void;
     
     handleBarClick: (income: number) => void;
     handleUpgradeBar: () => void;
@@ -860,6 +861,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
         });
     };
 
+    const handleResetGame = useCallback(() => {
+        toast({
+            title: "Game Resetting...",
+            description: "Wiping all progress. A new adventure awaits!",
+        });
+        localStorage.removeItem('heggieGameState');
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }, [toast]);
+
     const handleRefuel = () => {
         let toastMessage: { title: string, description: string, variant?: 'destructive' } | null = null;
         setGameState(prev => {
@@ -1181,7 +1193,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         economyIcons: { 'Industrial': <Factory className="h-4 w-4" />, 'Agricultural': <Wheat className="h-4 w-4" />, 'High-Tech': <Cpu className="h-4 w-4" />, 'Extraction': <Hammer className="h-4 w-4" />, 'Refinery': <Recycle className="h-4 w-4" />, },
         handleGenerateQuests, handleAcceptObjective,
         handlePirateAction, handleCloseEncounterDialog, encounterResult,
-        handleSetAvatar, handleGenerateBio, setPlayerName, updateTraderBio,
+        handleSetAvatar, handleGenerateBio, setPlayerName, updateTraderBio, handleResetGame,
         handleRefuel, handleRepairShip,
         handleHireCrew, handleFireCrew,
         handlePurchaseShip, handleSellShip, handleUpgradeShip, handleDowngradeShip, handleSetActiveShip,
@@ -1206,5 +1218,3 @@ export function GameProvider({ children }: { children: ReactNode }) {
         </GameContext.Provider>
     );
 }
-
-    
