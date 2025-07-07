@@ -25,13 +25,30 @@ interface PlayerProfileProps {
 // The user will need to add these image files to their project.
 const predefinedAvatars = [
     '/images/avatars/avatar_01.png',
-    '/images/avatars/avatar_02.png',
-    '/images/avatars/avatar_03.png',
-    '/images/avatars/avatar_04.png',
-    '/images/avatars/avatar_05.png',
-    '/images/avatars/avatar_06.png',
-    '/images/avatars/avatar_07.png',
-    '/images/avatars/avatar_08.png',
+    '/images/avatars/2.png',
+    '/images/avatars/3.png',
+    '/images/avatars/4.png',
+    '/images/avatars/5.png',
+    '/images/avatars/6.png',
+    '/images/avatars/7.png',
+    '/images/avatars/8.png',
+    '/images/avatars/9.png',
+    '/images/avatars/10.png',
+    '/images/avatars/11.png',
+    '/images/avatars/12.png',
+    '/images/avatars/13.png',
+    '/images/avatars/14.png',
+    '/images/avatars/15.png',
+    '/images/avatars/16.png',
+    '/images/avatars/17.png',
+    '/images/avatars/18.png',
+    '/images/avatars/19.png',
+    '/images/avatars/20.png',
+    '/images/avatars/21.png',
+    '/images/avatars/22.png',
+    '/images/avatars/23.png',
+    '/images/avatars/24.png',
+    '/images/avatars/25.png',
 ];
 
 export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange }: PlayerProfileProps) {
@@ -79,7 +96,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
                 <DialogTrigger asChild>
                     <button className="relative h-24 w-24 flex-shrink-0 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg group">
                         <Image
-                            key={stats.avatarUrl} // Add key to force re-render on change
+                            key={stats.avatarUrl} 
                             src={stats.avatarUrl}
                             alt="Player Avatar"
                             data-ai-hint="space captain"
