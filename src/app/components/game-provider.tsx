@@ -61,18 +61,23 @@ interface GameContextType {
     handleDowngradeShip: (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => void;
     handleSetActiveShip: (shipInstanceId: number) => void;
     updateTraderBio: (traderName: string, bio: string) => void;
+    
     handleBarClick: (income: number) => void;
     handleUpgradeBar: () => void;
-    handleUpgradeAutoClicker: () => void;
-    handlePurchaseEstablishment: (type: EstablishmentType) => void;
-    handleExpandEstablishment: (type: EstablishmentType) => void;
+    handleUpgradeBarAutoClicker: () => void;
+    handlePurchaseBar: () => void;
+    handleExpandBar: () => void;
     handleSellBar: () => void;
     handleAcceptPartnerOffer: (offer: PartnershipOffer) => void;
+    
     handleResidenceClick: (income: number) => void;
     handleUpgradeResidence: () => void;
     handleUpgradeResidenceAutoClicker: () => void;
+    handlePurchaseResidence: () => void;
+    handleExpandResidence: () => void;
     handleSellResidence: () => void;
     handleAcceptResidencePartnerOffer: (offer: PartnershipOffer) => void;
+
     handleCommerceClick: (income: number) => void;
     handleUpgradeCommerce: () => void;
     handleUpgradeCommerceAutoClicker: () => void;
@@ -80,6 +85,7 @@ interface GameContextType {
     handleExpandCommerce: () => void;
     handleSellCommerce: () => void;
     handleAcceptCommercePartnerOffer: (offer: PartnershipOffer) => void;
+    
     handleIndustryClick: (income: number) => void;
     handleUpgradeIndustry: () => void;
     handleUpgradeIndustryAutoClicker: () => void;
@@ -87,6 +93,7 @@ interface GameContextType {
     handleExpandIndustry: () => void;
     handleSellIndustry: () => void;
     handleAcceptIndustryPartnerOffer: (offer: PartnershipOffer) => void;
+    
     handleConstructionClick: (income: number) => void;
     handleUpgradeConstruction: () => void;
     handleUpgradeConstructionAutoClicker: () => void;
@@ -94,6 +101,7 @@ interface GameContextType {
     handleExpandConstruction: () => void;
     handleSellConstruction: () => void;
     handleAcceptConstructionPartnerOffer: (offer: PartnershipOffer) => void;
+    
     handleRecreationClick: (income: number) => void;
     handleUpgradeRecreation: () => void;
     handleUpgradeRecreationAutoClicker: () => void;
@@ -1123,7 +1131,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const { handleUpgradeEstablishmentLevel, handleUpgradeEstablishmentAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment, handleSellEstablishment, handleAcceptEstablishmentPartnerOffer } = useEstablishmentManager({ gameState, setGameState });
 
     const handleUpgradeBar = () => handleUpgradeEstablishmentLevel('bar');
-    const handleUpgradeAutoClicker = () => handleUpgradeEstablishmentAutoClicker('bar');
+    const handleUpgradeBarAutoClicker = () => handleUpgradeEstablishmentAutoClicker('bar');
+    const handlePurchaseBar = () => handlePurchaseEstablishment('bar');
+    const handleExpandBar = () => handleExpandEstablishment('bar');
     const handleSellBar = () => handleSellEstablishment('bar');
     const handleAcceptPartnerOffer = (offer: PartnershipOffer) => handleAcceptEstablishmentPartnerOffer('bar', offer);
     
@@ -1175,13 +1185,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
         handleRefuel, handleRepairShip,
         handleHireCrew, handleFireCrew,
         handlePurchaseShip, handleSellShip, handleUpgradeShip, handleDowngradeShip, handleSetActiveShip,
-        handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handleSellBar, handleAcceptPartnerOffer,
-        handleResidenceClick, handleUpgradeResidence, handleUpgradeResidenceAutoClicker, handleSellResidence, handleAcceptResidencePartnerOffer,
+        
+        handleBarClick, handleUpgradeBar, handleUpgradeBarAutoClicker, handlePurchaseBar, handleExpandBar, handleSellBar, handleAcceptPartnerOffer,
+        
+        handleResidenceClick, handleUpgradeResidence, handleUpgradeResidenceAutoClicker, handlePurchaseResidence, handleExpandResidence, handleSellResidence, handleAcceptResidencePartnerOffer,
+        
         handleCommerceClick, handleUpgradeCommerce, handleUpgradeCommerceAutoClicker, handlePurchaseCommerce, handleExpandCommerce, handleSellCommerce, handleAcceptCommercePartnerOffer,
+        
         handleIndustryClick, handleUpgradeIndustry, handleUpgradeIndustryAutoClicker, handlePurchaseIndustry, handleExpandIndustry, handleSellIndustry, handleAcceptIndustryPartnerOffer,
+        
         handleConstructionClick, handleUpgradeConstruction, handleUpgradeConstructionAutoClicker, handlePurchaseConstruction, handleExpandConstruction, handleSellConstruction, handleAcceptConstructionPartnerOffer,
+        
         handleRecreationClick, handleUpgradeRecreation, handleUpgradeRecreationAutoClicker, handlePurchaseRecreation, handleExpandRecreation, handleSellRecreation, handleAcceptRecreationPartnerOffer,
-        handlePurchaseEstablishment, handleExpandEstablishment,
     };
 
     return (

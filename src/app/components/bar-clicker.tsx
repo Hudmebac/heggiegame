@@ -11,7 +11,7 @@ import BarContracts from './bar-contracts';
 import type { SystemEconomy } from '@/lib/types';
 
 export default function BarClicker() {
-    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeAutoClicker, handlePurchaseEstablishment, handleExpandEstablishment, handleSellBar, handleSellStake } = useGame();
+    const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeBarAutoClicker, handlePurchaseBar, handleExpandBar, handleSellBar } = useGame();
     const [feedbackMessages, setFeedbackMessages] = useState<{ id: number, x: number, y: number, amount: number }[]>([]);
 
     if (!gameState) {
@@ -69,7 +69,7 @@ export default function BarClicker() {
         expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
-        expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseEstablishment : handleExpandEstablishment;
+        expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseBar : handleExpandBar;
     }
 
     const getEstablishmentLevelLabel = (level: number) => {
@@ -169,7 +169,7 @@ export default function BarClicker() {
                         </div>
                         
                         {!isBotLimitReached ? (
-                            <Button className="w-full" onClick={handleUpgradeAutoClicker} disabled={!canAffordBot}>
+                            <Button className="w-full" onClick={handleUpgradeBarAutoClicker} disabled={!canAffordBot}>
                                 Buy Bot ({botCost.toLocaleString()}¢)
                             </Button>
                         ) : (
@@ -189,7 +189,6 @@ export default function BarClicker() {
                         playerStats={playerStats} 
                         onSell={handleSellBar} 
                         onExpand={expansionHandler}
-                        onSellStake={handleSellStake}
                         canAffordExpansion={canAffordExpansion}
                         expansionButtonLabel={expansionButtonLabel}
                         nextExpansionTier={!!nextExpansionTier}
