@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -16,12 +17,11 @@ interface PlayerProfileProps {
   onGenerateAvatar: (description: string) => void;
   isGeneratingAvatar: boolean;
   onGenerateBio: (name?: string) => void;
-  isGeneratingBio: boolean;
   onNameChange: (name: string) => void;
 }
 
 
-export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAvatar, onGenerateBio, isGeneratingBio, onNameChange }: PlayerProfileProps) {
+export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAvatar, onGenerateBio, onNameChange }: PlayerProfileProps) {
   const [avatarPrompt, setAvatarPrompt] = useState('A futuristic space trader pilot, male, with a cybernetic eye');
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(stats.name);
@@ -74,8 +74,8 @@ export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAva
             <Label htmlFor="captain-name" className="text-xs text-muted-foreground">Captain's Name</Label>
             {isEditingName ? (
                 <div className="flex gap-2">
-                    <Input id="captain-name" value={name} onChange={(e) => setName(e.target.value)} disabled={isGeneratingBio}/>
-                    <Button onClick={handleNameSave} disabled={isGeneratingBio}>Save</Button>
+                    <Input id="captain-name" value={name} onChange={(e) => setName(e.target.value)} />
+                    <Button onClick={handleNameSave}>Save</Button>
                 </div>
             ) : (
                 <div className="flex items-center justify-between">
@@ -88,8 +88,8 @@ export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAva
          <div className='space-y-1'>
             <Label htmlFor="captain-bio" className="text-xs text-muted-foreground">Biography</Label>
             <Textarea id="captain-bio" value={stats.bio} readOnly className="h-24 bg-background/30" />
-            <Button onClick={() => onGenerateBio()} disabled={isGeneratingBio} variant="outline" className="w-full">
-                {isGeneratingBio ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
+            <Button onClick={() => onGenerateBio()} variant="outline" className="w-full">
+                <Bot className="mr-2 h-4 w-4" />
                 Generate New Bio
             </Button>
         </div>

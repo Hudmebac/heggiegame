@@ -55,7 +55,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="/ship/images/s-class-shuttle-blueprint.png"
+                            src="public/images/blueprints/sclassBlueprint.png"
                             alt="S-Class Shuttle Blueprint"
                             width={956}
                             height={669}
@@ -114,7 +114,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="/ship/images/hauler-mk2-blueprint.png"
+                            src="public/images/blueprints/haulerBlueprint.png"
                             alt="Hauler Mk. II Blueprint"
                             width={956}
                             height={669}
@@ -178,7 +178,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="/ship/images/viper-escort-blueprint.png"
+                            src="public/images/blueprints/viperBlueprint.png"
                             alt="Viper Combat Escort Blueprint"
                             width={956}
                             height={669}
@@ -242,7 +242,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="/ship/images/leviathan-freighter-blueprint.png"
+                            src="public/images/blueprints/leviathanBlueprint.png"
                             alt="Leviathan Super-Freighter Blueprint"
                             width={956}
                             height={669}

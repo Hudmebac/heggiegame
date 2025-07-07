@@ -3,11 +3,10 @@
 import Leaderboard from "@/app/components/leaderboard";
 import { useGame } from "@/app/components/game-provider";
 import { useState } from "react";
-import { runBioGeneration } from "@/app/actions";
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { LeaderboardEntry } from "@/lib/types";
+import { bios } from "@/lib/bios";
 
 
 export default function LeaderboardPage() {
@@ -15,36 +14,21 @@ export default function LeaderboardPage() {
     const { toast } = useToast();
     const [selectedTrader, setSelectedTrader] = useState<LeaderboardEntry | null>(null);
     const [traderBio, setTraderBio] = useState('');
-    const [isGeneratingBio, setIsGeneratingBio] = useState(false);
 
     if (!gameState) return null;
 
-    const handleTraderClick = async (trader: LeaderboardEntry) => {
+    const handleTraderClick = (trader: LeaderboardEntry) => {
         if (trader.trader === gameState.playerStats.name) return;
         setSelectedTrader(trader);
         setTraderBio('');
-        setIsGeneratingBio(true);
 
         if (trader.bio) {
             setTraderBio(trader.bio);
-            setIsGeneratingBio(false);
         } else {
-            try {
-                const result = await runBioGeneration({ name: trader.trader });
-                const newBio = result.bio;
-                setTraderBio(newBio);
-                updateTraderBio(trader.trader, newBio);
-            } catch (error) {
-                console.error(error);
-                toast({
-                    variant: "destructive",
-                    title: "Could not fetch intel",
-                    description: "Failed to generate a bio for this trader."
-                });
-                setSelectedTrader(null);
-            } finally {
-                setIsGeneratingBio(false);
-            }
+            const randomBioTemplate = bios[Math.floor(Math.random() * bios.length)];
+            const newBio = randomBioTemplate.replace(/{Captain}/g, trader.trader);
+            setTraderBio(newBio);
+            updateTraderBio(trader.trader, newBio);
         }
     };
 
@@ -66,14 +50,7 @@ export default function LeaderboardPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Intel on {selectedTrader?.trader}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {isGeneratingBio ? (
-                                <div className="flex items-center justify-center py-4">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    <span className="ml-4">Accessing network...</span>
-                                </div>
-                            ) : (
-                                traderBio || "No bio available."
-                            )}
+                            {traderBio || "No bio available."}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
