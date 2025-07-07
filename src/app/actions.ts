@@ -3,7 +3,6 @@
 
 import { simulateMarketPrices } from '@/ai/flows/simulate-market-prices';
 import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
-import { generateAvatar } from '@/ai/flows/generate-avatar';
 import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
 import { generateQuests } from '@/ai/flows/generate-quests';
@@ -23,9 +22,6 @@ import {
   ResolvePirateEncounterInputSchema,
   type ResolvePirateEncounterInput,
   type ResolvePirateEncounterOutput,
-  GenerateAvatarInputSchema,
-  type GenerateAvatarInput,
-  type GenerateAvatarOutput,
   type GenerateGameEventOutput,
   ScanPirateVesselInputSchema,
   type ScanPirateVesselInput,
@@ -77,20 +73,6 @@ export async function resolveEncounter(input: ResolvePirateEncounterInput): Prom
             throw new Error(`Invalid input for encounter resolution: ${error.message}`);
         }
         throw new Error('Failed to resolve encounter.');
-    }
-}
-
-export async function runAvatarGeneration(input: GenerateAvatarInput): Promise<GenerateAvatarOutput> {
-    try {
-        const validatedInput = GenerateAvatarInputSchema.parse(input);
-        const result = await generateAvatar(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running avatar generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for avatar generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate avatar.');
     }
 }
 

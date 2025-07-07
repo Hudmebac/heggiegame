@@ -4,32 +4,64 @@
 import { useState } from 'react';
 import type { PlayerStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Loader2, User, Shuffle } from 'lucide-react';
+import { Loader2, User, Shuffle, Image as ImageIcon, Check } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlayerProfileProps {
   stats: PlayerStats;
-  onGenerateAvatar: (description: string) => void;
-  isGeneratingAvatar: boolean;
+  onSetAvatar: (url: string) => void;
   onGenerateBio: (name?: string) => void;
   isGeneratingBio: boolean;
   onNameChange: (name: string) => void;
 }
 
+// These paths point to files in the `public` directory.
+// The user will need to add these image files to their project.
+const predefinedAvatars = [
+    '/images/avatars/avatar_01.png',
+    '/images/avatars/avatar_02.png',
+    '/images/avatars/avatar_03.png',
+    '/images/avatars/avatar_04.png',
+    '/images/avatars/avatar_05.png',
+    '/images/avatars/avatar_06.png',
+    '/images/avatars/avatar_07.png',
+    '/images/avatars/avatar_08.png',
+];
 
-export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAvatar, onGenerateBio, isGeneratingBio, onNameChange }: PlayerProfileProps) {
-  const [avatarPrompt, setAvatarPrompt] = useState('A futuristic space trader pilot, male, with a cybernetic eye');
+export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange }: PlayerProfileProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(stats.name);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+  const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
+  const { toast } = useToast();
   
   const handleNameSave = () => {
       onNameChange(name);
       setIsEditingName(false);
+  }
+
+  const handleRandomAvatar = () => {
+    const randomAvatar = predefinedAvatars[Math.floor(Math.random() * predefinedAvatars.length)];
+    onSetAvatar(randomAvatar);
+    toast({ title: 'Avatar Changed', description: 'A new random avatar has been selected.' });
+    setIsAvatarDialogOpen(false);
+  }
+
+  const handleCustomUrlSet = () => {
+    try {
+      new URL(customAvatarUrl);
+      onSetAvatar(customAvatarUrl);
+      toast({ title: 'Avatar Changed', description: 'Your custom avatar has been set.' });
+      setIsAvatarDialogOpen(false);
+    } catch (_) {
+      toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid image URL.' });
+    }
   }
 
   return (
@@ -42,34 +74,74 @@ export default function PlayerProfile({ stats, onGenerateAvatar, isGeneratingAva
         <CardDescription>Edit your captain's appearance, name, and biography.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start gap-6">
-            <div className="relative h-24 w-24 flex-shrink-0 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg mx-auto sm:mx-0">
-                <Image
-                    src={stats.avatarUrl}
-                    alt="Player Avatar"
-                    data-ai-hint="space captain"
-                    width={96}
-                    height={96}
-                    className="object-cover"
-                />
-            </div>
-            <div className="w-full space-y-3">
-              <div className='space-y-1'>
-                <Label htmlFor="avatar-prompt" className="text-xs text-muted-foreground">Avatar Generation Prompt</Label>
-                <Input
-                    id="avatar-prompt"
-                    value={avatarPrompt}
-                    onChange={(e) => setAvatarPrompt(e.target.value)}
-                    placeholder="e.g., grizzled male space pilot"
-                    disabled={isGeneratingAvatar}
-                />
-              </div>
-                <Button onClick={() => onGenerateAvatar(avatarPrompt)} disabled={!avatarPrompt.trim() || isGeneratingAvatar} className="w-full">
-                    {isGeneratingAvatar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                    Generate New Avatar
-                </Button>
-            </div>
+        <div className="flex justify-center">
+            <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
+                <DialogTrigger asChild>
+                    <button className="relative h-24 w-24 flex-shrink-0 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg group">
+                        <Image
+                            key={stats.avatarUrl} // Add key to force re-render on change
+                            src={stats.avatarUrl}
+                            alt="Player Avatar"
+                            data-ai-hint="space captain"
+                            width={96}
+                            height={96}
+                            className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <ImageIcon className="h-8 w-8 text-white" />
+                        </div>
+                    </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Change Avatar</DialogTitle>
+                        <DialogDescription>
+                            Select a new avatar from the predefined list, choose one randomly, or provide your own URL.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-6">
+                        <div>
+                            <Label className="mb-2 block text-sm font-medium">Predefined Avatars</Label>
+                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                                {predefinedAvatars.map((avatarSrc) => (
+                                    <button key={avatarSrc} onClick={() => { onSetAvatar(avatarSrc); setIsAvatarDialogOpen(false); }} className="relative aspect-square rounded-md overflow-hidden border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors">
+                                        <Image src={avatarSrc} alt="Predefined avatar" layout="fill" className="object-cover" />
+                                        {stats.avatarUrl === avatarSrc && (
+                                            <div className="absolute inset-0 bg-primary/70 flex items-center justify-center">
+                                                <Check className="h-6 w-6 text-primary-foreground" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <Button onClick={handleRandomAvatar} variant="outline" className="w-full">
+                                <Shuffle className="mr-2" /> Random Avatar
+                            </Button>
+                        </div>
+                        <div>
+                            <Label htmlFor="custom-avatar-url" className="mb-2 block text-sm font-medium">Or use custom URL</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="custom-avatar-url"
+                                    placeholder="https://..."
+                                    value={customAvatarUrl}
+                                    onChange={(e) => setCustomAvatarUrl(e.target.value)}
+                                />
+                                <Button onClick={handleCustomUrlSet}>Set</Button>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">Cancel</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
+
 
         <div className='space-y-1'>
             <Label htmlFor="captain-name" className="text-xs text-muted-foreground">Captain's Name</Label>

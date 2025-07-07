@@ -35,7 +35,7 @@ function getReputationTier(score: number) {
 
 
 export default function CaptainPage() {
-  const { gameState, handleGenerateAvatar, isGeneratingAvatar, handleGenerateBio, isGeneratingBio, setPlayerName } = useGame();
+  const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar } = useGame();
 
   if (!gameState) {
     return null; 
@@ -75,8 +75,7 @@ export default function CaptainPage() {
         <div className="lg:col-span-2">
             <PlayerProfile
                 stats={playerStats}
-                onGenerateAvatar={handleGenerateAvatar}
-                isGeneratingAvatar={isGeneratingAvatar}
+                onSetAvatar={handleSetAvatar}
                 onGenerateBio={handleGenerateBio}
                 isGeneratingBio={isGeneratingBio}
                 onNameChange={setPlayerName}

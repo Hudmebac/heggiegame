@@ -56,18 +56,6 @@ export const ResolvePirateEncounterOutputSchema = z.object({
 export type ResolvePirateEncounterOutput = z.infer<typeof ResolvePirateEncounterOutputSchema>;
 
 
-// Schemas for generate-avatar
-export const GenerateAvatarInputSchema = z.object({
-  description: z.string().describe('A brief description of the desired avatar style. e.g., "grizzled male space pilot", "young female explorer with vibrant hair"'),
-});
-export type GenerateAvatarInput = z.infer<typeof GenerateAvatarInputSchema>;
-
-export const GenerateAvatarOutputSchema = z.object({
-  avatarDataUri: z.string().describe("The generated avatar image as a data URI."),
-});
-export type GenerateAvatarOutput = z.infer<typeof GenerateAvatarOutputSchema>;
-
-
 // Schemas for generate-game-event
 export const GenerateGameEventOutputSchema = z.object({
   eventDescription: z.string().describe('A short, dramatic description of an in-game event that could affect market prices.'),

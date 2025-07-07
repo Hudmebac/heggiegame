@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback,
 import type { GameState, MarketItem, System, Quest, PartnershipOffer, PlayerShip, ShipForSale, CrewMember, PlayerStats, ActiveObjective, QuestTask, EncounterResult, Pirate, SystemEconomy, ItemCategory, InventoryItem, BarContract, ResidenceContract, CommerceContract, IndustryContract, ConstructionContract, RecreationContract, BarPartner } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-import { runTraderGeneration, runQuestGeneration, runMarketSimulation, runAvatarGeneration, runEventGeneration, runPirateScan, resolveEncounter } from '@/app/actions';
+import { runTraderGeneration, runQuestGeneration, runMarketSimulation, runEventGeneration, runPirateScan, resolveEncounter } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
@@ -28,7 +28,6 @@ interface GameContextType {
     isSimulating: boolean;
     isGeneratingQuests: boolean;
     isResolvingEncounter: boolean;
-    isGeneratingAvatar: boolean;
     isGeneratingBio: boolean;
     chartItem: string;
     setChartItem: (item: string) => void;
@@ -49,7 +48,7 @@ interface GameContextType {
     handlePirateAction: (action: 'fight' | 'evade' | 'bribe') => void;
     handleCloseEncounterDialog: () => void;
     encounterResult: EncounterResult | null;
-    handleGenerateAvatar: (description: string) => void;
+    handleSetAvatar: (url: string) => void;
     handleGenerateBio: () => void;
     setPlayerName: (name: string) => void;
     handleRefuel: () => void;
@@ -188,7 +187,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     name: 'You',
     bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
     netWorth: 10000,
-    avatarUrl: 'https://placehold.co/96x96/1A2942/7DD3FC.png',
+    avatarUrl: '/images/avatars/avatar_01.png',
     pirateRisk: 0, reputation: 0,
     fleet: [initialShip],
     barLevel: 1, autoClickerBots: 0, establishmentLevel: 0,
@@ -407,7 +406,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const [isGeneratingQuests, startQuestGenerationTransition] = useTransition();
     const [isResolvingEncounter, startEncounterResolution] = useTransition();
     const [encounterResult, setEncounterResult] = useState<EncounterResult | null>(null);
-    const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
     const [isGeneratingBio, startBioGenerationTransition] = useTransition();
     
     // --- Quest Management ---
@@ -805,15 +803,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const travelFuelCost = gameState && travelDestination ? Math.round(Math.hypot(travelDestination.x - (gameState.systems.find(s => s.name === gameState.currentSystem)?.x || 0), travelDestination.y - (gameState.systems.find(s => s.name === gameState.currentSystem)?.y || 0)) / 5) : 0;
     
     // ... Player Actions ...
-    const handleGenerateAvatar = (description: string) => {
-        startAvatarGenerationTransition(async () => {
-            try {
-                const result = await runAvatarGeneration({ description });
-                setGameState(prev => prev ? { ...prev, playerStats: { ...prev.playerStats, avatarUrl: result.avatarDataUri } } : null);
-                toast({ title: "Avatar Generated", description: "Your new captain's portrait is ready." });
-            } catch (error) {
-                toast({ variant: "destructive", title: "Avatar Generation Failed", description: "Could not generate avatar." });
-            }
+    const handleSetAvatar = (url: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    avatarUrl: url,
+                },
+            };
         });
     };
 
@@ -1163,14 +1162,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const contextValue: GameContextType = {
         gameState, isClient,
-        isSimulating, isGeneratingQuests, isResolvingEncounter, isGeneratingAvatar, isGeneratingBio,
+        isSimulating, isGeneratingQuests, isResolvingEncounter, isGeneratingBio,
         chartItem, setChartItem, tradeDetails, setTradeDetails, handleTrade, handleInitiateTrade,
         travelDestination, setTravelDestination, handleInitiateTravel, handlePlanetTravel, handleConfirmTravel, travelFuelCost,
         securityConfig: { 'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4" /> }, 'Medium': { color: 'text-yellow-400', icon: <ShieldCheck className="h-4 w-4" /> }, 'Low': { color: 'text-orange-400', icon: <AlertTriangle className="h-4 w-4" /> }, 'Anarchy': { color: 'text-destructive', icon: <AlertTriangle className="h-4 w-4" /> }, },
         economyIcons: { 'Industrial': <Factory className="h-4 w-4" />, 'Agricultural': <Wheat className="h-4 w-4" />, 'High-Tech': <Cpu className="h-4 w-4" />, 'Extraction': <Hammer className="h-4 w-4" />, 'Refinery': <Recycle className="h-4 w-4" />, },
         handleGenerateQuests, handleAcceptObjective,
         handlePirateAction, handleCloseEncounterDialog, encounterResult,
-        handleGenerateAvatar, handleGenerateBio, setPlayerName, updateTraderBio,
+        handleSetAvatar, handleGenerateBio, setPlayerName, updateTraderBio,
         handleRefuel, handleRepairShip,
         handleHireCrew, handleFireCrew,
         handlePurchaseShip, handleSellShip, handleUpgradeShip, handleDowngradeShip, handleSetActiveShip,
