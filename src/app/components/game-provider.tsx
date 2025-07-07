@@ -247,8 +247,8 @@ function useEstablishmentManager({ gameState, setGameState }: { gameState: GameS
             if (!prev) return null;
             const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
             const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-            const autoClickerKey = `${type}AutoClickerBots` as keyof PlayerStats;
-            const currentBots = prev.playerStats[autoClickerKey] as number || 0;
+            const autoClickerKey = type === 'bar' ? 'autoClickerBots' : `${type}AutoClickerBots`;
+            const currentBots = (prev.playerStats as any)[autoClickerKey] || 0;
 
             if (currentBots >= 25) {
                 toastMessage = { variant: "destructive", title: "Limit Reached", description: `You cannot purchase more than 25 bots for this ${type}.` };
@@ -348,7 +348,7 @@ function useEstablishmentManager({ gameState, setGameState }: { gameState: GameS
         setGameState(prev => {
             if (!prev) return null;
             const contractKey = `${type}Contract` as keyof PlayerStats;
-            const contract = prev.playerStats[contractKey] as BarContract;
+            const contract = (prev.playerStats as any)[contractKey];
             if (!contract) {
                 toastMessage = { variant: "destructive", title: "Sale Failed", description: `You do not own a ${type} establishment to sell.` };
                 return prev;
@@ -356,8 +356,10 @@ function useEstablishmentManager({ gameState, setGameState }: { gameState: GameS
 
             const salePrice = contract.currentMarketValue;
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + salePrice };
+            const autoClickerKey = type === 'bar' ? 'autoClickerBots' : `${type}AutoClickerBots`;
+            
             (newPlayerStats as any)[`${type}Level`] = 1;
-            (newPlayerStats as any)[`${type}AutoClickerBots`] = 0;
+            (newPlayerStats as any)[autoClickerKey] = 0;
             (newPlayerStats as any)[`${type}EstablishmentLevel`] = 0;
             (newPlayerStats as any)[contractKey] = undefined;
             toastMessage = { title: `${type.charAt(0).toUpperCase() + type.slice(1)} Sold!`, description: `You sold the ${type} establishment for ${salePrice.toLocaleString()}¢.` };
@@ -440,7 +442,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         if (completedObjectives.length > 0) {
             completedObjectives.forEach(obj => {
-                const rewardAmount = parseInt(obj.reward.replace(/[^0-9]/g, ''), 10);
+                const rewardAmount = parseInt(obj.reward.replace(/[^0-9]/g, '', 10));
                 if (!isNaN(rewardAmount)) {
                     newPlayerStats.netWorth += rewardAmount;
                 }
@@ -521,7 +523,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
                 let anyBotsActive = false;
 
                 businessTypes.forEach((type, index) => {
-                    const bots = (nextState.playerStats as any)[`${type}AutoClickerBots`] || 0;
+                    const autoClickerKey = type === 'bar' ? 'autoClickerBots' : `${type}AutoClickerBots`;
+                    const bots = (nextState.playerStats as any)[autoClickerKey] || 0;
+
                     if (bots > 0) {
                         anyBotsActive = true;
                         const themeSet = themeSets[index];
@@ -1120,8 +1124,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const handleUpgradeBar = () => handleUpgradeEstablishmentLevel('bar');
     const handleUpgradeAutoClicker = () => handleUpgradeEstablishmentAutoClicker('bar');
-    const handlePurchaseBar = () => handlePurchaseEstablishment('bar');
-    const handleExpandBar = () => handleExpandEstablishment('bar');
     const handleSellBar = () => handleSellEstablishment('bar');
     const handleAcceptPartnerOffer = (offer: PartnershipOffer) => handleAcceptEstablishmentPartnerOffer('bar', offer);
     
@@ -1189,3 +1191,5 @@ export function GameProvider({ children }: { children: ReactNode }) {
         </GameContext.Provider>
     );
 }
+
+    
