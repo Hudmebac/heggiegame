@@ -9,6 +9,7 @@ import { ScrollText, Target, Calendar, RefreshCw, Loader2, ListTodo, Timer, Chec
 import type { Quest, ActiveObjective, QuestTask } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 const CountdownTimer = ({ startTime, timeLimit }: { startTime: number, timeLimit: number }) => {
     const [remaining, setRemaining] = useState(timeLimit);
