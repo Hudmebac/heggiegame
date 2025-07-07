@@ -1,3 +1,4 @@
+
 'use client';
 import { SHIPS_FOR_SALE } from "@/lib/ships";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,7 +23,7 @@ export default function ShipCodex() {
                                     <p className="text-sm">{ship.description}</p>
                                 </div>
                                 <div className="flex-shrink-0 text-right w-full sm:w-auto">
-                                    <p className="text-lg font-mono text-amber-300 mb-2">{ship.cost.toLocaleString()}¢</p>
+                                    <p className="text-lg font-mono text-amber-300">{ship.cost.toLocaleString()}¢</p>
                                 </div>
                             </div>
                             <div className="pt-4 border-t border-border/50 text-xs">
@@ -55,7 +56,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="public/images/blueprints/sclassBlueprint.png"
+                            src="/images/blueprints/sclassBlueprint.png"
                             alt="S-Class Shuttle Blueprint"
                             width={956}
                             height={669}
@@ -114,7 +115,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="public/images/blueprints/haulerBlueprint.png"
+                            src="/images/blueprints/haulerBlueprint.png"
                             alt="Hauler Mk. II Blueprint"
                             width={956}
                             height={669}
@@ -178,7 +179,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="public/images/blueprints/viperBlueprint.png"
+                            src="/images/blueprints/viperBlueprint.png"
                             alt="Viper Combat Escort Blueprint"
                             width={956}
                             height={669}
@@ -242,7 +243,7 @@ export default function ShipCodex() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/30 p-4 rounded-lg border border-border/50">
                         <Image
-                            src="public/images/blueprints/leviathanBlueprint.png"
+                            src="/images/blueprints/leviathanBlueprint.png"
                             alt="Leviathan Super-Freighter Blueprint"
                             width={956}
                             height={669}
@@ -300,3 +301,6 @@ export default function ShipCodex() {
         </div>
     )
 }
+
+
+    
