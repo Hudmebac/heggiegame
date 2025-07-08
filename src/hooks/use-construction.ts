@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
@@ -39,19 +40,19 @@ export function useConstruction(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.constructionLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Project level is already at maximum." });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Project level is already at maximum." }), 0);
         return prev;
       }
 
       const upgradeCost = Math.round(1000 * Math.pow(prev.playerStats.constructionLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, constructionLevel: prev.playerStats.constructionLevel + 1 };
-      toast({ title: "Project Upgraded!", description: `Your project is now at Level ${newPlayerStats.constructionLevel}.` });
+      setTimeout(() => toast({ title: "Project Upgraded!", description: `Your project is now at Level ${newPlayerStats.constructionLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -64,19 +65,19 @@ export function useConstruction(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.constructionAutoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." });
+        setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
 
       const botCost = Math.round(29000 * Math.pow(1.15, prev.playerStats.constructionAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
-        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, constructionAutoClickerBots: prev.playerStats.constructionAutoClickerBots + 1 };
-      toast({ title: "Bot Deployed!", description: "A new construction bot has been deployed." });
+      setTimeout(() => toast({ title: "Bot Deployed!", description: "A new construction bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -85,14 +86,14 @@ export function useConstruction(
     setGameState(prev => {
         if (!prev) return null;
         if (prev.playerStats.constructionEstablishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own a construction project.` });
+             setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own a construction project.` }), 0);
              return prev;
         }
 
         const cost = 5000 * 4;
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -104,7 +105,7 @@ export function useConstruction(
             constructionContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Construction Project Acquired!", description: "You now manage this construction project." });
+        setTimeout(() => toast({ title: "Construction Project Acquired!", description: "You now manage this construction project." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -118,7 +119,7 @@ export function useConstruction(
         const contract = prev.playerStats.constructionContract;
 
         if (!contract || prev.playerStats.constructionEstablishmentLevel < 1 || prev.playerStats.constructionEstablishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or project not owned." });
+             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or project not owned." }), 0);
              return prev;
         }
         
@@ -126,7 +127,7 @@ export function useConstruction(
         const cost = Math.round(expansionTiers[prev.playerStats.constructionEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -140,7 +141,7 @@ export function useConstruction(
             constructionContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Project Expanded!", description: `Your project has grown to Phase ${newPlayerStats.constructionEstablishmentLevel - 1}.` });
+        setTimeout(() => toast({ title: "Project Expanded!", description: `Your project has grown to Phase ${newPlayerStats.constructionEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -150,7 +151,7 @@ export function useConstruction(
         if (!prev) return null;
         const contract = prev.playerStats.constructionContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a construction project to sell.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a construction project to sell.` }), 0);
             return prev;
         }
 
@@ -164,7 +165,7 @@ export function useConstruction(
             constructionContract: undefined,
         };
         
-        toast({ title: "Project Sold!", description: `You sold the construction project for ${salePrice.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Project Sold!", description: `You sold the construction project for ${salePrice.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -180,7 +181,7 @@ export function useConstruction(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your project." });
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your project." }), 0);
              return prev;
         }
 
@@ -190,7 +191,7 @@ export function useConstruction(
             constructionContract: { ...contract, partners: updatedPartners }
         };
         
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);

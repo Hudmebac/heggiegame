@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
@@ -39,19 +40,19 @@ export function useIndustry(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.industryLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." }), 0);
         return prev;
       }
 
       const upgradeCost = Math.round(1200 * Math.pow(prev.playerStats.industryLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, industryLevel: prev.playerStats.industryLevel + 1 };
-      toast({ title: "Facility Upgraded!", description: `Your industrial facility is now at Level ${newPlayerStats.industryLevel}.` });
+      setTimeout(() => toast({ title: "Facility Upgraded!", description: `Your industrial facility is now at Level ${newPlayerStats.industryLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -64,19 +65,19 @@ export function useIndustry(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.industryAutoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." });
+        setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
 
       const botCost = Math.round(40500 * Math.pow(1.15, prev.playerStats.industryAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
-        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, industryAutoClickerBots: prev.playerStats.industryAutoClickerBots + 1 };
-      toast({ title: "Bot Deployed!", description: "A new assembly bot has been deployed." });
+      setTimeout(() => toast({ title: "Bot Deployed!", description: "A new assembly bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -85,14 +86,14 @@ export function useIndustry(
     setGameState(prev => {
         if (!prev) return null;
         if (prev.playerStats.industryEstablishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own an industrial facility.` });
+             setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own an industrial facility.` }), 0);
              return prev;
         }
 
         const cost = 4000 * 3;
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -104,7 +105,7 @@ export function useIndustry(
             industryContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Facility Acquired!", description: "You now manage this industrial facility." });
+        setTimeout(() => toast({ title: "Facility Acquired!", description: "You now manage this industrial facility." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -118,7 +119,7 @@ export function useIndustry(
         const contract = prev.playerStats.industryContract;
 
         if (!contract || prev.playerStats.industryEstablishmentLevel < 1 || prev.playerStats.industryEstablishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." });
+             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." }), 0);
              return prev;
         }
         
@@ -126,7 +127,7 @@ export function useIndustry(
         const cost = Math.round(expansionTiers[prev.playerStats.industryEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -140,7 +141,7 @@ export function useIndustry(
             industryContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Facility Expanded!", description: `Your industrial facility has grown to Tier ${newPlayerStats.industryEstablishmentLevel - 1}.` });
+        setTimeout(() => toast({ title: "Facility Expanded!", description: `Your industrial facility has grown to Tier ${newPlayerStats.industryEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -150,7 +151,7 @@ export function useIndustry(
         if (!prev) return null;
         const contract = prev.playerStats.industryContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own an industrial facility to sell.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: `You do not own an industrial facility to sell.` }), 0);
             return prev;
         }
 
@@ -164,7 +165,7 @@ export function useIndustry(
             industryContract: undefined,
         };
         
-        toast({ title: "Facility Sold!", description: `You sold the industrial facility for ${salePrice.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Facility Sold!", description: `You sold the industrial facility for ${salePrice.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -180,7 +181,7 @@ export function useIndustry(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your facility." });
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your facility." }), 0);
              return prev;
         }
 
@@ -190,7 +191,7 @@ export function useIndustry(
             industryContract: { ...contract, partners: updatedPartners }
         };
         
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);

@@ -81,7 +81,9 @@ export function useQuests(
                 startTime: Date.now(),
             };
 
-            toast({ title: "Objective Started!", description: `You have ${quest.timeLimit} seconds to complete "${quest.title}".` });
+            setTimeout(() => {
+                toast({ title: "Objective Started!", description: `You have ${quest.timeLimit} seconds to complete "${quest.title}".` });
+            }, 0);
 
             return {
                 ...prev,

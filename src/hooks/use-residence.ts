@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
@@ -39,19 +40,19 @@ export function useResidence(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.residenceLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." }), 0);
         return prev;
       }
 
       const upgradeCost = Math.round(125 * Math.pow(prev.playerStats.residenceLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, residenceLevel: prev.playerStats.residenceLevel + 1 };
-      toast({ title: "Residence Upgraded!", description: `Your residence is now Level ${newPlayerStats.residenceLevel}.` });
+      setTimeout(() => toast({ title: "Residence Upgraded!", description: `Your residence is now Level ${newPlayerStats.residenceLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -64,19 +65,19 @@ export function useResidence(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.residenceAutoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 bots." });
+        setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 bots." }), 0);
         return prev;
       }
 
       const botCost = Math.round(4250 * Math.pow(1.15, prev.playerStats.residenceAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
-        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, residenceAutoClickerBots: prev.playerStats.residenceAutoClickerBots + 1 };
-      toast({ title: "Bot Hired!", description: "A new service bot has been hired." });
+      setTimeout(() => toast({ title: "Bot Hired!", description: "A new service bot has been hired." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -85,14 +86,14 @@ export function useResidence(
     setGameState(prev => {
         if (!prev) return null;
         if (prev.playerStats.residenceEstablishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own a residence.` });
+             setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own a residence.` }), 0);
              return prev;
         }
 
         const cost = 5000 * 4;
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -104,7 +105,7 @@ export function useResidence(
             residenceContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Property Acquired!", description: "You now own this residential property." });
+        setTimeout(() => toast({ title: "Property Acquired!", description: "You now own this residential property." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -118,7 +119,7 @@ export function useResidence(
         const contract = prev.playerStats.residenceContract;
 
         if (!contract || prev.playerStats.residenceEstablishmentLevel < 1 || prev.playerStats.residenceEstablishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or property not owned." });
+             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or property not owned." }), 0);
              return prev;
         }
         
@@ -126,7 +127,7 @@ export function useResidence(
         const cost = Math.round(expansionTiers[prev.playerStats.residenceEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -140,7 +141,7 @@ export function useResidence(
             residenceContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Property Expanded!", description: `Your property has grown to Level ${newPlayerStats.residenceEstablishmentLevel - 1}.` });
+        setTimeout(() => toast({ title: "Property Expanded!", description: `Your property has grown to Level ${newPlayerStats.residenceEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -150,7 +151,7 @@ export function useResidence(
         if (!prev) return null;
         const contract = prev.playerStats.residenceContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a residence to sell.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a residence to sell.` }), 0);
             return prev;
         }
 
@@ -164,7 +165,7 @@ export function useResidence(
             residenceContract: undefined,
         };
         
-        toast({ title: "Property Sold!", description: `You sold the residence for ${salePrice.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Property Sold!", description: `You sold the residence for ${salePrice.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -180,7 +181,7 @@ export function useResidence(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your property." });
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your property." }), 0);
              return prev;
         }
 
@@ -190,7 +191,7 @@ export function useResidence(
             residenceContract: { ...contract, partners: updatedPartners }
         };
         
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);

@@ -68,7 +68,7 @@ export function usePlayerActions(
             setGameState(prev => {
                 if (!prev) return null;
                 const newBio = bios[Math.floor(Math.random() * bios.length)].replace(/{Captain}/g, prev.playerStats.name);
-                toast({ title: "Bio Generated", description: "Your captain's story has been updated." });
+                setTimeout(() => toast({ title: "Bio Generated", description: "Your captain's story has been updated." }), 0);
                 return { ...prev, playerStats: { ...prev.playerStats, bio: newBio } };
             });
         });
@@ -111,17 +111,17 @@ export function usePlayerActions(
             if (!prev) return null;
             const fuelNeeded = prev.playerStats.maxFuel - prev.playerStats.fuel;
             if (fuelNeeded <= 0) {
-                toast({ title: "Refuel Not Needed", description: "Fuel tank is already full." });
+                setTimeout(() => toast({ title: "Refuel Not Needed", description: "Fuel tank is already full." }), 0);
                 return prev;
             }
             const fuelPrice = 2; // credits per unit
             const totalCost = fuelNeeded * fuelPrice;
             if (prev.playerStats.netWorth < totalCost) {
-                toast({ variant: "destructive", title: "Refuel Failed", description: `Not enough credits. You need ${totalCost}¢.` });
+                setTimeout(() => toast({ variant: "destructive", title: "Refuel Failed", description: `Not enough credits. You need ${totalCost}¢.` }), 0);
                 return prev;
             }
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, fuel: prev.playerStats.maxFuel, };
-            toast({ title: "Refuel Complete", description: `You spent ${totalCost}¢ to refuel your ship.` });
+            setTimeout(() => toast({ title: "Refuel Complete", description: `You spent ${totalCost}¢ to refuel your ship.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -131,17 +131,17 @@ export function usePlayerActions(
             if (!prev) return null;
             const damageToRepair = prev.playerStats.maxShipHealth - prev.playerStats.shipHealth;
             if (damageToRepair <= 0) {
-                toast({ title: "Repairs Not Needed", description: "Ship integrity is at 100%." });
+                setTimeout(() => toast({ title: "Repairs Not Needed", description: "Ship integrity is at 100%." }), 0);
                 return prev;
             }
             const baseRepairPricePerPoint = 50;
             const totalCost = Math.round(damageToRepair * baseRepairPricePerPoint);
             if (prev.playerStats.netWorth < totalCost) {
-                toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` });
+                setTimeout(() => toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` }), 0);
                 return prev;
             }
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, shipHealth: prev.playerStats.maxShipHealth, };
-            toast({ title: "Repairs Complete", description: `You spent ${totalCost}¢ to restore your ship\'s hull.` });
+            setTimeout(() => toast({ title: "Repairs Complete", description: `You spent ${totalCost}¢ to restore your ship\'s hull.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -152,12 +152,12 @@ export function usePlayerActions(
             const crewToHire = AVAILABLE_CREW.find(c => c.id === crewId);
             if (!crewToHire) return prev;
             if (prev.playerStats.netWorth < crewToHire.hiringFee) {
-                toast({ variant: "destructive", title: "Hiring Failed", description: "Not enough credits." });
+                setTimeout(() => toast({ variant: "destructive", title: "Hiring Failed", description: "Not enough credits." }), 0);
                 return prev;
             }
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - crewToHire.hiringFee };
             const newCrew = [...prev.crew, crewToHire];
-            toast({ title: "Crew Member Hired", description: `${crewToHire.name} has joined your crew.` });
+            setTimeout(() => toast({ title: "Crew Member Hired", description: `${crewToHire.name} has joined your crew.` }), 0);
             return { ...prev, playerStats: newPlayerStats, crew: newCrew };
         });
     }, [setGameState, toast]);
@@ -168,7 +168,7 @@ export function usePlayerActions(
             const crewToFire = prev.crew.find(c => c.id === crewId);
             if (!crewToFire) return prev;
             const newCrew = prev.crew.filter(c => c.id !== crewId);
-            toast({ title: "Crew Member Fired", description: `${crewToFire.name} has left your crew.` });
+            setTimeout(() => toast({ title: "Crew Member Fired", description: `${crewToFire.name} has left your crew.` }), 0);
             return { ...prev, crew: newCrew };
         });
     }, [setGameState, toast]);
@@ -177,7 +177,7 @@ export function usePlayerActions(
         setGameState(prev => {
             if (!prev) return null;
             if (prev.playerStats.netWorth < ship.cost) {
-                toast({ variant: "destructive", title: "Purchase Failed", description: "Not enough credits." });
+                setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Not enough credits." }), 0);
                 return prev;
             }
             const newShip: PlayerShip = {
@@ -187,7 +187,7 @@ export function usePlayerActions(
                 cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1,
             };
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
-            toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` });
+            setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -195,7 +195,7 @@ export function usePlayerActions(
     const handleSellShip = useCallback((shipInstanceId: number) => {
         setGameState(prev => {
             if (!prev || prev.playerStats.fleet.length <= 1) {
-                toast({ variant: "destructive", title: "Sale Failed", description: "You cannot sell your last ship." });
+                setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: "You cannot sell your last ship." }), 0);
                 return prev;
             }
             const shipIndex = prev.playerStats.fleet.findIndex(s => s.instanceId === shipInstanceId);
@@ -220,7 +220,7 @@ export function usePlayerActions(
                 newPlayerStats.cargo = calculateCurrentCargo(prev.inventory);
             }
             
-            toast({ title: "Ship Sold", description: `You sold the ${shipToSell.name} for ${salePrice.toLocaleString()}¢.` });
+            setTimeout(() => toast({ title: "Ship Sold", description: `You sold the ${shipToSell.name} for ${salePrice.toLocaleString()}¢.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -244,7 +244,7 @@ export function usePlayerActions(
 
             const upgradeInfo = upgradeMap[upgradeType];
             if (upgradeInfo.current >= upgradeInfo.levels.length) {
-                toast({ variant: "destructive", title: "Upgrade Failed", description: "Already at max level." });
+                setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Already at max level." }), 0);
                 return prev;
             }
             const currentTierCost = upgradeInfo.levels[upgradeInfo.current - 1]?.cost || 0;
@@ -252,7 +252,7 @@ export function usePlayerActions(
             const cost = nextTierCost - currentTierCost;
 
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+                setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
                 return prev;
             }
 
@@ -262,7 +262,7 @@ export function usePlayerActions(
 
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
-            toast({ title: `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`, description: `Your ${shipToUpgrade.name}'s ${upgradeType} is now Mk. ${shipToUpgrade[`${upgradeType}Level` as keyof PlayerShip]}.` });
+            setTimeout(() => toast({ title: `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`, description: `Your ${shipToUpgrade.name}'s ${upgradeType} is now Mk. ${shipToUpgrade[`${upgradeType}Level` as keyof PlayerShip]}.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -285,7 +285,7 @@ export function usePlayerActions(
             };
             const upgradeInfo = upgradeMap[upgradeType];
             if (upgradeInfo.current <= 1) {
-                toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." });
+                setTimeout(() => toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." }), 0);
                 return prev;
             }
 
@@ -293,7 +293,7 @@ export function usePlayerActions(
                 const newMaxCargo = upgradeInfo.levels[upgradeInfo.current - 2].capacity;
                 const currentCargo = calculateCurrentCargo(prev.inventory);
                 if (currentCargo > newMaxCargo) {
-                    toast({ variant: "destructive", title: "Downgrade Failed", description: `Cannot downgrade cargo hold, you have too much cargo (${currentCargo.toFixed(2)}t / ${newMaxCargo}t).` });
+                    setTimeout(() => toast({ variant: "destructive", title: "Downgrade Failed", description: `Cannot downgrade cargo hold, you have too much cargo (${currentCargo.toFixed(2)}t / ${newMaxCargo}t).` }), 0);
                     return prev;
                 }
             }
@@ -307,7 +307,7 @@ export function usePlayerActions(
             let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + refund, fleet };
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
-            toast({ title: "Downgrade Successful!", description: `You received ${refund.toLocaleString()}¢ for selling the old component.` });
+            setTimeout(() => toast({ title: "Downgrade Successful!", description: `You received ${refund.toLocaleString()}¢ for selling the old component.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -325,7 +325,7 @@ export function usePlayerActions(
             let newPlayerStats = { ...prev.playerStats, fleet: newFleet };
             newPlayerStats = syncActiveShipStats(newPlayerStats);
             newPlayerStats.cargo = calculateCurrentCargo(prev.inventory);
-            toast({ title: "Active Ship Changed", description: `The ${activeShip.name} is now your active vessel.` });
+            setTimeout(() => toast({ title: "Active Ship Changed", description: `The ${activeShip.name} is now your active vessel.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);

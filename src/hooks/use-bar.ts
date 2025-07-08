@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
@@ -41,19 +42,19 @@ export function useBar(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.barLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Bar level is already at maximum." });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Bar level is already at maximum." }), 0);
         return prev;
       }
 
       const upgradeCost = Math.round(300 * Math.pow(prev.playerStats.barLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, barLevel: prev.playerStats.barLevel + 1 };
-      toast({ title: "Bar Upgraded!", description: `Your bar is now Level ${newPlayerStats.barLevel}.` });
+      setTimeout(() => toast({ title: "Bar Upgraded!", description: `Your bar is now Level ${newPlayerStats.barLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -66,19 +67,19 @@ export function useBar(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.autoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more than 25 bots." });
+        setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more than 25 bots." }), 0);
         return prev;
       }
 
       const botCost = Math.round(9000 * Math.pow(1.15, prev.playerStats.autoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
-        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, autoClickerBots: prev.playerStats.autoClickerBots + 1 };
-      toast({ title: "Bot Purchased!", description: "A new bot has been added to your staff." });
+      setTimeout(() => toast({ title: "Bot Purchased!", description: "A new bot has been added to your staff." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -87,14 +88,14 @@ export function useBar(
     setGameState(prev => {
         if (!prev) return null;
         if (prev.playerStats.establishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own an establishment.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own an establishment.` }), 0);
              return prev;
         }
 
         const cost = 6000;
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -106,7 +107,7 @@ export function useBar(
             barContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Establishment Purchased!", description: "You are now the proud owner of this establishment." });
+        setTimeout(() => toast({ title: "Establishment Purchased!", description: "You are now the proud owner of this establishment." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -120,7 +121,7 @@ export function useBar(
         const contract = prev.playerStats.barContract;
 
         if (!contract || prev.playerStats.establishmentLevel < 1 || prev.playerStats.establishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or establishment not owned." });
+             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or establishment not owned." }), 0);
              return prev;
         }
         
@@ -128,7 +129,7 @@ export function useBar(
         const cost = Math.round(expansionTiers[prev.playerStats.establishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -142,7 +143,7 @@ export function useBar(
             barContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Establishment Expanded!", description: `Your establishment has grown to Expansion Level ${newPlayerStats.establishmentLevel - 1}.` });
+        setTimeout(() => toast({ title: "Establishment Expanded!", description: `Your establishment has grown to Expansion Level ${newPlayerStats.establishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -152,7 +153,7 @@ export function useBar(
         if (!prev) return null;
         const contract = prev.playerStats.barContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own an establishment to sell.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: `You do not own an establishment to sell.` }), 0);
             return prev;
         }
 
@@ -166,7 +167,7 @@ export function useBar(
             barContract: undefined,
         };
         
-        toast({ title: "Establishment Sold!", description: `You sold the establishment for ${salePrice.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Establishment Sold!", description: `You sold the establishment for ${salePrice.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -182,7 +183,7 @@ export function useBar(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your establishment." });
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your establishment." }), 0);
              return prev;
         }
 
@@ -192,7 +193,7 @@ export function useBar(
             barContract: { ...contract, partners: updatedPartners }
         };
         
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);

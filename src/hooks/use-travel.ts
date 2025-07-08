@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
@@ -82,11 +83,11 @@ export function useTravel(
             if (!prev || prev.currentPlanet === planetName) return prev;
             const planetFuelCost = 1;
             if (prev.playerStats.fuel < planetFuelCost) {
-                toast({ variant: "destructive", title: "Travel Failed", description: `Not enough fuel. You need ${planetFuelCost} SU.` });
+                setTimeout(() => toast({ variant: "destructive", title: "Travel Failed", description: `Not enough fuel. You need ${planetFuelCost} SU.` }), 0);
                 return prev;
             }
             const newPlayerStats = { ...prev.playerStats, fuel: prev.playerStats.fuel - planetFuelCost };
-            toast({ title: `Arrived at ${planetName}`, description: `Orbital realignment complete. Fuel consumed: ${planetFuelCost} SU.` });
+            setTimeout(() => toast({ title: `Arrived at ${planetName}`, description: `Orbital realignment complete. Fuel consumed: ${planetFuelCost} SU.` }), 0);
             return { ...prev, playerStats: newPlayerStats, currentPlanet: planetName };
         });
     };
@@ -156,11 +157,13 @@ export function useTravel(
                         newPriceHistory[item.name] = [...(newPriceHistory[item.name] || []), item.currentPrice].slice(-20);
                     });
                     const newPlayerStats = { ...prev.playerStats, fuel: prev.playerStats.fuel - fuelCost };
+                    
+                    setTimeout(() => toast({ title: `Arrival: ${travelDestination.name}`, description: eventResult.eventDescription }), 0);
+
                     return {
                         ...prev, playerStats: newPlayerStats, currentSystem: travelDestination.name, currentPlanet: travelDestination.planets[0].name, marketItems: newMarketItems, priceHistory: newPriceHistory, pirateEncounter: scannedPirateEncounter
                     };
                 });
-                toast({ title: `Arrival: ${travelDestination.name}`, description: eventResult.eventDescription });
             } catch (e) {
                 toast({ variant: "destructive", title: "Warp Malfunction", description: "Something went wrong during travel." });
             }

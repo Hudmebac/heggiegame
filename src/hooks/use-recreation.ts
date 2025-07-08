@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
@@ -39,19 +40,19 @@ export function useRecreation(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.recreationLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." }), 0);
         return prev;
       }
 
       const upgradeCost = Math.round(281 * Math.pow(prev.playerStats.recreationLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, recreationLevel: prev.playerStats.recreationLevel + 1 };
-      toast({ title: "Facility Upgraded!", description: `Your recreation facility is now at Level ${newPlayerStats.recreationLevel}.` });
+      setTimeout(() => toast({ title: "Facility Upgraded!", description: `Your recreation facility is now at Level ${newPlayerStats.recreationLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -64,19 +65,19 @@ export function useRecreation(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.recreationAutoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 drones." });
+        setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 drones." }), 0);
         return prev;
       }
 
       const botCost = Math.round(5625 * Math.pow(1.15, prev.playerStats.recreationAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
-        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, recreationAutoClickerBots: prev.playerStats.recreationAutoClickerBots + 1 };
-      toast({ title: "Drone Deployed!", description: "A new entertainment drone has been deployed." });
+      setTimeout(() => toast({ title: "Drone Deployed!", description: "A new entertainment drone has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -85,14 +86,14 @@ export function useRecreation(
     setGameState(prev => {
         if (!prev) return null;
         if (prev.playerStats.recreationEstablishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own a recreation facility.` });
+             setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own a recreation facility.` }), 0);
              return prev;
         }
 
         const cost = 3000 * 2;
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -104,7 +105,7 @@ export function useRecreation(
             recreationContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Facility Acquired!", description: "You now manage this recreation facility." });
+        setTimeout(() => toast({ title: "Facility Acquired!", description: "You now manage this recreation facility." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -118,7 +119,7 @@ export function useRecreation(
         const contract = prev.playerStats.recreationContract;
 
         if (!contract || prev.playerStats.recreationEstablishmentLevel < 1 || prev.playerStats.recreationEstablishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." });
+             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." }), 0);
              return prev;
         }
         
@@ -126,7 +127,7 @@ export function useRecreation(
         const cost = Math.round(expansionTiers[prev.playerStats.recreationEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -140,7 +141,7 @@ export function useRecreation(
             recreationContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Facility Expanded!", description: `Your recreation facility has grown to Tier ${newPlayerStats.recreationEstablishmentLevel - 1}.` });
+        setTimeout(() => toast({ title: "Facility Expanded!", description: `Your recreation facility has grown to Tier ${newPlayerStats.recreationEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -150,7 +151,7 @@ export function useRecreation(
         if (!prev) return null;
         const contract = prev.playerStats.recreationContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a recreation facility to sell.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a recreation facility to sell.` }), 0);
             return prev;
         }
 
@@ -164,7 +165,7 @@ export function useRecreation(
             recreationContract: undefined,
         };
         
-        toast({ title: "Facility Sold!", description: `You sold the recreation facility for ${salePrice.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Facility Sold!", description: `You sold the recreation facility for ${salePrice.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -180,7 +181,7 @@ export function useRecreation(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your facility." });
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your facility." }), 0);
              return prev;
         }
 
@@ -190,7 +191,7 @@ export function useRecreation(
             recreationContract: { ...contract, partners: updatedPartners }
         };
         
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);

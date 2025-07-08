@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
@@ -39,19 +40,19 @@ export function useCommerce(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.commerceLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Commerce Hub level is already at maximum." });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Commerce Hub level is already at maximum." }), 0);
         return prev;
       }
 
       const upgradeCost = Math.round(375 * Math.pow(prev.playerStats.commerceLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, commerceLevel: prev.playerStats.commerceLevel + 1 };
-      toast({ title: "Commerce Hub Upgraded!", description: `Your hub is now Level ${newPlayerStats.commerceLevel}.` });
+      setTimeout(() => toast({ title: "Commerce Hub Upgraded!", description: `Your hub is now Level ${newPlayerStats.commerceLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -64,19 +65,19 @@ export function useCommerce(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
       if (prev.playerStats.commerceAutoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." });
+        setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
 
       const botCost = Math.round(12750 * Math.pow(1.15, prev.playerStats.commerceAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
-        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
       const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, commerceAutoClickerBots: prev.playerStats.commerceAutoClickerBots + 1 };
-      toast({ title: "Bot Deployed!", description: "A new trading bot has been deployed." });
+      setTimeout(() => toast({ title: "Bot Deployed!", description: "A new trading bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -85,14 +86,14 @@ export function useCommerce(
     setGameState(prev => {
         if (!prev) return null;
         if (prev.playerStats.commerceEstablishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own a commerce hub.` });
+             setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own a commerce hub.` }), 0);
              return prev;
         }
 
         const cost = 6000 * 1.5;
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -104,7 +105,7 @@ export function useCommerce(
             commerceContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Commerce Hub Acquired!", description: "You now manage this commercial hub." });
+        setTimeout(() => toast({ title: "Commerce Hub Acquired!", description: "You now manage this commercial hub." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -118,7 +119,7 @@ export function useCommerce(
         const contract = prev.playerStats.commerceContract;
 
         if (!contract || prev.playerStats.commerceEstablishmentLevel < 1 || prev.playerStats.commerceEstablishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or hub not owned." });
+             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or hub not owned." }), 0);
              return prev;
         }
         
@@ -126,7 +127,7 @@ export function useCommerce(
         const cost = Math.round(expansionTiers[prev.playerStats.commerceEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -140,7 +141,7 @@ export function useCommerce(
             commerceContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Hub Expanded!", description: `Your commerce hub has grown to Tier ${newPlayerStats.commerceEstablishmentLevel - 1}.` });
+        setTimeout(() => toast({ title: "Hub Expanded!", description: `Your commerce hub has grown to Tier ${newPlayerStats.commerceEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -150,7 +151,7 @@ export function useCommerce(
         if (!prev) return null;
         const contract = prev.playerStats.commerceContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a commerce hub to sell.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a commerce hub to sell.` }), 0);
             return prev;
         }
 
@@ -164,7 +165,7 @@ export function useCommerce(
             commerceContract: undefined,
         };
         
-        toast({ title: "Hub Sold!", description: `You sold the commerce hub for ${salePrice.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Hub Sold!", description: `You sold the commerce hub for ${salePrice.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
@@ -180,7 +181,7 @@ export function useCommerce(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your hub." });
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your hub." }), 0);
              return prev;
         }
 
@@ -190,7 +191,7 @@ export function useCommerce(
             commerceContract: { ...contract, partners: updatedPartners }
         };
         
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);

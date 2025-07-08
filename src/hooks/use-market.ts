@@ -34,12 +34,12 @@ export function useMarket(
 
             if (type === 'buy') {
                 if (newPlayerStats.netWorth < totalCost) {
-                    toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough credits." });
+                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough credits." }), 0);
                     return prev;
                 }
                 const currentCargo = calculateCurrentCargo(prev.inventory);
                 if (currentCargo + totalCargo > newPlayerStats.maxCargo) {
-                    toast({ variant: "destructive", title: "Transaction Failed", description: `Not enough cargo space. Available: ${(newPlayerStats.maxCargo - currentCargo).toFixed(2)}t. Needed: ${totalCargo.toFixed(2)}t.` });
+                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: `Not enough cargo space. Available: ${(newPlayerStats.maxCargo - currentCargo).toFixed(2)}t. Needed: ${totalCargo.toFixed(2)}t.` }), 0);
                     return prev;
                 }
                 newPlayerStats.netWorth -= totalCost;
@@ -51,7 +51,7 @@ export function useMarket(
                 }
             } else { // sell
                 if (!inventoryItem || inventoryItem.owned < amount) {
-                    toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough items to sell." });
+                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough items to sell." }), 0);
                     return prev;
                 }
                 newPlayerStats.netWorth += totalCost;
