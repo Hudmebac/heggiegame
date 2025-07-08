@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { PlayerShip } from '@/lib/types';
+import DefenceMinigame from '@/app/components/defence-minigame';
+import { hullUpgrades } from '@/lib/upgrades';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -25,6 +27,7 @@ const missionTypeIcons: Record<string, React.ElementType> = {
 
 const FleetStatus = ({ fleet, activeMissions }: { fleet: PlayerShip[], activeMissions: any[] }) => {
     const assignedShipIds = new Set(activeMissions.map(m => m.assignedShipInstanceId));
+    
     return (
         <Card>
             <CardHeader>
@@ -32,23 +35,31 @@ const FleetStatus = ({ fleet, activeMissions }: { fleet: PlayerShip[], activeMis
                     <Rocket className="text-primary"/>
                     Fleet Status
                 </CardTitle>
-                <CardDescription>Your ships available for escort missions.</CardDescription>
+                <CardDescription>Your ships available for escort missions. Damaged ships must be repaired on the Ship page.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {fleet.map(ship => {
                     const isAssigned = assignedShipIds.has(ship.instanceId);
                     const mission = isAssigned ? activeMissions.find(m => m.assignedShipInstanceId === ship.instanceId) : null;
+                    const maxHealth = hullUpgrades[ship.hullLevel - 1]?.health || 100;
+
                     return (
-                        <div key={ship.instanceId} className={cn("p-3 rounded-md border", isAssigned ? "bg-muted/50 border-amber-500/30" : "bg-card/50")}>
+                        <div key={ship.instanceId} className={cn("p-3 rounded-md border", isAssigned ? "bg-muted/50 border-amber-500/30" : ship.status === 'repair_needed' ? 'bg-destructive/10 border-destructive/30' : "bg-card/50")}>
                             <div className="flex justify-between items-center">
                                 <h4 className="font-semibold text-sm">{ship.name}</h4>
                                 {isAssigned ? (
                                     <Badge variant="outline" className="text-amber-400 border-amber-500/30">On Mission</Badge>
+                                ) : ship.status === 'repair_needed' ? (
+                                    <Badge variant="destructive">Repair Needed</Badge>
                                 ) : (
                                     <Badge variant="outline" className="text-green-400 border-green-500/30">Available</Badge>
                                 )}
                             </div>
-                            <p className="text-xs text-muted-foreground">{isAssigned ? `Escorting to ${mission?.toSystem}` : "Awaiting orders"}</p>
+                             <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                                <p>{isAssigned ? `Escorting to ${mission?.toSystem}` : "Awaiting orders"}</p>
+                                <Progress value={(ship.health / maxHealth) * 100} indicatorClassName={cn(ship.health < maxHealth * 0.25 ? 'bg-destructive' : ship.health < maxHealth * 0.5 ? 'bg-yellow-500' : 'bg-green-400')} />
+                                <div className="text-right font-mono">{ship.health.toFixed(0)} / {maxHealth} HP</div>
+                            </div>
                         </div>
                     )
                 })}
@@ -69,7 +80,7 @@ export default function DefencePage() {
     const availableMissions = escortMissions.filter(m => m.status === 'Available');
     const activeMissions = escortMissions.filter(m => m.status === 'Active');
     const assignedShipIds = new Set(activeMissions.map(m => m.assignedShipInstanceId));
-    const hasAvailableShips = playerStats.fleet.length > assignedShipIds.size;
+    const hasAvailableShips = playerStats.fleet.some(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
 
     return (
         <div className="space-y-6">
@@ -80,7 +91,7 @@ export default function DefencePage() {
                         Aegis Command
                     </CardTitle>
                     <CardDescription>
-                        As a Defender, your duty is to protect the spacelanes. Assign your available ships to high-stakes escort missions to earn credits and bolster galactic security.
+                        As a Defender, your duty is to protect the spacelanes. Assign ships to escort missions or run planetary defense simulations to earn credits and bolster galactic security.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -90,6 +101,8 @@ export default function DefencePage() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <DefenceMinigame />
 
             <FleetStatus fleet={playerStats.fleet} activeMissions={activeMissions} />
 
@@ -139,7 +152,7 @@ export default function DefencePage() {
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2"><FileText className="text-primary"/> Available Contracts</CardTitle>
                     {!hasAvailableShips && (
-                        <CardDescription className="text-amber-400">All ships are currently assigned. You must have an available ship to accept new contracts.</CardDescription>
+                        <CardDescription className="text-amber-400">All operational ships are currently assigned. You must have an available ship to accept new contracts.</CardDescription>
                     )}
                 </CardHeader>
                 <CardContent className="space-y-4">

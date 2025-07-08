@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import ShipOutfittingDialog from './ship-outfitting-dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Ship, Rocket, Warehouse, Fuel, ShieldCheck, HeartPulse, Wrench, Sparkles, CheckCircle, Trash2, ShoppingCart } from 'lucide-react';
+import { Ship, Rocket, Warehouse, Fuel, ShieldCheck, HeartPulse, Wrench, Sparkles, CheckCircle, Trash2, ShoppingCart, Crosshair, Bot } from 'lucide-react';
 import type { PlayerShip, ShipForSale } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { Progress } from '@/components/ui/progress';
 
 export default function FleetManagement() {
-  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip } = useGame();
+  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip, handleRepairFleetShip } = useGame();
   const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
   if (!gameState) {
@@ -30,7 +30,7 @@ export default function FleetManagement() {
   const canAffordRefuel = playerStats.netWorth >= refuelCost;
 
   const damageToRepair = playerStats.maxShipHealth - playerStats.shipHealth;
-  const repairCost = Math.round(damageToRepair * 50);
+  const repairCost = Math.round(damageToRepair * (playerStats.insurance.ship ? 25 : 50));
   const canAffordRepair = playerStats.netWorth >= repairCost;
 
   return (
@@ -70,7 +70,7 @@ export default function FleetManagement() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-lg flex items-center gap-2">
-            <Rocket className="text-primary" />
+            <Ship className="text-primary" />
             Your Fleet
           </CardTitle>
           <CardDescription>Manage your collection of starships. The first ship in the list is your active vessel.</CardDescription>
@@ -87,27 +87,44 @@ export default function FleetManagement() {
             const weaponInfo = weaponUpgrades[ship.weaponLevel - 1];
             const fuelInfo = fuelUpgrades[ship.fuelLevel - 1];
             const sensorInfo = sensorUpgrades[ship.sensorLevel - 1];
+            const droneInfo = droneUpgrades[ship.droneLevel - 1];
+            
+            const maxHealth = hullInfo.health;
+            const shipDamage = maxHealth - ship.health;
+            const shipRepairCost = Math.round(shipDamage * (playerStats.insurance.ship ? 25 : 50));
+            const canAffordShipRepair = playerStats.netWorth >= shipRepairCost;
 
             return (
-              <Card key={ship.instanceId} className={cn("bg-card/50", isActive && "border-primary")}>
+              <Card key={ship.instanceId} className={cn("bg-card/50", isActive && "border-primary", ship.status === 'repair_needed' && 'border-destructive')}>
                 <CardHeader>
                     <div className="flex justify-between items-start">
                         <div>
                             <CardTitle className={cn("text-base", isActive && "text-primary")}>{ship.name}</CardTitle>
                             <CardDescription>{baseData.type}</CardDescription>
                         </div>
-                        {isActive && <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase"><CheckCircle className="h-4 w-4" /> Active</div>}
+                         <div className='flex items-center gap-2'>
+                          {ship.status === 'repair_needed' && <Badge variant="destructive">Repair Needed</Badge>}
+                          {isActive && <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase"><CheckCircle className="h-4 w-4" /> Active</div>}
+                        </div>
                     </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: {isActive ? `${playerStats.cargo.toFixed(2)} / ` : ''}{cargoInfo?.capacity}t (Lvl {ship.cargoLevel})</span></div>
-                    <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Hull: Lvl {ship.hullLevel} - {hullInfo?.health}HP</span></div>
-                    <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: Lvl {ship.fuelLevel} - {fuelInfo?.capacity} SU</span></div>
-                    <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-primary/70" /> <span>{shieldInfo?.name}</span></div>
-                    <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary/70" /> <span>{weaponInfo?.name}</span></div>
-                    <div className="flex items-center gap-2"><Rocket className="h-4 w-4 text-primary/70" /> <span>{sensorInfo?.name}</span></div>
-                  </div>
+                <CardContent className='space-y-4'>
+                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2" title={cargoInfo?.name}><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: Lvl {ship.cargoLevel}</span></div>
+                        <div className="flex items-center gap-2" title={hullInfo?.name}><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Hull: Lvl {ship.hullLevel}</span></div>
+                        <div className="flex items-center gap-2" title={fuelInfo?.name}><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: Lvl {ship.fuelLevel}</span></div>
+                        <div className="flex items-center gap-2" title={shieldInfo?.name}><ShieldCheck className="h-4 w-4 text-primary/70" /> <span>Shields: Lvl {ship.shieldLevel}</span></div>
+                        <div className="flex items-center gap-2" title={weaponInfo?.name}><Crosshair className="h-4 w-4 text-primary/70" /> <span>Weapons: Lvl {ship.weaponLevel}</span></div>
+                        <div className="flex items-center gap-2" title={sensorInfo?.name}><Sparkles className="h-4 w-4 text-primary/70" /> <span>Sensors: Lvl {ship.sensorLevel}</span></div>
+                         <div className="flex items-center gap-2" title={droneInfo?.name}><Bot className="h-4 w-4 text-primary/70" /> <span>Drones: Lvl {ship.droneLevel}</span></div>
+                    </div>
+                     <div className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Hull:</span>
+                          <span className="font-mono">{ship.health.toFixed(0)} / {maxHealth} HP</span>
+                        </div>
+                        <Progress value={(ship.health / maxHealth) * 100} indicatorClassName={cn(ship.health < maxHealth * 0.25 ? 'bg-destructive' : ship.health < maxHealth * 0.5 ? 'bg-yellow-500' : 'bg-primary')} />
+                      </div>
                 </CardContent>
                 <CardContent className="flex justify-end gap-2">
                   <Button variant="outline" size="sm" onClick={() => setOutfittingShipId(ship.instanceId)}>
@@ -132,7 +149,10 @@ export default function FleetManagement() {
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                  <Button size="sm" onClick={() => handleSetActiveShip(ship.instanceId)} disabled={isActive}>
+                  {ship.status === 'repair_needed' && !isActive && (
+                      <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!canAffordShipRepair}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
+                  )}
+                  <Button size="sm" onClick={() => handleSetActiveShip(ship.instanceId)} disabled={isActive || ship.status === 'repair_needed'}>
                     Activate
                   </Button>
                 </CardContent>

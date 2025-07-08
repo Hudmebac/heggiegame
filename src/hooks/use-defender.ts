@@ -94,10 +94,10 @@ export function useDefender(
         }
 
         const assignedShipIds = new Set(prev.playerStats.escortMissions.filter(m => m.status === 'Active' && m.assignedShipInstanceId).map(m => m.assignedShipInstanceId));
-        const availableShip = prev.playerStats.fleet.find(s => !assignedShipIds.has(s.instanceId));
+        const availableShip = prev.playerStats.fleet.find(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
 
         if (!availableShip) {
-            setTimeout(() => toast({ variant: "destructive", title: "No Ships Available", description: "All your ships are currently on other missions." }), 0);
+            setTimeout(() => toast({ variant: "destructive", title: "No Ships Available", description: "All operational ships are currently on other missions." }), 0);
             return prev;
         }
 
@@ -123,6 +123,19 @@ export function useDefender(
         };
     });
   }, [setGameState, toast]);
+  
+  const handleDefenceMinigameScore = useCallback((points: number) => {
+    setGameState(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        playerStats: {
+          ...prev.playerStats,
+          netWorth: prev.playerStats.netWorth + points
+        }
+      }
+    });
+  }, [setGameState]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -157,7 +170,7 @@ export function useDefender(
             setTimeout(() => toast({ title: "Escort Complete!", description: `Safely escorted ${mission.clientName} to ${mission.toSystem}. You earned ${mission.payout.toLocaleString()}¢.` }), 0);
           } else {
             // Pirate risk check - higher for defenders
-            const riskValue = { 'Low': 0.01, 'Medium': 0.03, 'High': 0.06, 'Critical': 0.1 }[mission.riskLevel];
+            const riskValue = { 'Low': 0.002, 'Medium': 0.006, 'High': 0.012, 'Critical': 0.02 }[mission.riskLevel];
             if (!newPlayerStats.pirateEncounter && Math.random() < riskValue) {
                 newPlayerStats.pirateEncounter = {
                     ...generateRandomPirate(prev.crew.some(c => c.role === 'Navigator')),
@@ -184,6 +197,7 @@ export function useDefender(
   return {
     handleGenerateEscortMissions,
     handleAcceptEscortMission,
+    handleDefenceMinigameScore,
     isGeneratingMissions,
   };
 }

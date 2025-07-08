@@ -1,6 +1,7 @@
 
 
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -61,6 +62,8 @@ export interface PlayerShip {
   instanceId: number;
   shipId: string;
   name: string;
+  health: number;
+  status: 'operational' | 'repair_needed';
   weaponLevel: number;
   shieldLevel: number;
   hullLevel: number;

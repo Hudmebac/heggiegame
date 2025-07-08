@@ -8,7 +8,7 @@ import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
-import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue } from '@/lib/utils';
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
@@ -56,7 +56,7 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.thermalRegulator = activeShip.thermalRegulator;
     newStats.diplomaticUplink = activeShip.diplomaticUplink;
     
-    newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
+    newStats.shipHealth = activeShip.health;
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
 
     return newStats;
@@ -159,8 +159,56 @@ export function usePlayerActions(
                 setTimeout(() => toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` }), 0);
                 return prev;
             }
-            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, shipHealth: prev.playerStats.maxShipHealth, };
+            
+            const newFleet = [...prev.playerStats.fleet];
+            const activeShipIndex = 0;
+            const activeShip = { ...newFleet[activeShipIndex] };
+            activeShip.health = prev.playerStats.maxShipHealth;
+            activeShip.status = 'operational';
+            newFleet[activeShipIndex] = activeShip;
+
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, fleet: newFleet };
+            newPlayerStats = syncActiveShipStats(newPlayerStats);
+
             const toastDescription = `You spent ${totalCost}¢ to restore your ship's hull.` + (insuranceMultiplier < 1 ? ' (50% insurance discount applied)' : '');
+            setTimeout(() => toast({ title: "Repairs Complete", description: toastDescription }), 0);
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
+    const handleRepairFleetShip = useCallback((instanceId: number) => {
+         setGameState(prev => {
+            if (!prev) return null;
+
+            const shipIndex = prev.playerStats.fleet.findIndex(s => s.instanceId === instanceId);
+            if(shipIndex === -1) return prev;
+            
+            const fleet = [...prev.playerStats.fleet];
+            const shipToRepair = {...fleet[shipIndex]};
+            const maxHealth = hullUpgrades[shipToRepair.hullLevel - 1]?.health || 100;
+
+            const damageToRepair = maxHealth - shipToRepair.health;
+            if (damageToRepair <= 0) return prev;
+
+            const baseRepairPricePerPoint = 50;
+            const insuranceMultiplier = prev.playerStats.insurance.ship ? 0.5 : 1.0;
+            const totalCost = Math.round(damageToRepair * baseRepairPricePerPoint * insuranceMultiplier);
+
+            if (prev.playerStats.netWorth < totalCost) {
+                setTimeout(() => toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` }), 0);
+                return prev;
+            }
+
+            shipToRepair.health = maxHealth;
+            shipToRepair.status = 'operational';
+            fleet[shipIndex] = shipToRepair;
+
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, fleet: fleet };
+            if(instanceId === newPlayerStats.fleet[0].instanceId) {
+                newPlayerStats = syncActiveShipStats(newPlayerStats);
+            }
+
+            const toastDescription = `You spent ${totalCost}¢ to restore the ${shipToRepair.name}'s hull.` + (insuranceMultiplier < 1 ? ' (50% insurance discount applied)' : '');
             setTimeout(() => toast({ title: "Repairs Complete", description: toastDescription }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
@@ -206,7 +254,9 @@ export function usePlayerActions(
                 name: ship.name,
                 cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
                 powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
-                gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false
+                gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
+                health: hullUpgrades[0].health,
+                status: 'operational',
             };
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
             setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);
@@ -424,6 +474,7 @@ export function usePlayerActions(
         handleResetGame,
         handleRefuel,
         handleRepairShip,
+        handleRepairFleetShip,
         handleHireCrew,
         handleFireCrew,
         handlePurchaseShip,
