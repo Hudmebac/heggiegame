@@ -47,9 +47,25 @@ const allNavItems = [
     { href: '/contractor', label: 'Contractor', icon: Clipboard, career: 'Heggie Contractor' },
 ];
 
-const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, icon: React.ElementType }) => {
+const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: { href: string; label: string; icon: React.ElementType; career?: string, playerCareer: string; }) => {
     const pathname = usePathname();
+
+    const hasCareerSpecificOverride = allNavItems.some(i => i.href === href && i.career === playerCareer);
+
+    if (itemCareer) {
+        // This is a career-specific link. Only show if it's for the current career.
+        if (itemCareer !== playerCareer) {
+            return null;
+        }
+    } else {
+        // This is a generic link. Only show if there isn't a career-specific override.
+        if (hasCareerSpecificOverride) {
+            return null;
+        }
+    }
+    
     const isActive = pathname.startsWith(href);
+
     return (
         <Link href={href}>
             <div className={cn(
@@ -65,22 +81,6 @@ const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, ico
 
 export default function Header({ playerStats }: {playerStats: PlayerStats}) {
   const career = playerStats.career;
-  const careerInfo = CAREER_DATA.find(c => c.id === career);
-
-  const navItems = allNavItems.filter(item => {
-    // Show career-specific links only if the player has that career.
-    if (item.career && item.career !== career) {
-        return false;
-    }
-    // Don't show generic links if there is a career specific link for it
-    if (item.career && item.career === career && allNavItems.some(i => i.href === item.href && !i.career)) {
-        return true;
-    }
-    if (!item.career && allNavItems.some(i => i.href === item.href && i.career === career)) {
-        return false;
-    }
-    return true;
-  });
 
   return (
     <div className="flex flex-col h-full">
@@ -106,7 +106,7 @@ export default function Header({ playerStats }: {playerStats: PlayerStats}) {
       </header>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-        {navItems.map(item => <NavLink key={item.href} {...item} />)}
+        {allNavItems.map(item => <NavLink key={item.href + (item.career || '')} {...item} playerCareer={career} />)}
       </nav>
     </div>
   );
