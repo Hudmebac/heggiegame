@@ -6,7 +6,7 @@ import { useGame } from '@/app/components/game-provider';
 import BankClicker from './bank-clicker';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle } from 'lucide-react';
+import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, Martini, Home, Factory, Building2, Ticket } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import CooldownTimer from './cooldown-timer';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { barThemes } from '@/lib/bar-themes';
+import { residenceThemes } from '@/lib/residence-themes';
+import { commerceThemes } from '@/lib/commerce-themes';
+import { industryThemes } from '@/lib/industry-themes';
+import { constructionThemes } from '@/lib/construction-themes';
+import { recreationThemes } from '@/lib/recreation-themes';
 
 const TransactionDialog = ({ type, onConfirm, maxAmount, currentBalance }: { type: 'Deposit' | 'Withdraw', onConfirm: (amount: number) => void, maxAmount: number, currentBalance: number }) => {
     const [amount, setAmount] = useState(0);
@@ -138,7 +145,9 @@ export default function BankPageComponent() {
         )
     }
 
-    const { playerStats } = gameState;
+    const { playerStats, systems, currentSystem: currentSystemName } = gameState;
+    const currentSystem = systems.find(s => s.name === currentSystemName);
+    const zoneType = currentSystem?.zoneType;
     const { bankAccount, bankShares = 0, loan, creditCard, debt } = playerStats;
     const sharePurchaseCost = 1000000;
     const canAffordShare = playerStats.netWorth >= sharePurchaseCost;
@@ -148,6 +157,25 @@ export default function BankPageComponent() {
     const totalWealth = playerStats.netWorth + (bankAccount?.balance || 0);
 
     const loanPayoffAmount = loan ? Math.ceil((loan.principal * (1 - (loan.repaymentsMade / loan.totalRepayments))) + ((loan.principal * loan.interestRate) * (1 - (loan.repaymentsMade / loan.totalRepayments)) * 0.5)) : 0;
+
+    const calculateIncome = (level: number, bots: number, contract: any, themes: any) => {
+        if (!zoneType) return 0;
+        const theme = themes[zoneType] || themes['Default'];
+        const totalPartnerShare = (contract?.partners || []).reduce((acc: number, p: { percentage: number }) => acc + p.percentage, 0);
+        const rawIncomePerClick = theme.baseIncome * level;
+        return Math.round((bots * rawIncomePerClick) * (1 - totalPartnerShare));
+    };
+
+    const portfolio = [
+        { name: 'Bar', icon: Martini, level: playerStats.barLevel, bots: playerStats.autoClickerBots, income: calculateIncome(playerStats.barLevel, playerStats.autoClickerBots, playerStats.barContract, barThemes) },
+        { name: 'Residence', icon: Home, level: playerStats.residenceLevel, bots: playerStats.residenceAutoClickerBots, income: calculateIncome(playerStats.residenceLevel, playerStats.residenceAutoClickerBots, playerStats.residenceContract, residenceThemes) },
+        { name: 'Commerce', icon: Landmark, level: playerStats.commerceLevel, bots: playerStats.commerceAutoClickerBots, income: calculateIncome(playerStats.commerceLevel, playerStats.commerceAutoClickerBots, playerStats.commerceContract, commerceThemes) },
+        { name: 'Industry', icon: Factory, level: playerStats.industryLevel, bots: playerStats.industryAutoClickerBots, income: calculateIncome(playerStats.industryLevel, playerStats.industryAutoClickerBots, playerStats.industryContract, industryThemes) },
+        { name: 'Construction', icon: Building2, level: playerStats.constructionLevel, bots: playerStats.constructionAutoClickerBots, income: calculateIncome(playerStats.constructionLevel, playerStats.constructionAutoClickerBots, playerStats.constructionContract, constructionThemes) },
+        { name: 'Recreation', icon: Ticket, level: playerStats.recreationLevel, bots: playerStats.recreationAutoClickerBots, income: calculateIncome(playerStats.recreationLevel, playerStats.recreationAutoClickerBots, playerStats.recreationContract, recreationThemes) },
+      ];
+
+    const totalPassiveIncome = portfolio.reduce((sum, item) => sum + item.income, 0);
 
     return (
         <div className="space-y-6">
@@ -254,6 +282,51 @@ export default function BankPageComponent() {
                             )}
                         </CardContent>
                     </Card>
+
+                     <div className="lg:col-span-2 xl:col-span-3">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                    <Briefcase className="text-primary"/>
+                                    Business Portfolio
+                                </CardTitle>
+                                <CardDescription>
+                                    Overview of your income-generating assets across the galaxy.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Asset</TableHead>
+                                            <TableHead className="text-right">Level</TableHead>
+                                            <TableHead className="text-right">Bots</TableHead>
+                                            <TableHead className="text-right">Income/sec</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {portfolio.map(asset => (
+                                            <TableRow key={asset.name}>
+                                                <TableCell className="font-medium flex items-center gap-2">
+                                                    <asset.icon className="h-4 w-4 text-muted-foreground" />
+                                                    {asset.name}
+                                                </TableCell>
+                                                <TableCell className="text-right font-mono">{asset.level}</TableCell>
+                                                <TableCell className="text-right font-mono">{asset.bots}</TableCell>
+                                                <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
+                                            <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </div>
 
                 </div>
                 {dialog === 'deposit' && (
