@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function HeggieIcon() {
@@ -32,6 +32,7 @@ const navItems = [
     { href: '/industry', label: 'Industry', icon: Factory },
     { href: '/recreation', label: 'Recreation', icon: Ticket },
     { href: '/residence', label: 'Residence', icon: Home },
+    { href: '/casino', label: 'Casino', icon: Spade },
     { href: '/quests', label: 'Quests', icon: ScrollText },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/encyclopedia', label: 'Encyclopedia', icon: BookOpen },

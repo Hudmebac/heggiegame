@@ -37,6 +37,13 @@ export interface BarContract {
   partners: BarPartner[];
 }
 
+export type CasinoGameType = 'slots' | 'table' | 'poker' | 'vip' | 'sportsbook' | 'lottery';
+
+export interface CasinoState {
+    lastPlayed: { [key in CasinoGameType]?: number };
+    dailyLotteryTicketPurchased: boolean;
+}
+
 export type ResidenceContract = BarContract;
 export type CommerceContract = BarContract;
 export type IndustryContract = BarContract;
@@ -106,6 +113,7 @@ export interface PlayerStats {
   recreationAutoClickerBots: number;
   recreationEstablishmentLevel: number;
   recreationContract?: RecreationContract;
+  casino: CasinoState;
 }
 
 export interface PriceHistory {

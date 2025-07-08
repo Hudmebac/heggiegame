@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
@@ -77,6 +77,11 @@ const initialShip: PlayerShip = {
     cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
 };
 
+const initialCasinoState: CasinoState = {
+    lastPlayed: {},
+    dailyLotteryTicketPurchased: false,
+};
+
 const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes' | 'systems' > & { playerStats: Partial<PlayerStats>, routes: [], systems: [] } = {
   playerStats: {
     name: 'You',
@@ -91,6 +96,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     industryLevel: 1, industryAutoClickerBots: 0, industryEstablishmentLevel: 0,
     constructionLevel: 1, constructionAutoClickerBots: 0, constructionEstablishmentLevel: 0,
     recreationLevel: 1, recreationAutoClickerBots: 0, recreationEstablishmentLevel: 0,
+    casino: initialCasinoState,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -155,10 +161,10 @@ export function useGameState() {
             };
 
             setGameState(newGameState);
-            toastInstance.update({ title: "New Game Generated", description: "Your adventure begins now!", duration: 5000 });
+            toastInstance.update({ id: toastInstance.id, title: "New Game Generated", description: "Your adventure begins now!", duration: 5000 });
         } catch(e) {
             console.error("Failed to generate new game state", e);
-            toastInstance.update({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
+            toastInstance.update({ id: toastInstance.id, title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
         }
     }, [calculateMarketDataForSystem, toast]);
 
@@ -178,7 +184,7 @@ export function useGameState() {
                 const currentSystem = SYSTEMS.find(s => s.name === savedProgress.currentSystem) || SYSTEMS[0];
                 const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
-                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats };
+                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats, casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) } };
                 mergedPlayerStats.inventory = savedProgress.inventory || initialGameState.inventory;
                 mergedPlayerStats = syncActiveShipStats(mergedPlayerStats as PlayerStats);
                 mergedPlayerStats.cargo = calculateCurrentCargo(mergedPlayerStats.inventory);

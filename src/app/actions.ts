@@ -13,6 +13,7 @@ import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-
 import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-partnership-offers';
 import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
 import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
+import { resolveCasinoGame } from '@/ai/flows/resolve-casino-game';
 import { z } from 'zod';
 
 import {
@@ -46,6 +47,9 @@ import {
   GenerateRecreationPartnershipOffersInputSchema,
   type GenerateRecreationPartnershipOffersInput,
   type GenerateRecreationPartnershipOffersOutput,
+  ResolveCasinoGameInputSchema,
+  type ResolveCasinoGameInput,
+  type ResolveCasinoGameOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -201,5 +205,19 @@ export async function runRecreationPartnershipOfferGeneration(input: GenerateRec
             throw new Error(`Invalid input for recreation partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate recreation partnership offers.');
+    }
+}
+
+export async function runCasinoGame(input: ResolveCasinoGameInput): Promise<ResolveCasinoGameOutput> {
+    try {
+        const validatedInput = ResolveCasinoGameInputSchema.parse(input);
+        const result = await resolveCasinoGame(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error resolving casino game:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for casino game: ${error.message}`);
+        }
+        throw new Error('Failed to resolve casino game.');
     }
 }
