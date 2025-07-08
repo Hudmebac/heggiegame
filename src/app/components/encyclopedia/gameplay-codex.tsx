@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle } from 'lucide-react';
+import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package } from 'lucide-react';
 
 const difficultyLevels = [
     {
