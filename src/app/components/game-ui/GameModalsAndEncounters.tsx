@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import PirateEncounter from './pirate-encounter';
+import PirateEncounter from '../pirate-encounter';
 import { useGame } from '@/app/components/game-provider';
 import { Loader2, AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle } from 'lucide-react';
 import TradeDialog from "../trade-dialog";

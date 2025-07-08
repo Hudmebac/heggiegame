@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
 import Header from '@/app/components/header';
 import { Loader2 } from 'lucide-react';
+import GameModalsAndEncounters from '@/app/components/game-ui/GameModalsAndEncounters';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { gameState, isClient } = useGame();
@@ -23,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="overflow-auto p-4 sm:p-6 lg:p-8">
         {children}
       </main>
+      <GameModalsAndEncounters />
     </div>
   );
 }
