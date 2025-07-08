@@ -122,12 +122,18 @@ export function useTravel(
                 const hasNavigator = gameState.crew.some(c => c.role === 'Navigator');
                 const pirateEncounterObject = Math.random() < totalEncounterChance ? generateRandomPirate(hasNavigator) : null;
                 
-                // Sequentially generate event, then simulate market and scan for pirates in parallel
                 const eventResult = await runEventGeneration();
+
+                const marketItemsForDestination = calculateMarketDataForSystem(travelDestination);
+
+                // Select a smaller, random subset of items for the AI simulation
+                const itemsToSimulate = marketItemsForDestination.length > 30 
+                    ? [...marketItemsForDestination].sort(() => 0.5 - Math.random()).slice(0, 30)
+                    : marketItemsForDestination;
 
                 const [simResult, scanResult] = await Promise.all([
                      runMarketSimulation({
-                        items: calculateMarketDataForSystem(travelDestination),
+                        items: itemsToSimulate,
                         systemEconomy: travelDestination.economy,
                         systemVolatility: travelDestination.volatility,
                         eventDescription: eventResult.eventDescription,
@@ -145,15 +151,33 @@ export function useTravel(
                      scannedPirateEncounter = { ...pirateEncounterObject, scanResult: scanResult.scanReport };
                 }
                
-                const newMarketItems: MarketItem[] = simResult.map(update => {
-                    const staticItem = STATIC_ITEMS.find(si => si.name === update.name)!;
+                const simUpdates = new Map(simResult.map(item => [item.name, item]));
+
+                const newMarketItems: MarketItem[] = marketItemsForDestination.map(item => {
+                    const update = simUpdates.get(item.name);
+                    const staticItem = STATIC_ITEMS.find(si => si.name === item.name)!;
                     const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][travelDestination.economy];
-                    return {
-                        name: update.name,
-                        supply: update.newSupply,
-                        demand: update.newDemand,
-                        currentPrice: calculatePrice(staticItem.basePrice, update.newSupply, update.newDemand, economyMultiplier),
-                    };
+                    
+                    if (update) {
+                        // This item was simulated by the AI
+                        return {
+                            name: update.name,
+                            supply: update.newSupply,
+                            demand: update.newDemand,
+                            currentPrice: calculatePrice(staticItem.basePrice, update.newSupply, update.newDemand, economyMultiplier),
+                        };
+                    } else {
+                        // This item was not simulated, apply a simple volatility fluctuation
+                        const volatilityFactor = (Math.random() - 0.5) * travelDestination.volatility * 0.2; // Smaller fluctuation
+                        const newSupply = Math.max(10, Math.round(item.supply * (1 - volatilityFactor)));
+                        const newDemand = Math.max(10, Math.round(item.demand * (1 + volatilityFactor)));
+                        return {
+                            name: item.name,
+                            supply: newSupply,
+                            demand: newDemand,
+                            currentPrice: calculatePrice(staticItem.basePrice, newSupply, newDemand, economyMultiplier),
+                        };
+                    }
                 });
 
                 setGameState(prev => {
