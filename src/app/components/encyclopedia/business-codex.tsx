@@ -10,27 +10,27 @@ const businessData = [
         description: "A classic starting point for any trader. Serve drinks to patrons to generate a steady, if modest, income. Upgrade your bar and hire bots to automate service and increase profits. Can be expanded into a galactic franchise."
     },
     {
-        icon: Residence,
+        icon: Home,
         title: "Residence",
         description: "Establish residential properties to collect rent. A reliable source of passive income. Like other businesses, it has its own upgrade path, bot automation for rent collection, and can be expanded into a sprawling estate."
     },
     {
-        icon: Commerce,
+        icon: Briefcase,
         title: "Commerce Hub",
         description: "Manage a trading post, brokering deals and processing shipments. A commerce-focused business with high potential returns based on market knowledge. Can be upgraded into a galactic conglomerate."
     },
     {
-        icon: Industry,
+        icon: Factory,
         title: "Industrial Facility",
         description: "Oversee a factory that produces valuable goods. This business type is about output and efficiency, generating significant income through production cycles. Can be expanded into a massive industrial complex."
     },
     {
-        icon: Construction,
+        icon: Building2,
         title: "Construction Project",
         description: "Take on large-scale construction jobs, from planetary settlements to orbital stations. A high-investment, high-reward venture that requires significant capital to scale into a megastructure project."
     },
     {
-        icon: Recreation,
+        icon: Ticket,
         title: "Recreation Facility",
         description: "Provide entertainment for the masses, from arcades to holo-theaters. A fun and profitable business that can be expanded into a luxurious galactic resort."
     },
