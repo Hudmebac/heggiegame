@@ -136,6 +136,13 @@ export interface TaxiMission {
   duration: number;
 }
 
+export interface Warehouse {
+  systemName: string;
+  level: number;
+  capacity: number;
+  storage: InventoryItem[];
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -146,6 +153,7 @@ export interface PlayerStats {
   pirateRisk: number;
   reputation: number;
   insurance: InsurancePolicies;
+  warehouses: Warehouse[];
 
   fleet: PlayerShip[];
 

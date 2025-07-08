@@ -21,6 +21,7 @@ import { useCasino } from '@/hooks/use-casino';
 import { useBank } from '@/hooks/use-bank';
 import { useHauler } from '@/hooks/use-hauler';
 import { useTaxi } from '@/hooks/use-taxi';
+import { useTrader } from '@/hooks/use-trader';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -36,6 +37,8 @@ import type { useMarket as useMarketType } from '@/hooks/use-market';
 import type { useTravel as useTravelType } from '@/hooks/use-travel';
 import type { useHauler as useHaulerType } from '@/hooks/use-hauler';
 import type { useTaxi as useTaxiType } from '@/hooks/use-taxi';
+import type { useTrader as useTraderType } from '@/hooks/use-trader';
+
 
 type GameContextType = {
     gameState: GameState | null;
@@ -56,7 +59,8 @@ type GameContextType = {
   ReturnType<typeof useMarketType> &
   ReturnType<typeof useTravelType> &
   ReturnType<typeof useHaulerType> &
-  ReturnType<typeof useTaxiType>;
+  ReturnType<typeof useTaxiType> &
+  ReturnType<typeof useTraderType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -78,6 +82,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const encounters = useEncounters(gameState, setGameState);
     const haulerLogic = useHauler(gameState, setGameState);
     const taxiLogic = useTaxi(gameState, setGameState);
+    const traderLogic = useTrader(gameState, setGameState);
 
     // Business Logic Hooks
     const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
@@ -114,6 +119,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...travelLogic,
         ...haulerLogic,
         ...taxiLogic,
+        ...traderLogic,
     };
     
     return (

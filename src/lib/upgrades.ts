@@ -174,3 +174,22 @@ export const advancedUpgrades: AdvancedToggleableUpgrade[] = [
     { id: 'thermalRegulator', name: 'Thermal Regulator', category: 'Utility Modules', description: 'Prevents overheating, allowing for longer high-load performance of ship systems.', cost: 140000 },
     { id: 'diplomaticUplink', name: 'Diplomatic Uplink', category: 'Utility Modules', description: 'Unlocks faction-based dialogue trees or unlocks trade routes.', cost: 195000 },
 ];
+
+export interface WarehouseUpgrade {
+    level: number;
+    name: string;
+    capacity: number;
+    cost: number;
+}
+
+const warehouseCosts = generateUpgradeCosts(10, 50000 * costMultiplier, costGrowthFactor * 0.9);
+const warehouseNames = [
+    'Basic Storage Unit', 'Expanded Container', 'Secure Warehouse', 'Automated Depot', 'Large-Scale Warehouse',
+    'Regional Distribution Hub', 'Orbital Storage Platform', 'Quantum-Locked Vault', 'Subspace Repository', 'System-Wide Logistics Core'
+];
+export const warehouseUpgrades: WarehouseUpgrade[] = warehouseNames.map((name, i) => ({
+    level: i + 1,
+    name,
+    cost: warehouseCosts[i],
+    capacity: 200 * (i + 1) * (i + 1)
+}));

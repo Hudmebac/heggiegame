@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades } from '@/lib/upgrades';
@@ -124,6 +124,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     recreationLevel: 1, recreationAutoClickerBots: 0, recreationEstablishmentLevel: 0,
     casino: initialCasinoState,
     insurance: initialInsuranceState,
+    warehouses: [],
     bankAccount: undefined,
     bankShares: 0,
     bankLevel: 1,
@@ -194,6 +195,7 @@ export function useGameState() {
                     influence: careerData.startingInfluence || 0,
                     tradeContracts: [],
                     taxiMissions: [],
+                    warehouses: [],
                 }
 
                 let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
