@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
 import Header from '@/app/components/header';
 import { Loader2, Menu } from 'lucide-react';
 import GameModalsAndEncounters from '@/app/components/game-ui/GameModalsAndEncounters';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +39,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation Menu</SheetTitle>
+                <SheetDescription>Main navigation links and player status.</SheetDescription>
+              </SheetHeader>
               <Header playerStats={gameState.playerStats} />
             </SheetContent>
           </Sheet>
