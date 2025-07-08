@@ -76,6 +76,21 @@ export interface InsurancePolicies {
 
 export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Hardcore';
 
+export interface Loan {
+  principal: number;
+  interestRate: number;
+  totalRepayments: number;
+  repaymentsMade: number;
+  repaymentAmount: number;
+  nextDueDate: number;
+}
+
+export interface CreditCard {
+  limit: number;
+  balance: number;
+  dueDate: number;
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -136,6 +151,11 @@ export interface PlayerStats {
   bankAutoClickerBots: number;
   bankEstablishmentLevel: number;
   bankContract?: BankContract;
+
+  // Financial Instruments
+  loan?: Loan;
+  creditCard?: CreditCard;
+  debt: number;
 }
 
 export interface PriceHistory {

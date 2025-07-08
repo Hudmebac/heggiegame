@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import type { GameState, PartnershipOffer, PlayerStats } from '@/lib/types';
+import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard } from '@/lib/types';
 import { bankThemes } from '@/lib/bank-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
@@ -195,6 +196,186 @@ export function useBank(
         };
     });
   }, [setGameState, toast]);
+
+  const handleApplyForLoan = useCallback((amount: number, repaymentCount: number) => {
+    setGameState(prev => {
+        if (!prev) return prev;
+        const { playerStats } = prev;
+        if (playerStats.loan) {
+            toast({ variant: "destructive", title: "Loan Rejected", description: "You already have an outstanding loan." });
+            return prev;
+        }
+        const maxLoan = playerStats.netWorth * 100;
+        if (amount <= 0 || amount > maxLoan) {
+            toast({ variant: "destructive", title: "Loan Rejected", description: `Invalid amount. Maximum loan is ${maxLoan.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const interestRate = 0.10;
+        const totalOwed = amount * (1 + interestRate);
+        const repaymentAmount = Math.ceil(totalOwed / repaymentCount);
+        
+        const newLoan: Loan = {
+            principal: amount,
+            interestRate,
+            totalRepayments: repaymentCount,
+            repaymentsMade: 0,
+            repaymentAmount,
+            nextDueDate: Date.now() + 5 * 60 * 1000, // 5 minutes
+        };
+
+        toast({ title: "Loan Approved!", description: `You have received ${amount.toLocaleString()}¢. Your first payment of ${repaymentAmount.toLocaleString()}¢ is due soon.` });
+
+        return {
+            ...prev,
+            playerStats: {
+                ...playerStats,
+                netWorth: playerStats.netWorth + amount,
+                loan: newLoan,
+            }
+        };
+    });
+  }, [setGameState, toast]);
+
+  const handleMakeLoanRepayment = useCallback(() => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.loan) return prev;
+        const { playerStats } = prev;
+        const { loan } = playerStats;
+
+        if (playerStats.netWorth < loan.repaymentAmount) {
+            toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds to make a repayment." });
+            return prev;
+        }
+        
+        const newLoan = { ...loan, repaymentsMade: loan.repaymentsMade + 1, nextDueDate: Date.now() + 5 * 60 * 1000 };
+        const isPaidOff = newLoan.repaymentsMade >= newLoan.totalRepayments;
+
+        toast({ title: "Payment Successful", description: `You paid ${loan.repaymentAmount.toLocaleString()}¢. ${isPaidOff ? 'Your loan is now fully paid off!' : ''}` });
+        
+        return {
+            ...prev,
+            playerStats: {
+                ...playerStats,
+                netWorth: playerStats.netWorth - loan.repaymentAmount,
+                loan: isPaidOff ? undefined : newLoan,
+            }
+        };
+    });
+  }, [setGameState, toast]);
+
+  const handleRepayLoanEarly = useCallback(() => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.loan) return prev;
+            const { playerStats } = prev;
+            const { loan } = playerStats;
+            
+            const remainingPrincipal = loan.principal * (1 - (loan.repaymentsMade / loan.totalRepayments));
+            const totalInterest = loan.principal * loan.interestRate;
+            const remainingInterest = totalInterest * (1 - (loan.repaymentsMade / loan.totalRepayments));
+            const preferentialInterest = remainingInterest * 0.5; // 50% discount on remaining interest
+            const payoffAmount = Math.ceil(remainingPrincipal + preferentialInterest);
+
+            if (playerStats.netWorth < payoffAmount) {
+                toast({ variant: "destructive", title: "Payoff Failed", description: `Insufficient funds. You need ${payoffAmount.toLocaleString()}¢.` });
+                return prev;
+            }
+
+            toast({ title: "Loan Repaid!", description: `You paid off your loan early for ${payoffAmount.toLocaleString()}¢, saving on interest.` });
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...playerStats,
+                    netWorth: playerStats.netWorth - payoffAmount,
+                    loan: undefined,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
+    const handleApplyForCreditCard = useCallback(() => {
+        setGameState(prev => {
+            if (!prev) return prev;
+            const { playerStats } = prev;
+            if (playerStats.creditCard) {
+                toast({ variant: "destructive", title: "Application Rejected", description: "You already have an active credit line." });
+                return prev;
+            }
+            const fee = 5000;
+            if (playerStats.netWorth < fee) {
+                 toast({ variant: "destructive", title: "Application Failed", description: `You need ${fee.toLocaleString()}¢ to open a credit line.` });
+                return prev;
+            }
+
+            const newCreditCard: CreditCard = {
+                limit: playerStats.netWorth * 50,
+                balance: 0,
+                dueDate: Date.now() + 10 * 60 * 1000, // 10 minutes
+            };
+
+            toast({ title: "Credit Line Approved!", description: `You have secured a credit line of ${newCreditCard.limit.toLocaleString()}¢.` });
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...playerStats,
+                    netWorth: playerStats.netWorth - fee,
+                    creditCard: newCreditCard,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
+    const handleDrawFromCreditCard = useCallback((amount: number) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.creditCard) return prev;
+            const { playerStats } = prev;
+            const { creditCard } = playerStats;
+
+            if (amount <= 0 || amount > (creditCard.limit - creditCard.balance)) {
+                 toast({ variant: "destructive", title: "Draw Failed", description: "Invalid amount or exceeds available credit." });
+                return prev;
+            }
+
+            toast({ title: "Funds Drawn", description: `You have added ${amount.toLocaleString()}¢ to your wallet from your credit line.` });
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...playerStats,
+                    netWorth: playerStats.netWorth + amount,
+                    creditCard: { ...creditCard, balance: creditCard.balance + amount },
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
+    const handlePayCreditCard = useCallback((amount: number) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.creditCard) return prev;
+            const { playerStats } = prev;
+            const { creditCard } = playerStats;
+            const payAmount = Math.min(amount, creditCard.balance);
+            
+            if (payAmount <= 0) return prev;
+            if (playerStats.netWorth < payAmount) {
+                toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds." });
+                return prev;
+            }
+
+            toast({ title: "Payment Successful", description: `You have paid ${payAmount.toLocaleString()}¢ towards your credit balance.` });
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...playerStats,
+                    netWorth: playerStats.netWorth - payAmount,
+                    creditCard: { ...creditCard, balance: creditCard.balance - payAmount },
+                }
+            };
+        });
+    }, [setGameState, toast]);
   
   useEffect(() => {
     if (!gameState || (gameState.playerStats.bankAutoClickerBots || 0) === 0) return;
@@ -224,5 +405,11 @@ export function useBank(
     handleUpgradeBank,
     handleUpgradeBankAutoClicker,
     handleAcceptBankPartnerOffer,
+    handleApplyForLoan,
+    handleMakeLoanRepayment,
+    handleRepayLoanEarly,
+    handleApplyForCreditCard,
+    handleDrawFromCreditCard,
+    handlePayCreditCard,
   };
 }

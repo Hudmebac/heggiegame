@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
@@ -111,6 +111,9 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     bankAutoClickerBots: 0,
     bankEstablishmentLevel: 0,
     bankContract: undefined,
+    loan: undefined,
+    creditCard: undefined,
+    debt: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -232,6 +235,67 @@ export function useGameState() {
              setGameState(null);
         }
     }, [calculateMarketDataForSystem, toast]);
+
+     useEffect(() => {
+        const financialInterval = setInterval(() => {
+            setGameState(prev => {
+                if (!prev || prev.isGameOver) return prev;
+
+                let newPlayerStats = { ...prev.playerStats };
+                let bankruptcyTriggered = false;
+                const now = Date.now();
+                let newToast: { variant?: "default" | "destructive", title: string, description: string } | null = null;
+
+                // Loan repayment check (every 5 minutes)
+                if (newPlayerStats.loan && now > newPlayerStats.loan.nextDueDate) {
+                    const loan = { ...newPlayerStats.loan };
+                    newPlayerStats.debt = (newPlayerStats.debt || 0) + loan.repaymentAmount;
+                    newPlayerStats.loan.repaymentsMade += 1;
+                    
+                    if (newPlayerStats.loan.repaymentsMade >= newPlayerStats.loan.totalRepayments) {
+                        newPlayerStats.loan = undefined;
+                        newToast = { title: "Loan Cleared", description: "Your loan has been cleared, though the final payment was made from debt." };
+                    } else {
+                        newPlayerStats.loan.nextDueDate = now + 5 * 60 * 1000; // Due in 5 minutes
+                        newToast = { variant: "destructive", title: "Loan Payment Missed", description: `Your payment of ${loan.repaymentAmount.toLocaleString()}¢ has been added to your debt.` };
+                    }
+                }
+
+                // Credit card check (every 10 minutes)
+                if (newPlayerStats.creditCard && now > newPlayerStats.creditCard.dueDate) {
+                    const cc = newPlayerStats.creditCard;
+                    if (cc.balance > 0) {
+                        newPlayerStats.debt = (newPlayerStats.debt || 0) + cc.balance;
+                        newToast = { variant: "destructive", title: "Credit Card Payment Overdue", description: `Your outstanding balance of ${cc.balance.toLocaleString()}¢ has been moved to your general debt.` };
+                    }
+                    newPlayerStats.creditCard = undefined; // Card is cancelled
+                }
+
+                // Accrue interest on debt
+                if (newPlayerStats.debt > 0) {
+                    newPlayerStats.debt *= 1.001; // small interest tick every 30s
+                }
+
+                // Bankruptcy check
+                if (newPlayerStats.debt > 100000) {
+                    bankruptcyTriggered = true;
+                    newToast = { variant: "destructive", title: "Bankruptcy!", description: "Your overwhelming debt has forced you into bankruptcy. Game Over." };
+                }
+                
+                if (newToast) {
+                    setTimeout(() => toast(newToast!), 0);
+                }
+
+                if (bankruptcyTriggered) {
+                    return { ...prev, isGameOver: true };
+                }
+
+                return { ...prev, playerStats: newPlayerStats };
+            });
+        }, 30000); // Check every 30 seconds
+
+        return () => clearInterval(financialInterval);
+    }, [setGameState, toast]);
     
     return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame };
 }
