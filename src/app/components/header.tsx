@@ -77,7 +77,7 @@ export default function Header({ playerStats }: {playerStats: PlayerStats}) {
           </div>
       </header>
 
-      <nav className="p-4 space-y-2">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-2">
         {navItems.map(item => <NavLink key={item.href} {...item} />)}
       </nav>
     </div>
