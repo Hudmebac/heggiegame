@@ -32,7 +32,6 @@ const navItems = [
     { href: '/construction', label: 'Construction', icon: Building2 },
     { href: '/industry', label: 'Industry', icon: Factory },
     { href: '/recreation', label: 'Recreation', icon: Ticket },
-    { href: '/residence', label: 'Residence', icon: Home },
     { href: '/bank', label: 'Bank', icon: Landmark },
     { href: '/casino', label: 'Casino', icon: Spade },
     { href: '/quests', label: 'Quests', icon: ScrollText },
