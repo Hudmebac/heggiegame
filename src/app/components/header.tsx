@@ -21,7 +21,7 @@ function HeggieIcon() {
   );
 }
 
-const navItems = [
+const allNavItems = [
     { href: '/captain', label: 'Captain', icon: User },
     { href: '/ship', label: 'Ship', icon: Rocket },
     { href: '/crew', label: 'Crew', icon: Users },
@@ -58,6 +58,14 @@ const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, ico
 export default function Header({ playerStats }: {playerStats: PlayerStats}) {
   const career = playerStats.career;
   const careerInfo = CAREER_DATA.find(c => c.id === career);
+
+  const navItems = allNavItems.filter(item => {
+    // Hide generic /market link if player is a Trader, since they have a dedicated career page
+    if (career === 'Trader' && item.href === '/market') {
+        return false;
+    }
+    return true;
+  });
 
   return (
     <div className="flex flex-col h-full">
