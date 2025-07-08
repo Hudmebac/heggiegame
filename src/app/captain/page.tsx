@@ -14,6 +14,7 @@ import { recreationThemes } from '@/lib/recreation-themes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -134,6 +135,12 @@ export default function CaptainPage() {
                             <span className="text-muted-foreground">Net Worth</span>
                             <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
                         </div>
+                        <Link href="/bank" passHref>
+                            <Button className="w-full mt-2" variant="outline">
+                                <Landmark className="mr-2" />
+                                Galactic Bank
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
                 <Card>

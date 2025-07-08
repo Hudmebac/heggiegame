@@ -1,4 +1,5 @@
 
+
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
@@ -50,6 +51,9 @@ export type CommerceContract = BarContract;
 export type IndustryContract = BarContract;
 export type ConstructionContract = BarContract;
 export type RecreationContract = BarContract;
+export type BankContract = BarContract;
+export type BankPartner = BarPartner;
+
 
 export interface PlayerShip {
   instanceId: number;
@@ -124,6 +128,14 @@ export interface PlayerStats {
   recreationEstablishmentLevel: number;
   recreationContract?: RecreationContract;
   casino: CasinoState;
+
+  // Bank Stats
+  bankAccount?: { balance: number };
+  bankShares: number;
+  bankLevel: number;
+  bankAutoClickerBots: number;
+  bankEstablishmentLevel: number;
+  bankContract?: BankContract;
 }
 
 export interface PriceHistory {

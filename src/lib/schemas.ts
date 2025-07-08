@@ -111,6 +111,25 @@ export const GenerateTradersOutputSchema = z.object({
 });
 export type GenerateTradersOutput = z.infer<typeof GenerateTradersOutputSchema>;
 
+// Schemas for resolve-casino-game
+export const CasinoGameTypeSchema = z.enum(['slots', 'table', 'poker', 'vip', 'sportsbook', 'lottery']);
+
+export const ResolveCasinoGameInputSchema = z.object({
+  gameType: CasinoGameTypeSchema.describe('The type of casino game being played.'),
+  stake: z.number().describe('The amount of credits the player is staking.'),
+  playerReputation: z.number().describe("The player's reputation score, which can influence luck."),
+});
+export type ResolveCasinoGameInput = z.infer<typeof ResolveCasinoGameInputSchema>;
+
+export const ResolveCasinoGameOutputSchema = z.object({
+  win: z.boolean().describe('Whether the player won the game.'),
+  winnings: z.number().describe('The total amount of credits won (0 if lost).'),
+  bonusWin: z.boolean().describe('Whether the player won a special bonus prize.'),
+  bonusAmount: z.number().describe('The amount of the bonus prize, if applicable.'),
+  narrative: z.string().describe('A short, flavourful description of the game outcome.'),
+});
+export type ResolveCasinoGameOutput = z.infer<typeof ResolveCasinoGameOutputSchema>;
+
 // Schemas for generate-partnership-offers
 export const GeneratePartnershipOffersInputSchema = z.object({
   marketValue: z.number().describe("The current market value of the player's establishment."),
@@ -199,3 +218,17 @@ export const GenerateRecreationPartnershipOffersOutputSchema = z.object({
     offers: z.array(RecreationPartnershipOfferSchema).describe("An array of generated partnership offers for the recreation facility."),
 });
 export type GenerateRecreationPartnershipOffersOutput = z.infer<typeof GenerateRecreationPartnershipOffersOutputSchema>;
+
+// Schemas for generate-bank-partnership-offers
+export const GenerateBankPartnershipOffersInputSchema = z.object({
+  marketValue: z.number().describe("The current market value of the player's bank."),
+});
+export type GenerateBankPartnershipOffersInput = z.infer<typeof GenerateBankPartnershipOffersInputSchema>;
+
+export const BankPartnershipOfferSchema = PartnershipOfferSchema;
+export type BankPartnershipOffer = z.infer<typeof BankPartnershipOfferSchema>;
+
+export const GenerateBankPartnershipOffersOutputSchema = z.object({
+    offers: z.array(BankPartnershipOfferSchema).describe("An array of generated partnership offers for the bank."),
+});
+export type GenerateBankPartnershipOffersOutput = z.infer<typeof GenerateBankPartnershipOffersOutputSchema>;

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useContext } from 'react';
@@ -17,6 +18,7 @@ import { useIndustry } from '@/hooks/use-industry';
 import { useConstruction } from '@/hooks/use-construction';
 import { useRecreation } from '@/hooks/use-recreation';
 import { useCasino } from '@/hooks/use-casino';
+import { useBank } from '@/hooks/use-bank';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -27,6 +29,7 @@ import type { useIndustry as useIndustryType } from '@/hooks/use-industry';
 import type { useConstruction as useConstructionType } from '@/hooks/use-construction';
 import type { useRecreation as useRecreationType } from '@/hooks/use-recreation';
 import type { useCasino as useCasinoType } from '@/hooks/use-casino';
+import type { useBank as useBankType } from '@/hooks/use-bank';
 import type { useMarket as useMarketType } from '@/hooks/use-market';
 import type { useTravel as useTravelType } from '@/hooks/use-travel';
 
@@ -45,6 +48,7 @@ type GameContextType = {
   ReturnType<typeof useConstructionType> &
   ReturnType<typeof useRecreationType> &
   ReturnType<typeof useCasinoType> &
+  ReturnType<typeof useBankType> &
   ReturnType<typeof useMarketType> &
   ReturnType<typeof useTravelType>;
 
@@ -75,6 +79,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const constructionLogic = useConstruction(gameState, setGameState, updateObjectiveProgress);
     const recreationLogic = useRecreation(gameState, setGameState, updateObjectiveProgress);
     const casinoLogic = useCasino(gameState, setGameState);
+    const bankLogic = useBank(gameState, setGameState);
 
     // Page-specific Hooks (that still need to be available globally)
     const marketLogic = useMarket(gameState, setGameState);
@@ -96,6 +101,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...constructionLogic,
         ...recreationLogic,
         ...casinoLogic,
+        ...bankLogic,
         ...marketLogic,
         ...travelLogic,
     };

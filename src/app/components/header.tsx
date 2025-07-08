@@ -1,11 +1,12 @@
 
+
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function HeggieIcon() {
@@ -27,11 +28,12 @@ const navItems = [
     { href: '/market', label: 'Market', icon: LineChart },
     { href: '/galaxy', label: 'Galaxy', icon: Map },
     { href: '/bar', label: 'Bar', icon: Martini },
-    { href: '/commerce', label: 'Commerce', icon: Landmark },
+    { href: '/commerce', label: 'Commerce', icon: Briefcase },
     { href: '/construction', label: 'Construction', icon: Building2 },
     { href: '/industry', label: 'Industry', icon: Factory },
     { href: '/recreation', label: 'Recreation', icon: Ticket },
     { href: '/residence', label: 'Residence', icon: Home },
+    { href: '/bank', label: 'Bank', icon: Landmark },
     { href: '/casino', label: 'Casino', icon: Spade },
     { href: '/quests', label: 'Quests', icon: ScrollText },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },

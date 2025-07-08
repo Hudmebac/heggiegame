@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
@@ -104,6 +105,12 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     recreationLevel: 1, recreationAutoClickerBots: 0, recreationEstablishmentLevel: 0,
     casino: initialCasinoState,
     insurance: initialInsuranceState,
+    bankAccount: undefined,
+    bankShares: 0,
+    bankLevel: 1,
+    bankAutoClickerBots: 0,
+    bankEstablishmentLevel: 0,
+    bankContract: undefined,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
