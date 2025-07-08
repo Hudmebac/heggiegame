@@ -1,43 +1,48 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Martini, Home, Briefcase, Factory, Building2, Ticket, Landmark } from 'lucide-react';
+import { Martini, Home, Briefcase, Factory, Building2, Ticket, Landmark, Spade } from 'lucide-react';
 
 const businessData = [
     {
         icon: Martini,
         title: "Bar",
-        description: "A classic starting point for any trader. Serve drinks to patrons to generate a steady, if modest, income. Upgrade your bar and hire bots to automate service and increase profits. Can be expanded into a galactic franchise."
+        description: "The social and economic cornerstone of any starport. Serve drinks, gather intel, and build a reputation. Upgrades increase income per patron, while bots automate service for passive revenue. A well-run bar can be expanded into a galactic franchise, influencing trade and culture across systems."
     },
     {
         icon: Home,
         title: "Residence",
-        description: "Establish residential properties to collect rent. A reliable source of passive income. Like other businesses, it has its own upgrade path, bot automation for rent collection, and can be expanded into a sprawling estate."
+        description: "A stable, long-term investment. Collect rent from tenants across the galaxy. Upgrades improve property value and rental income, while service bots handle automated collection. Successful property management can lead to the development of a vast galactic estate."
     },
     {
         icon: Briefcase,
         title: "Commerce Hub",
-        description: "Manage a trading post, brokering deals and processing shipments. A commerce-focused business with high potential returns based on market knowledge. Can be upgraded into a galactic conglomerate."
+        description: "The heart of interstellar trade. Broker deals between factions, manage complex logistics, and profit from every transaction. Hub upgrades increase deal value, while trading bots automate transactions. A powerful hub can be developed into a galaxy-spanning commercial conglomerate."
     },
     {
         icon: Factory,
         title: "Industrial Facility",
-        description: "Oversee a factory that produces valuable goods. This business type is about output and efficiency, generating significant income through production cycles. Can be expanded into a massive industrial complex."
+        description: "The engine of production. Manufacture goods from raw materials, fulfilling large-scale orders for factions and markets. Upgrades boost production speed and efficiency, while assembly bots ensure the facility runs 24/7. Can be expanded into a massive industrial complex, dominating the supply chain."
     },
     {
         icon: Building2,
         title: "Construction Project",
-        description: "Take on large-scale construction jobs, from planetary settlements to orbital stations. A high-investment, high-reward venture that requires significant capital to scale into a megastructure project."
+        description: "Shape the galaxy itself. Undertake massive building projects, from planetary habitats to orbital megastructures. A high-capital venture where each upgrade increases project scope and payout. Can be developed into a legendary megastructure project."
     },
     {
         icon: Ticket,
         title: "Recreation Facility",
-        description: "Provide entertainment for the masses, from arcades to holo-theaters. A fun and profitable business that can be expanded into a luxurious galactic resort."
+        description: "The galaxy's escape from the void. Operate entertainment venues, from vibrant arcades to luxurious holo-theaters. Upgrades enhance the quality of attractions, drawing more patrons. Can be expanded into a premier galactic resort, a destination for the wealthy and influential."
     },
     {
         icon: Landmark,
         title: "Galactic Bank",
-        description: "The pinnacle of financial power. After acquiring 100 shares, you can take over the bank itself, turning it into your most powerful income-generating asset with immense upgrade potential and partnership opportunities."
+        description: "The ultimate seat of financial power. After acquiring majority ownership, you can take control of the Galactic Bank itself. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio."
+    },
+    {
+        icon: Spade,
+        title: "Casino",
+        description: "Engage in games of chance, from slots to high-stakes poker, at casinos across the galaxy. While not a business you can own, it's a high-risk, high-reward venue to directly leverage your credits. Success depends on luck, reputation, and nerve."
     }
 ]
 
