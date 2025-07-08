@@ -58,7 +58,8 @@ export async function runMarketSimulation(input: SimulateMarketPricesInput): Pro
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input for market simulation: ${error.message}`);
     }
-    throw new Error('Failed to simulate market prices.');
+    // Re-throw the original error to be handled by the caller
+    throw error;
   }
 }
 

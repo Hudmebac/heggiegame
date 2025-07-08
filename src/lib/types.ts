@@ -1,3 +1,4 @@
+
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
@@ -63,6 +64,14 @@ export interface PlayerShip {
   droneLevel: number;
 }
 
+export interface InsurancePolicies {
+  health: boolean;
+  cargo: boolean;
+  ship: boolean;
+}
+
+export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Hardcore';
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -70,6 +79,7 @@ export interface PlayerStats {
   avatarUrl: string;
   pirateRisk: number;
   reputation: number;
+  insurance: InsurancePolicies;
 
   fleet: PlayerShip[];
 
@@ -207,6 +217,8 @@ export interface GameState {
   quests: Quest[];
   activeObjectives: ActiveObjective[];
   crew: CrewMember[];
+  difficulty: Difficulty;
+  isGameOver?: boolean;
 }
 
 export interface EncounterResult {

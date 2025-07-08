@@ -7,16 +7,26 @@ import { Loader2, Menu } from 'lucide-react';
 import GameModalsAndEncounters from '@/app/components/game-ui/GameModalsAndEncounters';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import GameSetup from '@/app/components/game-setup';
+import GameOver from '@/app/components/game-over';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { gameState, isClient } = useGame();
 
-  if (!isClient || !gameState) {
+  if (!isClient) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if (!gameState) {
+    return <GameSetup />;
+  }
+
+  if (gameState.isGameOver) {
+    return <GameOver />;
   }
 
   return (

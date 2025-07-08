@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState } from '@/lib/types';
+import { useState, useEffect, useCallback, useTransition } from 'react';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
@@ -82,6 +82,12 @@ const initialCasinoState: CasinoState = {
     dailyLotteryTicketPurchased: false,
 };
 
+const initialInsuranceState: InsurancePolicies = {
+    health: false,
+    cargo: false,
+    ship: false,
+}
+
 const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes' | 'systems' > & { playerStats: Partial<PlayerStats>, routes: [], systems: [] } = {
   playerStats: {
     name: 'You',
@@ -97,6 +103,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     constructionLevel: 1, constructionAutoClickerBots: 0, constructionEstablishmentLevel: 0,
     recreationLevel: 1, recreationAutoClickerBots: 0, recreationEstablishmentLevel: 0,
     casino: initialCasinoState,
+    insurance: initialInsuranceState,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -106,6 +113,8 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
   currentSystem: 'Sol', currentPlanet: 'Earth',
   quests: [], activeObjectives: [],
   crew: [],
+  difficulty: 'Medium',
+  isGameOver: false,
 };
 
 
@@ -113,6 +122,8 @@ export function useGameState() {
     const [gameState, setGameState] = useState<GameState | null>(null);
     const { toast } = useToast();
     const [isClient, setIsClient] = useState(false);
+    const [isGeneratingNewGame, startNewGameTransition] = useTransition();
+
 
     const calculateMarketDataForSystem = useCallback((system: System): MarketItem[] => {
         const availableItems: MarketItem[] = [];
@@ -134,38 +145,40 @@ export function useGameState() {
         return availableItems;
     }, []);
 
-    const generateNewGameState = useCallback(async () => {
-        const toastInstance = toast({ title: "Generating New Game...", description: "Preparing the galaxy for your adventure.", duration: Infinity });
-
-        try {
-            const [tradersResult, questsResult] = await Promise.all([runTraderGeneration(), runQuestGeneration()]);
-            const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
-            let basePlayerStats = syncActiveShipStats(initialGameState.playerStats as PlayerStats);
-            basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
-            basePlayerStats.fuel = basePlayerStats.maxFuel;
-            basePlayerStats.shipHealth = basePlayerStats.maxShipHealth;
-
-            const playerEntry = { trader: basePlayerStats.name, netWorth: basePlayerStats.netWorth, fleetSize: basePlayerStats.fleet.length, bio: basePlayerStats.bio, rank: 0 };
-            const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry].sort((a, b) => b.netWorth - a.netWorth).map((e, i) => ({ ...e, rank: i + 1 }));
-
-            const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem)!;
-            const marketItems = calculateMarketDataForSystem(currentSystem);
-
-            const newGameState: GameState = {
-                ...(initialGameState as GameState),
-                playerStats: basePlayerStats,
-                marketItems,
-                leaderboard: sortedLeaderboard,
-                quests: questsResult.quests,
-                systems: SYSTEMS, routes: ROUTES, crew: AVAILABLE_CREW,
-            };
-
-            setGameState(newGameState);
-            toastInstance.update({ id: toastInstance.id, title: "New Game Generated", description: "Your adventure begins now!", duration: 5000 });
-        } catch(e) {
-            console.error("Failed to generate new game state", e);
-            toastInstance.update({ id: toastInstance.id, title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
-        }
+    const startNewGame = useCallback(async (difficulty: Difficulty) => {
+        startNewGameTransition(async () => {
+            try {
+                const [tradersResult, questsResult] = await Promise.all([runTraderGeneration(), runQuestGeneration()]);
+                const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
+                let basePlayerStats = syncActiveShipStats(initialGameState.playerStats as PlayerStats);
+                basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
+                basePlayerStats.fuel = basePlayerStats.maxFuel;
+                basePlayerStats.shipHealth = basePlayerStats.maxShipHealth;
+    
+                const playerEntry = { trader: basePlayerStats.name, netWorth: basePlayerStats.netWorth, fleetSize: basePlayerStats.fleet.length, bio: basePlayerStats.bio, rank: 0 };
+                const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry].sort((a, b) => b.netWorth - a.netWorth).map((e, i) => ({ ...e, rank: i + 1 }));
+    
+                const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem)!;
+                const marketItems = calculateMarketDataForSystem(currentSystem);
+    
+                const newGameState: GameState = {
+                    ...(initialGameState as GameState),
+                    playerStats: basePlayerStats,
+                    marketItems,
+                    leaderboard: sortedLeaderboard,
+                    quests: questsResult.quests,
+                    systems: SYSTEMS, routes: ROUTES, crew: AVAILABLE_CREW,
+                    difficulty: difficulty,
+                    isGameOver: false,
+                };
+    
+                setGameState(newGameState);
+                toast({ title: "New Game Started", description: `Your adventure begins on ${difficulty} difficulty!`, duration: 5000 });
+            } catch(e) {
+                console.error("Failed to generate new game state", e);
+                toast({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
+            }
+        });
     }, [calculateMarketDataForSystem, toast]);
 
     useEffect(() => {
@@ -181,10 +194,16 @@ export function useGameState() {
         if (savedStateJSON) {
             try {
                 const savedProgress = JSON.parse(savedStateJSON);
+                if (savedProgress.isGameOver) {
+                    // If the saved state is a game over, force a new game setup
+                    localStorage.removeItem('heggieGameState');
+                    setGameState(null);
+                    return;
+                }
                 const currentSystem = SYSTEMS.find(s => s.name === savedProgress.currentSystem) || SYSTEMS[0];
                 const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
-                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats, casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) } };
+                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats, casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) }, insurance: { ...initialInsuranceState, ...(savedProgress.playerStats.insurance || {}) } };
                 mergedPlayerStats.inventory = savedProgress.inventory || initialGameState.inventory;
                 mergedPlayerStats = syncActiveShipStats(mergedPlayerStats as PlayerStats);
                 mergedPlayerStats.cargo = calculateCurrentCargo(mergedPlayerStats.inventory);
@@ -195,16 +214,17 @@ export function useGameState() {
                     currentPlanet: currentPlanetName,
                     marketItems: calculateMarketDataForSystem(currentSystem),
                     crew: savedProgress.crew || AVAILABLE_CREW,
+                    difficulty: savedProgress.difficulty || 'Medium',
                 });
                 setTimeout(() => toast({ title: "Game Loaded", description: "Continuing your spacefaring journey." }), 0);
             } catch (error) {
                 console.error("Failed to parse saved game state, starting fresh:", error);
-                setTimeout(generateNewGameState, 0);
+                 setGameState(null);
             }
         } else {
-            setTimeout(generateNewGameState, 0);
+             setGameState(null);
         }
-    }, [calculateMarketDataForSystem, generateNewGameState, toast]);
+    }, [calculateMarketDataForSystem, toast]);
     
-    return { gameState, setGameState, isClient };
+    return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame };
 }

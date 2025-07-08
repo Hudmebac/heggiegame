@@ -1,7 +1,10 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { InventoryItem, PlanetType } from "./types";
+import type { InventoryItem, PlanetType, PlayerShip, MarketItem } from "./types";
 import { STATIC_ITEMS } from "./items";
+import { SHIPS_FOR_SALE } from './ships';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from './upgrades';
 
 
 export function cn(...inputs: ClassValue[]) {
@@ -13,6 +16,31 @@ export function calculateCurrentCargo(inventory: InventoryItem[]): number {
     return inventory.reduce((acc, item) => {
         const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
         return acc + (staticItem ? staticItem.cargoSpace * item.owned : 0);
+    }, 0);
+}
+
+export function calculateShipValue(ship: PlayerShip): number {
+    const baseData = SHIPS_FOR_SALE.find(s => s.id === ship.shipId);
+    if (!baseData) return 0;
+    
+    let totalValue = baseData.cost;
+    totalValue += cargoUpgrades[ship.cargoLevel - 1]?.cost || 0;
+    totalValue += weaponUpgrades[ship.weaponLevel - 1]?.cost || 0;
+    totalValue += shieldUpgrades[ship.shieldLevel - 1]?.cost || 0;
+    totalValue += hullUpgrades[ship.hullLevel - 1]?.cost || 0;
+    totalValue += fuelUpgrades[ship.fuelLevel - 1]?.cost || 0;
+    totalValue += sensorUpgrades[ship.sensorLevel - 1]?.cost || 0;
+    totalValue += droneUpgrades[ship.droneLevel - 1]?.cost || 0;
+
+    return totalValue;
+}
+
+export function calculateCargoValue(inventory: InventoryItem[], marketItems: MarketItem[]): number {
+    return inventory.reduce((acc, item) => {
+        const marketData = marketItems.find(mi => mi.name === item.name);
+        // Use base price as a fallback if not in the current market
+        const price = marketData?.currentPrice || STATIC_ITEMS.find(si => si.name === item.name)?.basePrice || 0;
+        return acc + (item.owned * price);
     }, 0);
 }
 

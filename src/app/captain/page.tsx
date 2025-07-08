@@ -4,7 +4,7 @@ import PlayerProfile from '@/app/components/player-profile';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -12,6 +12,8 @@ import { industryThemes } from '@/lib/industry-themes';
 import { constructionThemes } from '@/lib/construction-themes';
 import { recreationThemes } from '@/lib/recreation-themes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -35,13 +37,13 @@ function getReputationTier(score: number) {
 
 
 export default function CaptainPage() {
-  const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame } = useGame();
+  const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handlePurchaseInsurance } = useGame();
 
   if (!gameState) {
     return null; 
   }
 
-  const { playerStats, currentSystem: currentSystemName, systems } = gameState;
+  const { playerStats, currentSystem: currentSystemName, systems, marketItems, inventory } = gameState;
   const currentSystem = systems.find(s => s.name === currentSystemName);
   const zoneType = currentSystem?.zoneType;
   
@@ -69,6 +71,35 @@ export default function CaptainPage() {
   ];
 
   const totalPassiveIncome = portfolio.reduce((sum, item) => sum + item.income, 0);
+
+  const activeShip = playerStats.fleet[0];
+  const shipValue = activeShip ? calculateShipValue(activeShip) : 0;
+  const cargoValue = calculateCargoValue(inventory, marketItems);
+
+  const insurancePolicies = {
+    health: { 
+        name: 'Health Insurance', 
+        description: 'On rebirth after ship destruction, retain 50% of your net worth.', 
+        cost: Math.round(playerStats.netWorth * 0.10),
+        icon: Heart,
+        type: 'health' as const,
+    },
+    ship: { 
+        name: 'Ship Insurance', 
+        description: 'Reduces repair costs by 50%. Your ship is returned upon rebirth.', 
+        cost: Math.round(playerStats.netWorth * 0.10 + shipValue * 0.15),
+        icon: Shield,
+        type: 'ship' as const,
+    },
+    cargo: {
+        name: 'Cargo Insurance',
+        description: 'Recover 10% of cargo value if lost to pirates, or 25% on rebirth.',
+        cost: Math.round(playerStats.netWorth * 0.05 + cargoValue * 0.10),
+        icon: Package,
+        type: 'cargo' as const,
+    },
+  };
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -140,7 +171,40 @@ export default function CaptainPage() {
                 </CardContent>
             </Card>
         </div>
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-2">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Shield className="text-primary"/>
+                        Insurance Policies
+                    </CardTitle>
+                    <CardDescription>
+                        Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {Object.values(insurancePolicies).map(policy => (
+                        <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
+                           <div className="flex items-start gap-3">
+                                <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
+                                <div>
+                                    <h4 className="font-semibold">{policy.name}</h4>
+                                    <p className="text-xs text-muted-foreground">{policy.description}</p>
+                                </div>
+                           </div>
+                            {playerStats.insurance[policy.type] ? (
+                                <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
+                            ) : (
+                                <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost}>
+                                    Purchase ({policy.cost.toLocaleString()}¢)
+                                </Button>
+                            )}
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        </div>
+        <div className="lg:col-span-2">
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2">

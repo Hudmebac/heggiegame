@@ -8,7 +8,7 @@ import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
-import { calculateCurrentCargo } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
@@ -104,10 +104,8 @@ export function usePlayerActions(
             description: "Wiping all progress. A new adventure awaits!",
         });
         localStorage.removeItem('heggieGameState');
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
-    }, [toast]);
+        setGameState(null);
+    }, [toast, setGameState]);
 
     const handleRefuel = useCallback(() => {
         setGameState(prev => {
@@ -138,13 +136,16 @@ export function usePlayerActions(
                 return prev;
             }
             const baseRepairPricePerPoint = 50;
-            const totalCost = Math.round(damageToRepair * baseRepairPricePerPoint);
+            const insuranceMultiplier = prev.playerStats.insurance.ship ? 0.5 : 1.0;
+            const totalCost = Math.round(damageToRepair * baseRepairPricePerPoint * insuranceMultiplier);
+
             if (prev.playerStats.netWorth < totalCost) {
                 setTimeout(() => toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` }), 0);
                 return prev;
             }
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, shipHealth: prev.playerStats.maxShipHealth, };
-            setTimeout(() => toast({ title: "Repairs Complete", description: `You spent ${totalCost}¢ to restore your ship\'s hull.` }), 0);
+            const toastDescription = `You spent ${totalCost}¢ to restore your ship's hull.` + (insuranceMultiplier < 1 ? ' (50% insurance discount applied)' : '');
+            setTimeout(() => toast({ title: "Repairs Complete", description: toastDescription }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -205,17 +206,7 @@ export function usePlayerActions(
             if (shipIndex === -1) return prev;
 
             const shipToSell = prev.playerStats.fleet[shipIndex];
-            const baseData = SHIPS_FOR_SALE.find(s => s.id === shipToSell.shipId)!;
-            let totalValue = baseData.cost;
-            totalValue += cargoUpgrades[shipToSell.cargoLevel - 1].cost;
-            totalValue += weaponUpgrades[shipToSell.weaponLevel - 1].cost;
-            totalValue += shieldUpgrades[shipToSell.shieldLevel - 1].cost;
-            totalValue += hullUpgrades[shipToSell.hullLevel - 1].cost;
-            totalValue += fuelUpgrades[shipToSell.fuelLevel - 1].cost;
-            totalValue += sensorUpgrades[shipToSell.sensorLevel - 1].cost;
-            totalValue += droneUpgrades[shipToSell.droneLevel - 1].cost;
-
-            const salePrice = Math.round(totalValue * 0.7);
+            const salePrice = Math.round(calculateShipValue(shipToSell) * 0.7);
             const newFleet = prev.playerStats.fleet.filter(s => s.instanceId !== shipInstanceId);
             let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + salePrice, fleet: newFleet };
             
@@ -295,7 +286,7 @@ export function usePlayerActions(
                 return prev;
             }
 
-            if (upgradeType === 'cargo') {
+            if (upgradeType === 'cargo' && shipIndex === 0) { // Only check cargo for active ship
                 const newMaxCargo = upgradeInfo.levels[upgradeInfo.current - 2].capacity;
                 const currentCargo = calculateCurrentCargo(prev.inventory);
                 if (currentCargo > newMaxCargo) {
@@ -335,6 +326,40 @@ export function usePlayerActions(
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
+
+    const handlePurchaseInsurance = useCallback((type: 'health' | 'cargo' | 'ship') => {
+        setGameState(prev => {
+            if (!prev) return null;
+            
+            const activeShip = prev.playerStats.fleet[0];
+            const shipValue = activeShip ? calculateShipValue(activeShip) : 0;
+            const cargoValue = calculateCargoValue(prev.inventory, prev.marketItems);
+
+            let cost = 0;
+            switch(type) {
+                case 'health': cost = Math.round(prev.playerStats.netWorth * 0.10); break;
+                case 'ship': cost = Math.round(prev.playerStats.netWorth * 0.10 + shipValue * 0.15); break;
+                case 'cargo': cost = Math.round(prev.playerStats.netWorth * 0.05 + cargoValue * 0.10); break;
+            }
+
+            if (prev.playerStats.netWorth < cost) {
+                 setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
+                 return prev;
+            }
+
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+                insurance: {
+                    ...prev.playerStats.insurance,
+                    [type]: true,
+                }
+            };
+            
+            setTimeout(() => toast({ title: "Insurance Purchased!", description: `Your new ${type} insurance policy is now active.` }), 0);
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
     
     return {
         isGeneratingBio,
@@ -352,5 +377,6 @@ export function usePlayerActions(
         handleUpgradeShip,
         handleDowngradeShip,
         handleSetActiveShip,
+        handlePurchaseInsurance,
     };
 }

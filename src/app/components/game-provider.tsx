@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective } from '@/lib/types';
+import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty } from '@/lib/types';
 import { Toaster } from "@/components/ui/toaster";
 import { useGameState } from '@/hooks/use-game-state';
 import { useQuests } from '@/hooks/use-quests';
@@ -33,6 +33,8 @@ import type { useTravel as useTravelType } from '@/hooks/use-travel';
 type GameContextType = {
     gameState: GameState | null;
     isClient: boolean;
+    isGeneratingNewGame: boolean;
+    startNewGame: (difficulty: Difficulty) => void;
 } & ReturnType<typeof useQuestsType> &
   ReturnType<typeof usePlayerActionsType> &
   ReturnType<typeof useEncountersType> &
@@ -58,7 +60,7 @@ export const useGame = () => {
 };
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-    const { gameState, setGameState, isClient } = useGameState();
+    const { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame } = useGameState();
     
     // Core Logic Hooks
     const { updateObjectiveProgress, ...questLogic } = useQuests(gameState, setGameState);
@@ -81,6 +83,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const contextValue: GameContextType = {
         gameState,
         isClient,
+        isGeneratingNewGame,
+        startNewGame,
         updateObjectiveProgress,
         ...questLogic,
         ...playerActions,
