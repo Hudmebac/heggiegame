@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { GameProvider } from '@/app/components/game-provider';
-import AppLayout from '@/app/components/app-layout';
 import { Space_Grotesk } from 'next/font/google';
 
 const spaceGrotesk = Space_Grotesk({
@@ -26,9 +25,7 @@ export default function RootLayout({
         <link rel="icon" href="/images/favicon/favicon.ico" sizes="any" />
       </head>
       <body suppressHydrationWarning={true}>
-        <GameProvider>
-          <AppLayout>{children}</AppLayout>
-        </GameProvider>
+        <GameProvider>{children}</GameProvider>
       </body>
     </html>
   );

@@ -44,6 +44,10 @@ import type { useTrader as useTraderType } from '@/hooks/use-trader';
 import type { useDefender as useDefenderType } from '@/hooks/use-defender';
 import type { useMilitary as useMilitaryType } from '@/hooks/use-military';
 import type { useOfficial as useOfficialType } from '@/hooks/use-official';
+import AppLayout from '@/app/components/app-layout';
+import { Loader2 } from 'lucide-react';
+import GameSetup from '@/app/components/game-setup';
+import GameOver from '@/app/components/game-over';
 
 
 type GameContextType = {
@@ -139,7 +143,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     
     return (
         <GameContext.Provider value={contextValue}>
-            {children}
+            {(() => {
+                if (!isClient) {
+                    return (
+                        <div className="flex h-screen w-full items-center justify-center bg-background">
+                            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                        </div>
+                    );
+                }
+
+                if (!gameState) {
+                    return <GameSetup />;
+                }
+
+                if (gameState.isGameOver) {
+                    return <GameOver />;
+                }
+
+                // If game is active, render the main layout with the page content
+                return <AppLayout>{children}</AppLayout>;
+            })()}
             <Toaster />
         </GameContext.Provider>
     );
