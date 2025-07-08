@@ -1,5 +1,3 @@
-
-
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
@@ -39,6 +37,12 @@ export interface BarContract {
   partners: BarPartner[];
 }
 
+export type ResidenceContract = BarContract;
+export type CommerceContract = BarContract;
+export type IndustryContract = BarContract;
+export type ConstructionContract = BarContract;
+export type RecreationContract = BarContract;
+
 export interface PlayerShip {
   instanceId: number;
   shipId: string;
@@ -55,7 +59,6 @@ export interface PlayerStats {
   name: string;
   bio: string;
   netWorth: number;
-  insurance: boolean;
   avatarUrl: string;
   pirateRisk: number;
   reputation: number;
@@ -84,23 +87,23 @@ export interface PlayerStats {
   residenceLevel: number;
   residenceAutoClickerBots: number;
   residenceEstablishmentLevel: number;
-  residenceContract?: BarContract;
+  residenceContract?: ResidenceContract;
   commerceLevel: number;
   commerceAutoClickerBots: number;
   commerceEstablishmentLevel: number;
-  commerceContract?: BarContract;
+  commerceContract?: CommerceContract;
   industryLevel: number;
   industryAutoClickerBots: number;
   industryEstablishmentLevel: number;
-  industryContract?: BarContract;
+  industryContract?: IndustryContract;
   constructionLevel: number;
   constructionAutoClickerBots: number;
   constructionEstablishmentLevel: number;
-  constructionContract?: BarContract;
+  constructionContract?: ConstructionContract;
   recreationLevel: number;
   recreationAutoClickerBots: number;
   recreationEstablishmentLevel: number;
-  recreationContract?: BarContract;
+  recreationContract?: RecreationContract;
 }
 
 export interface PriceHistory {
@@ -167,6 +170,15 @@ export interface Quest {
 export interface ActiveObjective extends Quest {
     progress: { [key in QuestTask['type']]?: number };
     startTime: number;
+}
+
+export interface CrewMember {
+    id: string;
+    name: string;
+    role: 'Engineer' | 'Gunner' | 'Navigator' | 'Negotiator';
+    description: string;
+    salary: number;
+    hiringFee: number;
 }
 
 export interface GameState {

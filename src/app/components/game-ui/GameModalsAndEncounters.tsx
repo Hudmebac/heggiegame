@@ -3,8 +3,9 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import PirateEncounter from './pirate-encounter';
 import { useGame } from '@/app/components/game-provider';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle } from 'lucide-react';
 import TradeDialog from "../trade-dialog";
+import type { System } from "@/lib/types";
 
 export default function GameModalsAndEncounters() {
     const {
@@ -20,11 +21,25 @@ export default function GameModalsAndEncounters() {
         setTravelDestination,
         handleConfirmTravel,
         travelFuelCost,
-        securityConfig,
-        economyIcons,
         isResolvingEncounter,
         isSimulating,
     } = useGame();
+
+    const securityConfig = {
+        'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4"/> },
+        'Medium': { color: 'text-yellow-400', icon: <ShieldCheck className="h-4 w-4"/> },
+        'Low': { color: 'text-orange-400', icon: <AlertTriangle className="h-4 w-4"/> },
+        'Anarchy': { color: 'text-destructive', icon: <AlertTriangle className="h-4 w-4"/> },
+    };
+
+    const economyIcons: Record<System['economy'], React.ReactNode> = {
+        'Industrial': <Factory className="h-4 w-4"/>,
+        'Agricultural': <Wheat className="h-4 w-4"/>,
+        'High-Tech': <Cpu className="h-4 w-4"/>,
+        'Extraction': <Hammer className="h-4 w-4"/>,
+        'Refinery': <Recycle className="h-4 w-4"/>,
+    };
+
 
     return (
         <>

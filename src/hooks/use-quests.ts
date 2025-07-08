@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
@@ -5,14 +6,10 @@ import type { GameState, Quest, ActiveObjective, QuestTask } from '@/lib/types';
 import { runQuestGeneration } from '@/app/actions';
 import { useToast } from "@/hooks/use-toast";
 
-interface UseQuestsHook {
-  isGeneratingQuests: boolean;
-  handleGenerateQuests: () => void;
-  handleAcceptObjective: (quest: Quest) => void;
-  updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]];
-}
-
-export function useQuests(gameState: GameState | null, setGameState: React.Dispatch<React.SetStateAction<GameState | null>>): UseQuestsHook {
+export function useQuests(
+    gameState: GameState | null,
+    setGameState: React.Dispatch<React.SetStateAction<GameState | null>>
+) {
     const [isGeneratingQuests, startQuestGenerationTransition] = useTransition();
     const { toast } = useToast();
 
@@ -21,6 +18,10 @@ export function useQuests(gameState: GameState | null, setGameState: React.Dispa
         const completedObjectives: ActiveObjective[] = [];
 
         const newActiveObjectives = (state.activeObjectives || []).map(obj => {
+            if ((Date.now() - obj.startTime) / 1000 > (obj.timeLimit || Infinity)) {
+                return null; // Objective expired
+            }
+
             let updatedObj = { ...obj };
             let progressMade = false;
 
@@ -50,13 +51,10 @@ export function useQuests(gameState: GameState | null, setGameState: React.Dispa
             });
         }
 
-        const newState = { ...state, playerStats: newPlayerStats, activeObjectives: newActiveObjectives };
-        return [newState, completedObjectives];
+        return [{ ...state, playerStats: newPlayerStats, activeObjectives: newActiveObjectives }, completedObjectives];
     }, []);
 
-
     const handleGenerateQuests = useCallback(() => {
-        let toastMessage: { title: string, description: string, variant?: 'destructive' } | null = null;
         startQuestGenerationTransition(async () => {
             try {
                 const result = await runQuestGeneration();
@@ -64,15 +62,11 @@ export function useQuests(gameState: GameState | null, setGameState: React.Dispa
                     if (!prev) return null;
                     return { ...prev, quests: result.quests };
                 });
-                toastMessage = { title: "New Bounties Posted", description: "The quest board has been updated with new missions." };
+                toast({ title: "New Bounties Posted", description: "The quest board has been updated with new missions." });
             } catch (error) {
                 console.error(error);
                 const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                toastMessage = { variant: "destructive", title: "Quest Generation Failed", description: errorMessage };
-            } finally {
-                if (toastMessage) {
-                    setTimeout(() => toast(toastMessage!), 0);
-                }
+                toast({ variant: "destructive", title: "Quest Generation Failed", description: errorMessage });
             }
         });
     }, [setGameState, toast]);
@@ -83,11 +77,11 @@ export function useQuests(gameState: GameState | null, setGameState: React.Dispa
 
             const newObjective: ActiveObjective = {
                 ...quest,
-                progress: {}, // Initialize progress
+                progress: {},
                 startTime: Date.now(),
             };
 
-            toast({ title: "Objective Started!!", description: `You have ${quest.timeLimit} seconds to complete "${quest.title}".` });
+            toast({ title: "Objective Started!", description: `You have ${quest.timeLimit} seconds to complete "${quest.title}".` });
 
             return {
                 ...prev,
@@ -96,7 +90,6 @@ export function useQuests(gameState: GameState | null, setGameState: React.Dispa
             };
         });
     }, [setGameState, toast]);
-
 
     return {
         isGeneratingQuests,

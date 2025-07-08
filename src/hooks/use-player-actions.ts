@@ -1,26 +1,16 @@
-import { useState, useTransition, useCallback } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade, InventoryItem, PlayerShip } from '@/lib/types';
-import { runAvatarGeneration } from '@/app/actions';
+
+'use client';
+
+import { useCallback, useTransition } from 'react';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { STATIC_ITEMS } from '@/lib/items';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 
-
-export function calculateCurrentCargo(inventory: InventoryItem[]): number {
-    return inventory.reduce((acc, item) => {
-        const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
-        return acc + (staticItem ? staticItem.cargoSpace * item.owned : 0);
-    }, 0);
-}
-
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
-    if (!playerStats.fleet || playerStats.fleet.length === 0) {
-        // This case should ideally not happen if initialShip is always present
-        return playerStats;
-    }
+    if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
 
     const activeShip = playerStats.fleet[0];
     const newStats = { ...playerStats };
@@ -46,7 +36,6 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
     newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
 
-    // Preserve current values if they are within new limits
     newStats.cargo = Math.min(newStats.cargo || 0, newStats.maxCargo);
     newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
@@ -54,66 +43,38 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     return newStats;
 }
 
-export const initialCrew: CrewMember[] = [AVAILABLE_CREW[0], AVAILABLE_CREW[1]];
-
-export const initialShip: PlayerShip = {
-    instanceId: Date.now(),
-    shipId: 'shuttle-s',
-    name: 'My Shuttle',
-    cargoLevel: 1,
-    weaponLevel: 1,
-    shieldLevel: 1,
-    hullLevel: 1,
-    fuelLevel: 1,
-    sensorLevel: 1,
-};
-
-
-export function usePlayerActions(gameState: GameState | null, setGameState: React.Dispatch<React.SetStateAction<GameState | null>>) {
+export function usePlayerActions(
+    gameState: GameState | null,
+    setGameState: React.Dispatch<React.SetStateAction<GameState | null>>
+) {
     const { toast } = useToast();
-    const [isGeneratingAvatar, startAvatarGenerationTransition] = useTransition();
+    const [isGeneratingBio, startBioGenerationTransition] = useTransition();
 
-
-    const handleGenerateAvatar = (description: string) => {
-        startAvatarGenerationTransition(async () => {
-            try {
-                const result = await runAvatarGeneration({ description });
-                setGameState(prev => {
-                    if (!prev) return null;
-                    return {
-                        ...prev,
-                        playerStats: {
-                            ...prev.playerStats,
-                            avatarUrl: result.avatarDataUri,
-                        }
-                    }
-                });
-                toast({ title: "Avatar Generated", description: "Your new captain's portrait is ready." });
-            } catch (error) {
-                console.error(error);
-                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                toast({ variant: "destructive", title: "Avatar Generation Failed", description: errorMessage });
-            }
-        });
-    };
-
-    const handleGenerateBio = (name?: string) => {
+    const handleSetAvatar = useCallback((url: string) => {
         setGameState(prev => {
             if (!prev) return null;
-            const captainName = name || prev.playerStats.name;
-            const randomBio = bios[Math.floor(Math.random() * bios.length)];
-            const newBio = randomBio.replace(/{Captain}/g, captainName);
-
-            toast({ title: "Bio Generated", description: "Your captain's story has been updated." });
-
             return {
                 ...prev,
-                playerStats: { ...prev.playerStats, bio: newBio }
+                playerStats: {
+                    ...prev.playerStats,
+                    avatarUrl: url,
+                },
             };
         });
-    };
+    }, [setGameState]);
 
-    const setPlayerName = (name: string) => {
+    const handleGenerateBio = useCallback(() => {
+        startBioGenerationTransition(() => {
+            setGameState(prev => {
+                if (!prev) return null;
+                const newBio = bios[Math.floor(Math.random() * bios.length)].replace(/{Captain}/g, prev.playerStats.name);
+                toast({ title: "Bio Generated", description: "Your captain's story has been updated." });
+                return { ...prev, playerStats: { ...prev.playerStats, bio: newBio } };
+            });
+        });
+    }, [setGameState, toast]);
+    
+    const setPlayerName = useCallback((name: string) => {
         setGameState(prev => {
             if (!prev) return null;
             const oldName = prev.playerStats.name;
@@ -124,99 +85,153 @@ export function usePlayerActions(gameState: GameState | null, setGameState: Reac
                 leaderboard: newLeaderboard
             }
         });
-    };
+    }, [setGameState]);
 
-
-    const handleRefuel = () => {
-        let toastMessage: { title: string, description: string, variant?: 'destructive' } | null = null;
+    const updateTraderBio = useCallback((traderName: string, bio: string) => {
         setGameState(prev => {
             if (!prev) return null;
+            const newLeaderboard = prev.leaderboard.map(e => e.trader === traderName ? { ...e, bio: bio } : e);
+            return { ...prev, leaderboard: newLeaderboard };
+        });
+    }, [setGameState]);
 
+    const handleResetGame = useCallback(() => {
+        toast({
+            title: "Game Resetting...",
+            description: "Wiping all progress. A new adventure awaits!",
+        });
+        localStorage.removeItem('heggieGameState');
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    }, [toast]);
+
+    const handleRefuel = useCallback(() => {
+        setGameState(prev => {
+            if (!prev) return null;
             const fuelNeeded = prev.playerStats.maxFuel - prev.playerStats.fuel;
             if (fuelNeeded <= 0) {
-                toastMessage = { title: "Refuel Not Needed", description: "Fuel tank is already full." };
+                toast({ title: "Refuel Not Needed", description: "Fuel tank is already full." });
                 return prev;
             }
-
             const fuelPrice = 2; // credits per unit
             const totalCost = fuelNeeded * fuelPrice;
-
             if (prev.playerStats.netWorth < totalCost) {
-                toastMessage = { variant: "destructive", title: "Refuel Failed", description: `Not enough credits. You need ${totalCost}¢.` };
+                toast({ variant: "destructive", title: "Refuel Failed", description: `Not enough credits. You need ${totalCost}¢.` });
                 return prev;
             }
-
-            const newPlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth - totalCost,
-                fuel: prev.playerStats.maxFuel,
-            };
-
-            toastMessage = { title: "Refuel Complete", description: `You spent ${totalCost}¢ to refuel your ship.` };
-
+            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, fuel: prev.playerStats.maxFuel, };
+            toast({ title: "Refuel Complete", description: `You spent ${totalCost}¢ to refuel your ship.` });
             return { ...prev, playerStats: newPlayerStats };
         });
-        if (toastMessage) {
-            setTimeout(() => toast(toastMessage!), 0);
-        }
-    };
+    }, [setGameState, toast]);
 
-    const handleRepairShip = () => {
-        let toastMessage: { title: string, description: string, variant?: 'destructive' } | null = null;
+    const handleRepairShip = useCallback(() => {
         setGameState(prev => {
             if (!prev) return null;
-            // System data is needed for repair cost calculation, this hook shouldn't import Systems
-            // This calculation should potentially be done in the main provider or a different hook
-            // For now, simplifying repair cost
             const damageToRepair = prev.playerStats.maxShipHealth - prev.playerStats.shipHealth;
             if (damageToRepair <= 0) {
-                toastMessage = { title: "Repairs Not Needed", description: "Ship integrity is at 100%." };
+                toast({ title: "Repairs Not Needed", description: "Ship integrity is at 100%." });
                 return prev;
             }
-
             const baseRepairPricePerPoint = 50;
-            // const currentSystem = SYSTEMS.find(s => s.name === prev.currentSystem); // Removed direct SYSTEMS import
-            // Simplified cost calculation for now
             const totalCost = Math.round(damageToRepair * baseRepairPricePerPoint);
-
-
             if (prev.playerStats.netWorth < totalCost) {
-                toastMessage = { variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` };
+                toast({ variant: "destructive", title: "Repairs Failed", description: `Not enough credits. You need ${totalCost}¢.` });
                 return prev;
             }
-
-            const newPlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth - totalCost,
-                shipHealth: prev.playerStats.maxShipHealth,
-            };
-
-            toastMessage = { title: "Repairs Complete", description: `You spent ${totalCost}¢ to restore your ship\'s hull.` };
-
+            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, shipHealth: prev.playerStats.maxShipHealth, };
+            toast({ title: "Repairs Complete", description: `You spent ${totalCost}¢ to restore your ship\'s hull.` });
             return { ...prev, playerStats: newPlayerStats };
         });
-        if (toastMessage) {
-            setTimeout(() => toast(toastMessage!), 0);
-        }
-    };
+    }, [setGameState, toast]);
 
-    const handleUpgradeShip = (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+    const handleHireCrew = useCallback((crewId: string) => {
         setGameState(prev => {
             if (!prev) return null;
-
-            const fleet = [...prev.playerStats.fleet];
-            const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
-            if (shipIndex === -1) {
-                toast({ variant: "destructive", title: "Error", description: "Ship not found in fleet." });
+            const crewToHire = AVAILABLE_CREW.find(c => c.id === crewId);
+            if (!crewToHire) return prev;
+            if (prev.playerStats.netWorth < crewToHire.hiringFee) {
+                toast({ variant: "destructive", title: "Hiring Failed", description: "Not enough credits." });
                 return prev;
             }
+            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - crewToHire.hiringFee };
+            const newCrew = [...prev.crew, crewToHire];
+            toast({ title: "Crew Member Hired", description: `${crewToHire.name} has joined your crew.` });
+            return { ...prev, playerStats: newPlayerStats, crew: newCrew };
+        });
+    }, [setGameState, toast]);
+
+    const handleFireCrew = useCallback((crewId: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const crewToFire = prev.crew.find(c => c.id === crewId);
+            if (!crewToFire) return prev;
+            const newCrew = prev.crew.filter(c => c.id !== crewId);
+            toast({ title: "Crew Member Fired", description: `${crewToFire.name} has left your crew.` });
+            return { ...prev, crew: newCrew };
+        });
+    }, [setGameState, toast]);
+
+    const handlePurchaseShip = useCallback((ship: ShipForSale) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (prev.playerStats.netWorth < ship.cost) {
+                toast({ variant: "destructive", title: "Purchase Failed", description: "Not enough credits." });
+                return prev;
+            }
+            const newShip: PlayerShip = {
+                instanceId: Date.now(),
+                shipId: ship.id,
+                name: ship.name,
+                cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1,
+            };
+            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
+            toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
+    const handleSellShip = useCallback((shipInstanceId: number) => {
+        setGameState(prev => {
+            if (!prev || prev.playerStats.fleet.length <= 1) {
+                toast({ variant: "destructive", title: "Sale Failed", description: "You cannot sell your last ship." });
+                return prev;
+            }
+            const shipIndex = prev.playerStats.fleet.findIndex(s => s.instanceId === shipInstanceId);
+            if (shipIndex === -1) return prev;
+
+            const shipToSell = prev.playerStats.fleet[shipIndex];
+            const baseData = SHIPS_FOR_SALE.find(s => s.id === shipToSell.shipId)!;
+            let totalValue = baseData.cost;
+            totalValue += cargoUpgrades[shipToSell.cargoLevel - 1].cost;
+            totalValue += weaponUpgrades[shipToSell.weaponLevel - 1].cost;
+            totalValue += shieldUpgrades[shipToSell.shieldLevel - 1].cost;
+            totalValue += hullUpgrades[shipToSell.hullLevel - 1].cost;
+            totalValue += fuelUpgrades[shipToSell.fuelLevel - 1].cost;
+            totalValue += sensorUpgrades[shipToSell.sensorLevel - 1].cost;
+
+            const salePrice = Math.round(totalValue * 0.7);
+            const newFleet = prev.playerStats.fleet.filter(s => s.instanceId !== shipInstanceId);
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + salePrice, fleet: newFleet };
+            
+            if (shipIndex === 0) {
+                newPlayerStats = syncActiveShipStats(newPlayerStats);
+            }
+            
+            toast({ title: "Ship Sold", description: `You sold the ${shipToSell.name} for ${salePrice.toLocaleString()}¢.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
+    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const fleet = [...prev.playerStats.fleet];
+            const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
+            if (shipIndex === -1) return prev;
 
             const shipToUpgrade = { ...fleet[shipIndex] };
-
-            let cost = 0;
-            let toastTitle = "Upgrade Failed";
-            let toastDescription = "An unknown error occurred.";
-
             const upgradeMap = {
                 cargo: { levels: cargoUpgrades, current: shipToUpgrade.cargoLevel },
                 weapon: { levels: weaponUpgrades, current: shipToUpgrade.weaponLevel },
@@ -231,10 +246,9 @@ export function usePlayerActions(gameState: GameState | null, setGameState: Reac
                 toast({ variant: "destructive", title: "Upgrade Failed", description: "Already at max level." });
                 return prev;
             }
-
-            const currentTier = upgradeInfo.levels[upgradeInfo.current - 1];
-            const nextTier = upgradeInfo.levels[upgradeInfo.current];
-            cost = nextTier.cost - (currentTier?.cost || 0);
+            const currentTierCost = upgradeInfo.levels[upgradeInfo.current - 1]?.cost || 0;
+            const nextTierCost = upgradeInfo.levels[upgradeInfo.current].cost;
+            const cost = nextTierCost - currentTierCost;
 
             if (prev.playerStats.netWorth < cost) {
                 toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
@@ -242,37 +256,24 @@ export function usePlayerActions(gameState: GameState | null, setGameState: Reac
             }
 
             (shipToUpgrade as any)[`${upgradeType}Level`] += 1;
-
-            toastTitle = `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`;
-            toastDescription = `Your ${shipToUpgrade.name}\'s ${upgradeType} is now Mk. ${shipToUpgrade[upgradeType + "Level" as keyof PlayerShip]}.`;
-
             fleet[shipIndex] = shipToUpgrade;
-            let newPlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth - cost,
-                fleet
-            };
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - cost, fleet };
 
-            // If the upgraded ship is the active one, sync stats
-            if (shipIndex === 0) {
-                newPlayerStats = syncActiveShipStats(newPlayerStats);
-            }
-
-            toast({ title: toastTitle, description: toastDescription });
+            if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
+            
+            toast({ title: `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`, description: `Your ${shipToUpgrade.name}'s ${upgradeType} is now Mk. ${shipToUpgrade[`${upgradeType}Level` as keyof PlayerShip]}.` });
             return { ...prev, playerStats: newPlayerStats };
         });
-    };
+    }, [setGameState, toast]);
 
-    const handleDowngradeShip = (shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
         setGameState(prev => {
             if (!prev) return null;
-
             const fleet = [...prev.playerStats.fleet];
             const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
             if (shipIndex === -1) return prev;
 
             const shipToDowngrade = { ...fleet[shipIndex] };
-
             const upgradeMap = {
                 cargo: { levels: cargoUpgrades, current: shipToDowngrade.cargoLevel },
                 weapon: { levels: weaponUpgrades, current: shipToDowngrade.weaponLevel },
@@ -281,28 +282,57 @@ export function usePlayerActions(gameState: GameState | null, setGameState: Reac
                 fuel: { levels: fuelUpgrades, current: shipToDowngrade.fuelLevel },
                 sensor: { levels: sensorUpgrades, current: shipToDowngrade.sensorLevel },
             };
-
             const upgradeInfo = upgradeMap[upgradeType];
             if (upgradeInfo.current <= 1) {
                 toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." });
                 return prev;
             }
-
-            const currentTier = upgradeInfo.levels[upgradeInfo.current - 1];
-            const prevTier = upgradeInfo.levels[upgradeInfo.current - 2];
-            const refund = Math.round((currentTier.cost - prevTier.cost) * 0.7);
+            const currentTierCost = upgradeInfo.levels[upgradeInfo.current - 1].cost;
+            const prevTierCost = upgradeInfo.levels[upgradeInfo.current - 2].cost;
+            const refund = Math.round((currentTierCost - prevTierCost) * 0.7);
 
             (shipToDowngrade as any)[`${upgradeType}Level`] -= 1;
-
             fleet[shipIndex] = shipToDowngrade;
-            let newPlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth + refund,
-                fleet
-            };
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + refund, fleet };
+            if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
+            
+            toast({ title: "Downgrade Successful!", description: `You received ${refund.toLocaleString()}¢ for selling the old component.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
 
-            if (shipIndex === 0) {
-                newPlayerStats = syncActiveShipStats(newPlayerStats);
-            }
+    const handleSetActiveShip = useCallback((shipInstanceId: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const shipIndex = prev.playerStats.fleet.findIndex(s => s.instanceId === shipInstanceId);
+            if (shipIndex <= 0) return prev; 
 
-            toast({ title: "Downgrade Successful!
+            const newFleet = [...prev.playerStats.fleet];
+            const activeShip = newFleet.splice(shipIndex, 1)[0];
+            newFleet.unshift(activeShip);
+            
+            let newPlayerStats = { ...prev.playerStats, fleet: newFleet };
+            newPlayerStats = syncActiveShipStats(newPlayerStats);
+            toast({ title: "Active Ship Changed", description: `The ${activeShip.name} is now your active vessel.` });
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+    
+    return {
+        isGeneratingBio,
+        handleSetAvatar,
+        handleGenerateBio,
+        setPlayerName,
+        updateTraderBio,
+        handleResetGame,
+        handleRefuel,
+        handleRepairShip,
+        handleHireCrew,
+        handleFireCrew,
+        handlePurchaseShip,
+        handleSellShip,
+        handleUpgradeShip,
+        handleDowngradeShip,
+        handleSetActiveShip,
+    };
+}

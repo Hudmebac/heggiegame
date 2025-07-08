@@ -2,22 +2,22 @@
 
 import { useCallback, useEffect } from 'react';
 import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
-import { industryThemes } from '@/lib/industry-themes';
+import { residenceThemes } from '@/lib/residence-themes';
 import { useToast } from '@/hooks/use-toast';
 
-export function useIndustry(
+export function useResidence(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
     updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
 
-  const handleIndustryClick = useCallback((income: number) => {
+  const handleResidenceClick = useCallback((income: number) => {
     let completedToastMessages: { title: string, description: string }[] = [];
     setGameState(prev => {
         if (!prev) return null;
         const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
-        const [newState, completedObjectives] = updateObjectiveProgress('industry', baseState);
+        const [newState, completedObjectives] = updateObjectiveProgress('residence', baseState);
         completedObjectives.forEach(obj => {
             completedToastMessages.push({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
         });
@@ -31,65 +31,65 @@ export function useIndustry(
     }
   }, [setGameState, updateObjectiveProgress, toast]);
 
-  const handleUpgradeIndustry = useCallback(() => {
+  const handleUpgradeResidence = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
       const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
       const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-      if (prev.playerStats.industryLevel >= 25) {
-        toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." });
+      if (prev.playerStats.residenceLevel >= 25) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." });
         return prev;
       }
 
-      const upgradeCost = Math.round(1200 * Math.pow(prev.playerStats.industryLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(125 * Math.pow(prev.playerStats.residenceLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, industryLevel: prev.playerStats.industryLevel + 1 };
-      toast({ title: "Facility Upgraded!", description: `Your industrial facility is now at Level ${newPlayerStats.industryLevel}.` });
+      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, residenceLevel: prev.playerStats.residenceLevel + 1 };
+      toast({ title: "Residence Upgraded!", description: `Your residence is now Level ${newPlayerStats.residenceLevel}.` });
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
 
-  const handleUpgradeIndustryAutoClicker = useCallback(() => {
+  const handleUpgradeResidenceAutoClicker = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
       const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
       const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-      if (prev.playerStats.industryAutoClickerBots >= 25) {
-        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." });
+      if (prev.playerStats.residenceAutoClickerBots >= 25) {
+        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 bots." });
         return prev;
       }
 
-      const botCost = Math.round(40500 * Math.pow(1.15, prev.playerStats.industryAutoClickerBots) * costModifier);
+      const botCost = Math.round(4250 * Math.pow(1.15, prev.playerStats.residenceAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, industryAutoClickerBots: prev.playerStats.industryAutoClickerBots + 1 };
-      toast({ title: "Bot Deployed!", description: "A new assembly bot has been deployed." });
+      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, residenceAutoClickerBots: prev.playerStats.residenceAutoClickerBots + 1 };
+      toast({ title: "Bot Hired!", description: "A new service bot has been hired." });
       return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
 
-  const handlePurchaseIndustry = useCallback(() => {
+  const handlePurchaseResidence = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
-        if (prev.playerStats.industryEstablishmentLevel > 0) {
-             toast({ variant: "destructive", title: "Already Owned", description: `You already own an industrial facility.` });
+        if (prev.playerStats.residenceEstablishmentLevel > 0) {
+             toast({ variant: "destructive", title: "Already Owned", description: `You already own a residence.` });
              return prev;
         }
 
-        const cost = 4000 * 3;
+        const cost = 5000 * 4;
 
         if (prev.playerStats.netWorth < cost) {
             toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
@@ -100,30 +100,30 @@ export function useIndustry(
         const newPlayerStats: PlayerStats = { 
             ...prev.playerStats, 
             netWorth: prev.playerStats.netWorth - cost,
-            industryEstablishmentLevel: 1,
-            industryContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
+            residenceEstablishmentLevel: 1,
+            residenceContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
         };
 
-        toast({ title: "Facility Acquired!", description: "You now manage this industrial facility." });
+        toast({ title: "Property Acquired!", description: "You now own this residential property." });
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
 
-  const handleExpandIndustry = useCallback(() => {
+  const handleExpandResidence = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
         const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
         const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-        const contract = prev.playerStats.industryContract;
+        const contract = prev.playerStats.residenceContract;
 
-        if (!contract || prev.playerStats.industryEstablishmentLevel < 1 || prev.playerStats.industryEstablishmentLevel > 4) {
-             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." });
+        if (!contract || prev.playerStats.residenceEstablishmentLevel < 1 || prev.playerStats.residenceEstablishmentLevel > 4) {
+             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or property not owned." });
              return prev;
         }
         
-        const expansionTiers = [40000, 400000, 4000000, 40000000].map(v => v * 3);
-        const cost = Math.round(expansionTiers[prev.playerStats.industryEstablishmentLevel - 1] * costModifier);
+        const expansionTiers = [50000, 500000, 5000000, 50000000].map(v => v * 4);
+        const cost = Math.round(expansionTiers[prev.playerStats.residenceEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
             toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
@@ -136,21 +136,21 @@ export function useIndustry(
         const newPlayerStats: PlayerStats = { 
             ...prev.playerStats, 
             netWorth: prev.playerStats.netWorth - cost,
-            industryEstablishmentLevel: prev.playerStats.industryEstablishmentLevel + 1,
-            industryContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
+            residenceEstablishmentLevel: prev.playerStats.residenceEstablishmentLevel + 1,
+            residenceContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         
-        toast({ title: "Facility Expanded!", description: `Your industrial facility has grown to Tier ${newPlayerStats.industryEstablishmentLevel - 1}.` });
+        toast({ title: "Property Expanded!", description: `Your property has grown to Level ${newPlayerStats.residenceEstablishmentLevel - 1}.` });
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
 
-  const handleSellIndustry = useCallback(() => {
+  const handleSellResidence = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
-        const contract = prev.playerStats.industryContract;
+        const contract = prev.playerStats.residenceContract;
         if (!contract) {
-            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own an industrial facility to sell.` });
+            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a residence to sell.` });
             return prev;
         }
 
@@ -158,21 +158,21 @@ export function useIndustry(
         const newPlayerStats: PlayerStats = { 
             ...prev.playerStats, 
             netWorth: prev.playerStats.netWorth + salePrice,
-            industryLevel: 1,
-            industryAutoClickerBots: 0,
-            industryEstablishmentLevel: 0,
-            industryContract: undefined,
+            residenceLevel: 1,
+            residenceAutoClickerBots: 0,
+            residenceEstablishmentLevel: 0,
+            residenceContract: undefined,
         };
         
-        toast({ title: "Facility Sold!", description: `You sold the industrial facility for ${salePrice.toLocaleString()}¢.` });
+        toast({ title: "Property Sold!", description: `You sold the residence for ${salePrice.toLocaleString()}¢.` });
         return { ...prev, playerStats: newPlayerStats };
     });
   }, [setGameState, toast]);
 
-  const handleAcceptIndustryPartnerOffer = useCallback((offer: PartnershipOffer) => {
+  const handleAcceptResidencePartnerOffer = useCallback((offer: PartnershipOffer) => {
     setGameState(prev => {
         if (!prev) return null;
-        const contract = prev.playerStats.industryContract;
+        const contract = prev.playerStats.residenceContract;
         if (!contract) return prev;
 
         const newPartner: BarPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
@@ -180,14 +180,14 @@ export function useIndustry(
         const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your facility." });
+             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your property." });
              return prev;
         }
 
         const newPlayerStats = { 
             ...prev.playerStats, 
             netWorth: prev.playerStats.netWorth + offer.cashOffer,
-            industryContract: { ...contract, partners: updatedPartners }
+            residenceContract: { ...contract, partners: updatedPartners }
         };
         
         toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
@@ -196,41 +196,41 @@ export function useIndustry(
   }, [setGameState, toast]);
   
   useEffect(() => {
-    if (!gameState || (gameState.playerStats.industryAutoClickerBots || 0) === 0) {
+    if (!gameState || (gameState.playerStats.residenceAutoClickerBots || 0) === 0) {
       return;
     }
 
     const intervalId = setInterval(() => {
       setGameState(prev => {
-        if (!prev || (prev.playerStats.industryAutoClickerBots || 0) === 0) {
+        if (!prev || (prev.playerStats.residenceAutoClickerBots || 0) === 0) {
           clearInterval(intervalId);
           return prev;
         }
 
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
         const zoneType = currentSystem?.zoneType;
-        const theme = zoneType && industryThemes[zoneType] ? industryThemes[zoneType] : industryThemes['Default'];
+        const theme = zoneType && residenceThemes[zoneType] ? residenceThemes[zoneType] : residenceThemes['Default'];
 
-        const totalPartnerShare = (prev.playerStats.industryContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
-        const incomePerClick = theme.baseIncome * prev.playerStats.industryLevel;
-        const incomePerSecond = (prev.playerStats.industryAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const totalPartnerShare = (prev.playerStats.residenceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+        const incomePerClick = theme.baseIncome * prev.playerStats.residenceLevel;
+        const incomePerSecond = (prev.playerStats.residenceAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
-        const [newState] = updateObjectiveProgress('industry', { ...prev, playerStats: playerStatsWithIncome });
+        const [newState] = updateObjectiveProgress('residence', { ...prev, playerStats: playerStatsWithIncome });
         return newState;
       });
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
+  }, [gameState?.playerStats.residenceAutoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
 
   return {
-    handleIndustryClick,
-    handleUpgradeIndustry,
-    handleUpgradeIndustryAutoClicker,
-    handlePurchaseIndustry,
-    handleExpandIndustry,
-    handleSellIndustry,
-    handleAcceptIndustryPartnerOffer,
+    handleResidenceClick,
+    handleUpgradeResidence,
+    handleUpgradeResidenceAutoClicker,
+    handlePurchaseResidence,
+    handleExpandResidence,
+    handleSellResidence,
+    handleAcceptResidencePartnerOffer,
   };
 }

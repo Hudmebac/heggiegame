@@ -1,27 +1,26 @@
-import { useContext, useEffect, useCallback } from 'react';
-import type { GameState, PlayerStats, ActiveObjective, QuestTask } from '@/lib/types';
-import { useToast } from "@/hooks/use-toast";
+'use client';
+
+import { useCallback, useEffect } from 'react';
+import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
 import { commerceThemes } from '@/lib/commerce-themes';
-import { useQuests } from './use-quests'; // Assuming useQuests is in the same directory
+import { useToast } from '@/hooks/use-toast';
 
 export function useCommerce(
-  gameState: GameState | null,
-  setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
-  updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]] // Import and use the type
+    gameState: GameState | null,
+    setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
+    updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
 
   const handleCommerceClick = useCallback((income: number) => {
-    let completedToastMessages: {title: string, description: string}[] = [];
+    let completedToastMessages: { title: string, description: string }[] = [];
     setGameState(prev => {
         if (!prev) return null;
-        let baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
+        const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress('commerce', baseState);
-
         completedObjectives.forEach(obj => {
             completedToastMessages.push({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
         });
-
         return newState;
     });
 
@@ -30,51 +29,208 @@ export function useCommerce(
             completedToastMessages.forEach(msg => toast(msg));
         }, 0);
     }
-  }, [setGameState, updateObjectiveProgress, toast]); // Add dependencies
+  }, [setGameState, updateObjectiveProgress, toast]);
 
+  const handleUpgradeCommerce = useCallback(() => {
+    setGameState(prev => {
+      if (!prev) return null;
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+      if (prev.playerStats.commerceLevel >= 25) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: "Commerce Hub level is already at maximum." });
+        return prev;
+      }
+
+      const upgradeCost = Math.round(375 * Math.pow(prev.playerStats.commerceLevel, 2.5) * costModifier);
+
+      if (prev.playerStats.netWorth < upgradeCost) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        return prev;
+      }
+
+      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, commerceLevel: prev.playerStats.commerceLevel + 1 };
+      toast({ title: "Commerce Hub Upgraded!", description: `Your hub is now Level ${newPlayerStats.commerceLevel}.` });
+      return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleUpgradeCommerceAutoClicker = useCallback(() => {
+    setGameState(prev => {
+      if (!prev) return null;
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+      if (prev.playerStats.commerceAutoClickerBots >= 25) {
+        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." });
+        return prev;
+      }
+
+      const botCost = Math.round(12750 * Math.pow(1.15, prev.playerStats.commerceAutoClickerBots) * costModifier);
+
+      if (prev.playerStats.netWorth < botCost) {
+        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        return prev;
+      }
+
+      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, commerceAutoClickerBots: prev.playerStats.commerceAutoClickerBots + 1 };
+      toast({ title: "Bot Deployed!", description: "A new trading bot has been deployed." });
+      return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handlePurchaseCommerce = useCallback(() => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.commerceEstablishmentLevel > 0) {
+             toast({ variant: "destructive", title: "Already Owned", description: `You already own a commerce hub.` });
+             return prev;
+        }
+
+        const cost = 6000 * 1.5;
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const initialValue = cost * (Math.random() * 0.4 + 0.8);
+        const newPlayerStats: PlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth - cost,
+            commerceEstablishmentLevel: 1,
+            commerceContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
+        };
+
+        toast({ title: "Commerce Hub Acquired!", description: "You now manage this commercial hub." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleExpandCommerce = useCallback(() => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const contract = prev.playerStats.commerceContract;
+
+        if (!contract || prev.playerStats.commerceEstablishmentLevel < 1 || prev.playerStats.commerceEstablishmentLevel > 4) {
+             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or hub not owned." });
+             return prev;
+        }
+        
+        const expansionTiers = [60000, 600000, 6000000, 60000000].map(v => v * 1.5);
+        const cost = Math.round(expansionTiers[prev.playerStats.commerceEstablishmentLevel - 1] * costModifier);
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const investmentValue = cost * (Math.random() * 0.2 + 0.7);
+        const newMarketValue = Math.round(contract.currentMarketValue + investmentValue);
+
+        const newPlayerStats: PlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth - cost,
+            commerceEstablishmentLevel: prev.playerStats.commerceEstablishmentLevel + 1,
+            commerceContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
+        };
+        
+        toast({ title: "Hub Expanded!", description: `Your commerce hub has grown to Tier ${newPlayerStats.commerceEstablishmentLevel - 1}.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleSellCommerce = useCallback(() => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const contract = prev.playerStats.commerceContract;
+        if (!contract) {
+            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own a commerce hub to sell.` });
+            return prev;
+        }
+
+        const salePrice = contract.currentMarketValue;
+        const newPlayerStats: PlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth + salePrice,
+            commerceLevel: 1,
+            commerceAutoClickerBots: 0,
+            commerceEstablishmentLevel: 0,
+            commerceContract: undefined,
+        };
+        
+        toast({ title: "Hub Sold!", description: `You sold the commerce hub for ${salePrice.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleAcceptCommercePartnerOffer = useCallback((offer: PartnershipOffer) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const contract = prev.playerStats.commerceContract;
+        if (!contract) return prev;
+
+        const newPartner: BarPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
+        const updatedPartners = [...(contract.partners || []), newPartner];
+        const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
+
+        if (totalPartnerShare > 1) {
+             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your hub." });
+             return prev;
+        }
+
+        const newPlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth + offer.cashOffer,
+            commerceContract: { ...contract, partners: updatedPartners }
+        };
+        
+        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+  
   useEffect(() => {
     if (!gameState || (gameState.playerStats.commerceAutoClickerBots || 0) === 0) {
-        return;
+      return;
     }
 
     const intervalId = setInterval(() => {
-        setGameState(prev => {
-            if (!prev || (prev.playerStats.commerceAutoClickerBots || 0) === 0) {
-                clearInterval(intervalId);
-                return prev;
-            }
+      setGameState(prev => {
+        if (!prev || (prev.playerStats.commerceAutoClickerBots || 0) === 0) {
+          clearInterval(intervalId);
+          return prev;
+        }
 
-            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-            const zoneType = currentSystem?.zoneType;
-            const theme = (zoneType && commerceThemes[zoneType]) ? commerceThemes[zoneType] : commerceThemes['Default'];
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const zoneType = currentSystem?.zoneType;
+        const theme = zoneType && commerceThemes[zoneType] ? commerceThemes[zoneType] : commerceThemes['Default'];
 
-            const totalPartnerShare = (prev.playerStats.commerceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
-            const incomePerClick = theme.baseIncome * prev.playerStats.commerceLevel;
-            const incomePerSecond = (prev.playerStats.commerceAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const totalPartnerShare = (prev.playerStats.commerceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+        const incomePerClick = theme.baseIncome * prev.playerStats.commerceLevel;
+        const incomePerSecond = (prev.playerStats.commerceAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
 
-            const newPlayerStats: PlayerStats = {
-                ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth + incomePerSecond,
-            };
-
-            const [newState, completedObjectives] = updateObjectiveProgress('commerce', { ...prev, playerStats: newPlayerStats });
-
-            if (completedObjectives.length > 0) {
-                setTimeout(() => {
-                    completedObjectives.forEach(obj => {
-                        toast({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
-                    });
-                }, 0);
-            }
-
-            return newState;
-        });
-    }, 1000); // every second
+        const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
+        const [newState] = updateObjectiveProgress('commerce', { ...prev, playerStats: playerStatsWithIncome });
+        return newState;
+      });
+    }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.commerceAutoClickerBots, gameState?.currentSystem, gameState?.playerStats.commerceLevel, gameState?.playerStats.commerceContract, updateObjectiveProgress, setGameState, toast]); // Add dependencies
+  }, [gameState?.playerStats.commerceAutoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
 
   return {
     handleCommerceClick,
+    handleUpgradeCommerce,
+    handleUpgradeCommerceAutoClicker,
+    handlePurchaseCommerce,
+    handleExpandCommerce,
+    handleSellCommerce,
+    handleAcceptCommercePartnerOffer,
   };
 }

@@ -1,50 +1,202 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import type { GameState } from '@/lib/types';
+import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
 import { barThemes } from '@/lib/bar-themes';
-import { useQuests } from '@/hooks/use-quests'; // Assuming useQuests is at this path
 import { useToast } from '@/hooks/use-toast';
 
-type UseBarProps = {
-  gameState: GameState | null;
-  setGameState: React.Dispatch<React.SetStateAction<GameState | null>>;
-};
+export function useBar(
+    gameState: GameState | null,
+    setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
+    updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
+) {
+  const { toast } = useToast();
 
-export function useBar({ gameState, setGameState }: UseBarProps) {
-  const { updateObjectiveProgress } = useQuests({ gameState, setGameState }); // Get updateObjectiveProgress from useQuests
-  const { toast } = useToast(); // Use toast here for click completion messages
-
-  const handleBarClick = useCallback(
-    (income: number) => {
-      let completedToastMessages: { title: string; description: string }[] = [];
-      setGameState(prev => {
+  const handleBarClick = useCallback((income: number) => {
+    let completedToastMessages: { title: string, description: string }[] = [];
+    setGameState(prev => {
         if (!prev) return null;
-        const baseState = {
-          ...prev,
-          playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income },
-        };
+        const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress('bar', baseState);
 
         completedObjectives.forEach(obj => {
-          completedToastMessages.push({
-            title: 'Objective Complete!',
-            description: `You earned ${obj.reward} for completing "${obj.title}".`,
-          });
+            completedToastMessages.push({ title: "Objective Complete!", description: `You earned ${obj.reward} for completing "${obj.title}".` });
         });
 
         return newState;
-      });
+    });
 
-      if (completedToastMessages.length > 0) {
+    if (completedToastMessages.length > 0) {
         setTimeout(() => {
-          completedToastMessages.forEach(msg => toast(msg));
+            completedToastMessages.forEach(msg => toast(msg));
         }, 0);
-      }
-    },
-    [setGameState, updateObjectiveProgress, toast]
-  );
+    }
+  }, [setGameState, updateObjectiveProgress, toast]);
 
+  const handleUpgradeBar = useCallback(() => {
+    setGameState(prev => {
+      if (!prev) return null;
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+      if (prev.playerStats.barLevel >= 25) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: "Bar level is already at maximum." });
+        return prev;
+      }
+
+      const upgradeCost = Math.round(300 * Math.pow(prev.playerStats.barLevel, 2.5) * costModifier);
+
+      if (prev.playerStats.netWorth < upgradeCost) {
+        toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+        return prev;
+      }
+
+      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, barLevel: prev.playerStats.barLevel + 1 };
+      toast({ title: "Bar Upgraded!", description: `Your bar is now Level ${newPlayerStats.barLevel}.` });
+      return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleUpgradeBarAutoClicker = useCallback(() => {
+    setGameState(prev => {
+      if (!prev) return null;
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+
+      if (prev.playerStats.autoClickerBots >= 25) {
+        toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more than 25 bots." });
+        return prev;
+      }
+
+      const botCost = Math.round(9000 * Math.pow(1.15, prev.playerStats.autoClickerBots) * costModifier);
+
+      if (prev.playerStats.netWorth < botCost) {
+        toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+        return prev;
+      }
+
+      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, autoClickerBots: prev.playerStats.autoClickerBots + 1 };
+      toast({ title: "Bot Purchased!", description: "A new bot has been added to your staff." });
+      return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handlePurchaseBar = useCallback(() => {
+    setGameState(prev => {
+        if (!prev) return null;
+        if (prev.playerStats.establishmentLevel > 0) {
+             toast({ variant: "destructive", title: "Already Owned", description: `You already own an establishment.` });
+             return prev;
+        }
+
+        const cost = 6000;
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const initialValue = cost * (Math.random() * 0.4 + 0.8);
+        const newPlayerStats: PlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth - cost,
+            establishmentLevel: 1,
+            barContract: { currentMarketValue: initialValue, valueHistory: [initialValue], partners: [], }
+        };
+
+        toast({ title: "Establishment Purchased!", description: "You are now the proud owner of this establishment." });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleExpandBar = useCallback(() => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const contract = prev.playerStats.barContract;
+
+        if (!contract || prev.playerStats.establishmentLevel < 1 || prev.playerStats.establishmentLevel > 4) {
+             toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or establishment not owned." });
+             return prev;
+        }
+        
+        const expansionTiers = [60000, 600000, 6000000, 60000000];
+        const cost = Math.round(expansionTiers[prev.playerStats.establishmentLevel - 1] * costModifier);
+
+        if (prev.playerStats.netWorth < cost) {
+            toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+            return prev;
+        }
+
+        const investmentValue = cost * (Math.random() * 0.2 + 0.7);
+        const newMarketValue = Math.round(contract.currentMarketValue + investmentValue);
+
+        const newPlayerStats: PlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth - cost,
+            establishmentLevel: prev.playerStats.establishmentLevel + 1,
+            barContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
+        };
+        
+        toast({ title: "Establishment Expanded!", description: `Your establishment has grown to Expansion Level ${newPlayerStats.establishmentLevel - 1}.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleSellBar = useCallback(() => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const contract = prev.playerStats.barContract;
+        if (!contract) {
+            toast({ variant: "destructive", title: "Sale Failed", description: `You do not own an establishment to sell.` });
+            return prev;
+        }
+
+        const salePrice = contract.currentMarketValue;
+        const newPlayerStats: PlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth + salePrice,
+            barLevel: 1,
+            autoClickerBots: 0,
+            establishmentLevel: 0,
+            barContract: undefined,
+        };
+        
+        toast({ title: "Establishment Sold!", description: `You sold the establishment for ${salePrice.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+
+  const handleAcceptPartnerOffer = useCallback((offer: PartnershipOffer) => {
+    setGameState(prev => {
+        if (!prev) return null;
+        const contract = prev.playerStats.barContract;
+        if (!contract) return prev;
+
+        const newPartner: BarPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
+        const updatedPartners = [...(contract.partners || []), newPartner];
+        const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
+
+        if (totalPartnerShare > 1) {
+             toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your establishment." });
+             return prev;
+        }
+
+        const newPlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth + offer.cashOffer,
+            barContract: { ...contract, partners: updatedPartners }
+        };
+        
+        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` });
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
+  
   useEffect(() => {
     if (!gameState || (gameState.playerStats.autoClickerBots || 0) === 0) {
       return;
@@ -61,49 +213,26 @@ export function useBar({ gameState, setGameState }: UseBarProps) {
         const zoneType = currentSystem?.zoneType;
         const theme = zoneType && barThemes[zoneType] ? barThemes[zoneType] : barThemes['Default'];
 
-        const totalPartnerShare = (prev.playerStats.barContract?.partners || []).reduce(
-          (acc, p) => acc + p.percentage,
-          0
-        );
+        const totalPartnerShare = (prev.playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
-        const incomePerSecond =
-          (prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
 
-        const newPlayerStats = {
-          ...prev.playerStats,
-          netWorth: prev.playerStats.netWorth + incomePerSecond,
-        };
-
-        let postObjectiveState = { ...prev, playerStats: newPlayerStats };
-        const [newState, completedObjectives] = updateObjectiveProgress('bar', postObjectiveState);
-
-        if (completedObjectives.length > 0) {
-          setTimeout(() => {
-            completedObjectives.forEach(obj => {
-              toast({
-                title: 'Objective Complete!',
-                description: `You earned ${obj.reward} for completing "${obj.title}".`,
-              });
-            });
-          }, 0);
-        }
-
+        const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
+        const [newState] = updateObjectiveProgress('bar', { ...prev, playerStats: playerStatsWithIncome });
         return newState;
       });
-    }, 1000); // every second
+    }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [
-    gameState?.playerStats.autoClickerBots,
-    gameState?.currentSystem,
-    gameState?.playerStats.barLevel,
-    gameState?.playerStats.barContract,
-    setGameState,
-    updateObjectiveProgress,
-    toast,
-  ]);
+  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
 
   return {
     handleBarClick,
+    handleUpgradeBar,
+    handleUpgradeBarAutoClicker,
+    handlePurchaseBar,
+    handleExpandBar,
+    handleSellBar,
+    handleAcceptPartnerOffer,
   };
 }
