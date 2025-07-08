@@ -15,6 +15,7 @@ import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-const
 import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
 import { generateBankPartnershipOffers } from '@/ai/flows/generate-bank-partnership-offers';
 import { generateTradeContracts } from '@/ai/flows/generate-trade-contracts';
+import { generateTaxiMissions } from '@/ai/flows/generate-taxi-missions';
 import { z } from 'zod';
 
 import {
@@ -54,6 +55,9 @@ import {
   GenerateTradeContractsInputSchema,
   type GenerateTradeContractsInput,
   type GenerateTradeContractsOutput,
+  GenerateTaxiMissionsInputSchema,
+  type GenerateTaxiMissionsInput,
+  type GenerateTaxiMissionsOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -238,5 +242,19 @@ export async function runGenerateTradeContracts(input: GenerateTradeContractsInp
             throw new Error(`Invalid input for trade contract generation: ${error.message}`);
         }
         throw new Error('Failed to generate trade contracts.');
+    }
+}
+
+export async function runGenerateTaxiMissions(input: GenerateTaxiMissionsInput): Promise<GenerateTaxiMissionsOutput> {
+    try {
+        const validatedInput = GenerateTaxiMissionsInputSchema.parse(input);
+        const result = await generateTaxiMissions(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running taxi mission generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for taxi mission generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate taxi missions.');
     }
 }

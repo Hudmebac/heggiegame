@@ -3,7 +3,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty } from '@/lib/types';
+import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career } from '@/lib/types';
 import { Toaster } from "@/components/ui/toaster";
 import { useGameState } from '@/hooks/use-game-state';
 import { useQuests } from '@/hooks/use-quests';
@@ -20,6 +20,7 @@ import { useRecreation } from '@/hooks/use-recreation';
 import { useCasino } from '@/hooks/use-casino';
 import { useBank } from '@/hooks/use-bank';
 import { useHauler } from '@/hooks/use-hauler';
+import { useTaxi } from '@/hooks/use-taxi';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -34,6 +35,7 @@ import type { useBank as useBankType } from '@/hooks/use-bank';
 import type { useMarket as useMarketType } from '@/hooks/use-market';
 import type { useTravel as useTravelType } from '@/hooks/use-travel';
 import type { useHauler as useHaulerType } from '@/hooks/use-hauler';
+import type { useTaxi as useTaxiType } from '@/hooks/use-taxi';
 
 type GameContextType = {
     gameState: GameState | null;
@@ -53,7 +55,8 @@ type GameContextType = {
   ReturnType<typeof useBankType> &
   ReturnType<typeof useMarketType> &
   ReturnType<typeof useTravelType> &
-  ReturnType<typeof useHaulerType>;
+  ReturnType<typeof useHaulerType> &
+  ReturnType<typeof useTaxiType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -74,6 +77,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const playerActions = usePlayerActions(gameState, setGameState);
     const encounters = useEncounters(gameState, setGameState);
     const haulerLogic = useHauler(gameState, setGameState);
+    const taxiLogic = useTaxi(gameState, setGameState);
 
     // Business Logic Hooks
     const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
@@ -109,6 +113,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...marketLogic,
         ...travelLogic,
         ...haulerLogic,
+        ...taxiLogic,
     };
     
     return (

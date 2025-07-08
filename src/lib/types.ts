@@ -1,4 +1,5 @@
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -120,6 +121,21 @@ export interface TradeRouteContract {
   duration: number; // in seconds
 }
 
+export interface TaxiMission {
+  id: string;
+  passengerName: string;
+  description: string;
+  fromSystem: string;
+  toSystem: string;
+  fare: number;
+  bonus: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Available' | 'Active' | 'Completed' | 'Failed';
+  progress?: number;
+  startTime?: number;
+  duration: number;
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -205,6 +221,7 @@ export interface PlayerStats {
 
   // Hauler Career
   tradeContracts: TradeRouteContract[];
+  taxiMissions: TaxiMission[];
 }
 
 export interface PriceHistory {
