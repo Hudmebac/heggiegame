@@ -10,9 +10,10 @@ import { Ship, Rocket, Warehouse, Fuel, ShieldCheck, HeartPulse, Wrench, Sparkle
 import type { PlayerShip, ShipForSale } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
+import { Progress } from '@/components/ui/progress';
 
 export default function FleetManagement() {
-  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip } = useGame();
+  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip } = useGame();
   const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
   if (!gameState) {
@@ -24,8 +25,48 @@ export default function FleetManagement() {
 
   const getShipBaseData = (shipId: string) => SHIPS_FOR_SALE.find(s => s.id === shipId);
 
+  const fuelNeeded = playerStats.maxFuel - playerStats.fuel;
+  const refuelCost = Math.round(fuelNeeded * 2);
+  const canAffordRefuel = playerStats.netWorth >= refuelCost;
+
+  const damageToRepair = playerStats.maxShipHealth - playerStats.shipHealth;
+  const repairCost = Math.round(damageToRepair * 50);
+  const canAffordRepair = playerStats.netWorth >= repairCost;
+
   return (
     <div className="space-y-6">
+       <Card>
+        <CardHeader>
+          <CardTitle className="font-headline text-lg flex items-center gap-2">
+            <Rocket className="text-primary" />
+            Active Ship Maintenance
+          </CardTitle>
+          <CardDescription>Manage your active vessel's fuel and hull integrity. Services are available at any starport.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground flex items-center gap-2"><Fuel className="text-primary/70" /> Fuel</span>
+              <span className="font-mono">{playerStats.fuel.toFixed(0)} / {playerStats.maxFuel} SU</span>
+            </div>
+            <Progress value={(playerStats.fuel / playerStats.maxFuel) * 100} indicatorClassName="bg-amber-400" />
+            <Button className="w-full mt-2" onClick={handleRefuel} disabled={fuelNeeded <= 0 || !canAffordRefuel}>
+              {fuelNeeded > 0 ? `Refuel (${refuelCost.toLocaleString()}¢)` : 'Fuel Tank Full'}
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground flex items-center gap-2"><HeartPulse className="text-primary/70" /> Hull Integrity</span>
+              <span className="font-mono">{playerStats.shipHealth.toFixed(0)} / {playerStats.maxShipHealth} HP</span>
+            </div>
+            <Progress value={(playerStats.shipHealth / playerStats.maxShipHealth) * 100} indicatorClassName={cn(playerStats.shipHealth < 25 ? 'bg-destructive' : playerStats.shipHealth < 50 ? 'bg-yellow-500' : 'bg-primary')} />
+             <Button className="w-full mt-2" onClick={handleRepairShip} disabled={damageToRepair <= 0 || !canAffordRepair}>
+              {damageToRepair > 0 ? `Repair (${repairCost.toLocaleString()}¢)` : 'Hull at 100%'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-lg flex items-center gap-2">
