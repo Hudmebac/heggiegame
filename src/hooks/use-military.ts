@@ -99,6 +99,22 @@ export function useMilitary(
     });
   }, [setGameState, toast]);
 
+  const handleMilitaryMinigameScore = useCallback((points: number) => {
+    setGameState(prev => {
+      if (!prev) return null;
+      if (points > 0) {
+        toast({ title: "Simulation Successful", description: `You earned ${points.toLocaleString()}¢ for your performance.`});
+      }
+      return {
+        ...prev,
+        playerStats: {
+          ...prev.playerStats,
+          netWorth: prev.playerStats.netWorth + points
+        }
+      }
+    });
+  }, [setGameState, toast]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setGameState(prev => {
@@ -153,6 +169,7 @@ export function useMilitary(
   return {
     handleGenerateMilitaryMissions,
     handleAcceptMilitaryMission,
+    handleMilitaryMinigameScore,
     isGeneratingMissions,
   };
 }

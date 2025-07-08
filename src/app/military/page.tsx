@@ -8,6 +8,7 @@ import { Sword, Target, Coins, ArrowRight, Hourglass, Loader2, FileText } from '
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import type { MilitaryMission } from '@/lib/types';
+import AssaultMinigame from '@/app/components/assault-minigame';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -53,6 +54,8 @@ export default function MilitaryPage() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <AssaultMinigame />
 
             {activeMission && (
                 <Card>
