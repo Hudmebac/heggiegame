@@ -66,6 +66,13 @@ export interface PlayerShip {
   sensorLevel: number;
   cargoLevel: number;
   droneLevel: number;
+  powerCoreLevel: number;
+  overdriveEngine: boolean;
+  warpStabilizer: boolean;
+  stealthPlating: boolean;
+  targetingMatrix: boolean;
+  anomalyAnalyzer: boolean;
+  fabricatorBay: boolean;
 }
 
 export interface InsurancePolicies {
@@ -116,6 +123,13 @@ export interface PlayerStats {
   sensorLevel: number;
   cargoLevel: number;
   droneLevel: number;
+  powerCoreLevel: number;
+  overdriveEngine: boolean;
+  warpStabilizer: boolean;
+  stealthPlating: boolean;
+  targetingMatrix: boolean;
+  anomalyAnalyzer: boolean;
+  fabricatorBay: boolean;
 
   // Business stats
   barLevel: number;

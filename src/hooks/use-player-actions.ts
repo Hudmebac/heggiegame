@@ -6,7 +6,7 @@ import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip } from
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
 
@@ -39,6 +39,14 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     
     const droneTier = droneUpgrades[activeShip.droneLevel - 1];
     newStats.droneLevel = droneTier ? droneTier.level : 1;
+    
+    newStats.powerCoreLevel = activeShip.powerCoreLevel;
+    newStats.overdriveEngine = activeShip.overdriveEngine;
+    newStats.warpStabilizer = activeShip.warpStabilizer;
+    newStats.stealthPlating = activeShip.stealthPlating;
+    newStats.targetingMatrix = activeShip.targetingMatrix;
+    newStats.anomalyAnalyzer = activeShip.anomalyAnalyzer;
+    newStats.fabricatorBay = activeShip.fabricatorBay;
     
     newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
@@ -189,6 +197,7 @@ export function usePlayerActions(
                 shipId: ship.id,
                 name: ship.name,
                 cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
+                powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false
             };
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
             setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);
@@ -220,7 +229,7 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
-    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone') => {
+    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore') => {
         setGameState(prev => {
             if (!prev) return null;
             const fleet = [...prev.playerStats.fleet];
@@ -236,6 +245,7 @@ export function usePlayerActions(
                 fuel: { levels: fuelUpgrades, current: shipToUpgrade.fuelLevel },
                 sensor: { levels: sensorUpgrades, current: shipToUpgrade.sensorLevel },
                 drone: { levels: droneUpgrades, current: shipToUpgrade.droneLevel },
+                powerCore: { levels: powerCoreUpgrades, current: shipToUpgrade.powerCoreLevel },
             };
 
             const upgradeInfo = upgradeMap[upgradeType];
@@ -263,7 +273,7 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
-    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone') => {
+    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore') => {
         setGameState(prev => {
             if (!prev) return null;
             const fleet = [...prev.playerStats.fleet];
@@ -279,6 +289,7 @@ export function usePlayerActions(
                 fuel: { levels: fuelUpgrades, current: shipToDowngrade.fuelLevel },
                 sensor: { levels: sensorUpgrades, current: shipToDowngrade.sensorLevel },
                 drone: { levels: droneUpgrades, current: shipToDowngrade.droneLevel },
+                powerCore: { levels: powerCoreUpgrades, current: shipToDowngrade.powerCoreLevel },
             };
             const upgradeInfo = upgradeMap[upgradeType];
             if (upgradeInfo.current <= 1) {
@@ -305,6 +316,40 @@ export function usePlayerActions(
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
             setTimeout(() => toast({ title: "Downgrade Successful!", description: `You received ${refund.toLocaleString()}¢ for selling the old component.` }), 0);
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
+    const handlePurchaseAdvancedModule = useCallback((shipInstanceId: number, moduleId: AdvancedToggleableUpgrade['id']) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            
+            const moduleData = advancedUpgrades.find(m => m.id === moduleId);
+            if (!moduleData) return prev;
+
+            const fleet = [...prev.playerStats.fleet];
+            const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
+            if (shipIndex === -1) return prev;
+
+            const shipToUpgrade = { ...fleet[shipIndex] };
+
+            if (shipToUpgrade[moduleId]) {
+                 setTimeout(() => toast({ title: "Already Installed", description: `This ship already has the ${moduleData.name} installed.` }), 0);
+                 return prev;
+            }
+
+            if (prev.playerStats.netWorth < moduleData.cost) {
+                setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${moduleData.cost.toLocaleString()}¢.` }), 0);
+                return prev;
+            }
+            
+            shipToUpgrade[moduleId] = true;
+            fleet[shipIndex] = shipToUpgrade;
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - moduleData.cost, fleet };
+            
+            if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
+
+            setTimeout(() => toast({ title: "Module Installed!", description: `The ${moduleData.name} has been fitted to your ${shipToUpgrade.name}.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -378,5 +423,6 @@ export function usePlayerActions(
         handleDowngradeShip,
         handleSetActiveShip,
         handlePurchaseInsurance,
+        handlePurchaseAdvancedModule,
     };
 }

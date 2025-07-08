@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useTransition } from 'react';
 import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -65,6 +65,14 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     const droneTier = droneUpgrades[activeShip.droneLevel - 1];
     newStats.droneLevel = droneTier ? droneTier.level : 1;
 
+    newStats.powerCoreLevel = activeShip.powerCoreLevel;
+    newStats.overdriveEngine = activeShip.overdriveEngine;
+    newStats.warpStabilizer = activeShip.warpStabilizer;
+    newStats.stealthPlating = activeShip.stealthPlating;
+    newStats.targetingMatrix = activeShip.targetingMatrix;
+    newStats.anomalyAnalyzer = activeShip.anomalyAnalyzer;
+    newStats.fabricatorBay = activeShip.fabricatorBay;
+
     newStats.shipHealth = Math.min(playerStats.shipHealth ?? newStats.maxShipHealth, newStats.maxShipHealth);
     newStats.fuel = Math.min(playerStats.fuel ?? newStats.maxFuel, newStats.maxFuel);
 
@@ -76,6 +84,7 @@ const initialShip: PlayerShip = {
     shipId: 'shuttle-s',
     name: 'My Shuttle',
     cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
+    powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
 };
 
 const initialCasinoState: CasinoState = {
@@ -114,6 +123,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     loan: undefined,
     creditCard: undefined,
     debt: 0,
+    powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),

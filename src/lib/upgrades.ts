@@ -129,3 +129,36 @@ export const droneUpgrades: DroneUpgrade[] = droneNames.map((name, i) => ({
     name,
     cost: droneCosts[i]
 }));
+
+// --- Advanced Systems ---
+export interface AdvancedLeveledUpgrade {
+    level: number;
+    name: string;
+    cost: number;
+    description: string;
+}
+
+export const powerCoreUpgrades: AdvancedLeveledUpgrade[] = [
+    { level: 1, name: 'Standard Power Core', cost: 0, description: 'Provides baseline energy for ship systems.' },
+    { level: 2, name: 'Overclocked Core', cost: 150000, description: 'Increased energy output for more demanding modules.' },
+    { level: 3, name: 'Fusion Core', cost: 450000, description: 'High-efficiency fusion power for advanced systems.' },
+    { level: 4, name: 'Zero-Point Reactor', cost: 1200000, description: 'Taps into vacuum energy for massive power output.' },
+    { level: 5, name: 'Singularity Core', cost: 3500000, description: 'A controlled micro-singularity provides near-limitless energy.' },
+];
+
+export interface AdvancedToggleableUpgrade {
+    id: 'overdriveEngine' | 'warpStabilizer' | 'stealthPlating' | 'targetingMatrix' | 'anomalyAnalyzer' | 'fabricatorBay';
+    name: string;
+    category: string;
+    description: string;
+    cost: number;
+}
+
+export const advancedUpgrades: AdvancedToggleableUpgrade[] = [
+    { id: 'overdriveEngine', name: 'Overdrive Engine', category: 'Advanced Ship Systems', description: 'Temporarily boosts speed and evasion at the cost of fuel.', cost: 120000 },
+    { id: 'warpStabilizer', name: 'Warp Stabilizer', category: 'Advanced Ship Systems', description: 'Reduces high-threat encounters and fuel costs for long jumps.', cost: 95000 },
+    { id: 'stealthPlating', name: 'Stealth Plating', category: 'Specialized Subsystems', description: 'Reduces enemy sensor detection range, lowering encounter chances.', cost: 250000 },
+    { id: 'targetingMatrix', name: 'Targeting Matrix', category: 'Combat Enhancers', description: 'Increases hit chance and highlights weak points in combat.', cost: 180000 },
+    { id: 'anomalyAnalyzer', name: 'Anomaly Analyzer', category: 'Exploration & Environment', description: 'Improves scan results from deep space phenomena.', cost: 150000 },
+    { id: 'fabricatorBay', name: 'Fabricator Bay', category: 'Utility Modules', description: 'Slowly produces basic ship repair materials.', cost: 300000 },
+];
