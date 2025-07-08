@@ -7,6 +7,8 @@ import AnatomyCodex from "@/app/components/encyclopedia/anatomy-codex";
 import UpgradesCodex from "@/app/components/encyclopedia/upgrades-codex";
 import LoreCodex from "@/app/components/encyclopedia/lore-codex";
 import SystemCodex from "@/app/components/encyclopedia/system-codex";
+import BusinessCodex from "@/app/components/encyclopedia/business-codex";
+import GameplayCodex from "@/app/components/encyclopedia/gameplay-codex";
 
 export default function EncyclopediaPage() {
     return (
@@ -16,11 +18,13 @@ export default function EncyclopediaPage() {
                 <p className="text-muted-foreground">An archive of all known commodities, ships, and galactic lore.</p>
             </div>
             <Tabs defaultValue="commodities" className="w-full">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
                     <TabsTrigger value="commodities">Commodities</TabsTrigger>
                     <TabsTrigger value="ships">Ships</TabsTrigger>
                     <TabsTrigger value="anatomy">Anatomy</TabsTrigger>
                     <TabsTrigger value="upgrades">Upgrades</TabsTrigger>
+                    <TabsTrigger value="business">Business</TabsTrigger>
+                    <TabsTrigger value="gameplay">Gameplay</TabsTrigger>
                     <TabsTrigger value="lore">Lore</TabsTrigger>
                     <TabsTrigger value="systems">Systems</TabsTrigger>
                 </TabsList>
@@ -35,6 +39,12 @@ export default function EncyclopediaPage() {
                 </TabsContent>
                  <TabsContent value="upgrades">
                     <UpgradesCodex />
+                </TabsContent>
+                <TabsContent value="business">
+                    <BusinessCodex />
+                </TabsContent>
+                <TabsContent value="gameplay">
+                    <GameplayCodex />
                 </TabsContent>
                 <TabsContent value="lore">
                     <LoreCodex />
