@@ -88,7 +88,7 @@ export interface Loan {
 export interface CreditCard {
   limit: number;
   balance: number;
-  dueDate: number;
+  dueDate?: number;
 }
 
 export interface PlayerStats {

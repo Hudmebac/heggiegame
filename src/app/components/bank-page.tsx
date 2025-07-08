@@ -155,7 +155,7 @@ export default function BankPageComponent() {
                 <h2 className="text-2xl font-headline text-slate-200 tracking-wider">Galactic Bank</h2>
                 <p className="text-muted-foreground">Your central hub for all financial operations.</p>
             </div>
-            <Dialog onOpenChange={(open) => !open && setDialog(null)}>
+            <Dialog open={!!dialog} onOpenChange={(open) => !open && setDialog(null)}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     <Card className="xl:col-span-1">
                         <CardHeader>
@@ -237,7 +237,12 @@ export default function BankPageComponent() {
                                     <div className="text-xs space-y-1 text-muted-foreground">
                                         <div className="flex justify-between"><span>Credit Limit:</span><span>{creditCard.limit.toLocaleString()}¢</span></div>
                                         <div className="flex justify-between"><span>Balance Owed:</span><span>{creditCard.balance.toLocaleString()}¢</span></div>
-                                        <div className="flex justify-between"><span>Payment Due:</span><span><CooldownTimer expiry={creditCard.dueDate} /></span></div>
+                                        <div className="flex justify-between">
+                                            <span>Payment Due:</span>
+                                            <span>
+                                                {creditCard.dueDate ? <CooldownTimer expiry={creditCard.dueDate} /> : 'N/A'}
+                                            </span>
+                                        </div>
                                     </div>
                                      <div className="flex gap-2">
                                         <Button size="sm" className="w-full" onClick={() => setDialog('cc_draw')} disabled={creditCard.balance >= creditCard.limit}>Draw Funds</Button>

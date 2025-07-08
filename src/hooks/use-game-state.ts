@@ -262,7 +262,7 @@ export function useGameState() {
                 }
 
                 // Credit card check (every 10 minutes)
-                if (newPlayerStats.creditCard && now > newPlayerStats.creditCard.dueDate) {
+                if (newPlayerStats.creditCard && newPlayerStats.creditCard.dueDate && now > newPlayerStats.creditCard.dueDate) {
                     const cc = newPlayerStats.creditCard;
                     if (cc.balance > 0) {
                         newPlayerStats.debt = (newPlayerStats.debt || 0) + cc.balance;

@@ -169,7 +169,7 @@ export function useBank(
         toast({ title: "Bot Purchased!", description: "A new financial bot has been activated." });
         return {
             ...prev,
-            playerStats: { ...playerStats, netWorth: playerStats.netWorth - botCost, bankAutoClickerBots: playerStats.bankAutoClickerBots + 1 }
+            playerStats: { ...playerStats, netWorth: prev.playerStats.netWorth - botCost, bankAutoClickerBots: playerStats.bankAutoClickerBots + 1 }
         };
     });
   }, [setGameState, toast]);
@@ -311,7 +311,6 @@ export function useBank(
             const newCreditCard: CreditCard = {
                 limit: playerStats.netWorth * 50,
                 balance: 0,
-                dueDate: Date.now() + 10 * 60 * 1000, // 10 minutes
             };
 
             toast({ title: "Credit Line Approved!", description: `You have secured a credit line of ${newCreditCard.limit.toLocaleString()}¢.` });
@@ -345,7 +344,11 @@ export function useBank(
                 playerStats: {
                     ...playerStats,
                     netWorth: playerStats.netWorth + amount,
-                    creditCard: { ...creditCard, balance: creditCard.balance + amount },
+                    creditCard: { 
+                        ...creditCard, 
+                        balance: creditCard.balance + amount,
+                        dueDate: creditCard.dueDate ?? Date.now() + 10 * 60 * 1000,
+                    },
                 }
             };
         });
