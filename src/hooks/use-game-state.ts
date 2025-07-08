@@ -81,9 +81,9 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.terraformToolkit = activeShip.terraformToolkit;
     newStats.thermalRegulator = activeShip.thermalRegulator;
     newStats.diplomaticUplink = activeShip.diplomaticUplink;
-
-    newStats.shipHealth = Math.min(playerStats.shipHealth ?? newStats.maxShipHealth, newStats.maxShipHealth);
-    newStats.fuel = Math.min(playerStats.fuel ?? newStats.maxFuel, newStats.maxFuel);
+    
+    newStats.shipHealth = activeShip.health;
+    newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
 
     return newStats;
 }
@@ -262,13 +262,20 @@ export function useGameState() {
                 
                 // --- MIGRATION LOGIC ---
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
-                    mergedPlayerStats.fleet = mergedPlayerStats.fleet.map((ship: PlayerShip) => ({
-                        ...ship,
-                        health: ship.health ?? (hullUpgrades[ship.hullLevel - 1]?.health || 100),
-                        status: ship.status ?? 'operational',
-                    }));
+                    mergedPlayerStats.fleet = mergedPlayerStats.fleet.map((ship: PlayerShip) => {
+                        const hullLevel = ship.hullLevel || 1;
+                        const maxHealth = hullUpgrades[hullLevel - 1]?.health || 100;
+                        // If health is missing or null, set it to max health. Otherwise, keep existing health.
+                        const currentHealth = (ship.health === undefined || ship.health === null) ? maxHealth : ship.health;
+
+                        return {
+                            ...ship,
+                            hullLevel: hullLevel,
+                            health: currentHealth,
+                            status: ship.status || 'operational',
+                        };
+                    });
                 }
-                mergedPlayerStats.inspiration = mergedPlayerStats.inspiration || 0;
                 // --- END MIGRATION ---
 
                 mergedPlayerStats.inventory = savedProgress.inventory || initialGameState.inventory;

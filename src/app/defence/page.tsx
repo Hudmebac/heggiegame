@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -57,8 +58,8 @@ const FleetStatus = ({ fleet, activeMissions }: { fleet: PlayerShip[], activeMis
                             </div>
                              <div className="text-xs text-muted-foreground space-y-1 mt-2">
                                 <p>{isAssigned ? `Escorting to ${mission?.toSystem}` : "Awaiting orders"}</p>
-                                <Progress value={(ship.health / maxHealth) * 100} indicatorClassName={cn(ship.health < maxHealth * 0.25 ? 'bg-destructive' : ship.health < maxHealth * 0.5 ? 'bg-yellow-500' : 'bg-green-400')} />
-                                <div className="text-right font-mono">{ship.health.toFixed(0)} / {maxHealth} HP</div>
+                                <Progress value={((ship.health || 0) / maxHealth) * 100} indicatorClassName={cn((ship.health || 0) < maxHealth * 0.25 ? 'bg-destructive' : (ship.health || 0) < maxHealth * 0.5 ? 'bg-yellow-500' : 'bg-green-400')} />
+                                <div className="text-right font-mono">{(ship.health || 0).toFixed(0)} / {maxHealth} HP</div>
                             </div>
                         </div>
                     )
