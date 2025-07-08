@@ -1,7 +1,7 @@
 'use client';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from "@/lib/upgrades";
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from "@/lib/upgrades";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Crosshair, ShieldCheck, HeartPulse, Fuel, Radar } from 'lucide-react';
+import { Package, Crosshair, ShieldCheck, HeartPulse, Fuel, Radar, Bot } from 'lucide-react';
 
 export default function UpgradesCodex() {
     return (
@@ -77,6 +77,19 @@ export default function UpgradesCodex() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {sensorUpgrades.map(upgrade => (
+                        <div key={upgrade.level} className="flex justify-between items-center text-sm">
+                            <span>{upgrade.name}</span>
+                            <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Bot className="text-primary"/>Drone Upgrades</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {droneUpgrades.map(upgrade => (
                         <div key={upgrade.level} className="flex justify-between items-center text-sm">
                             <span>{upgrade.name}</span>
                             <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>

@@ -1,5 +1,4 @@
-
-import type { CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade } from '@/lib/types';
+import type { CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade, DroneUpgrade } from '@/lib/types';
 
 const costMultiplier = 1.4;
 const costGrowthFactor = 2.0;
@@ -113,4 +112,20 @@ export const sensorUpgrades: SensorUpgrade[] = sensorNames.map((name, i) => ({
     level: i + 1,
     name,
     cost: sensorCosts[i]
+}));
+
+// --- Drone Upgrades ---
+const droneCosts = generateUpgradeCosts(upgradeLevelCount, 7000 * costMultiplier, costGrowthFactor);
+const droneNames = [
+    'Basic Survey Drone', 'Advanced Scanner Drone', 'Mining Drone Mk. I', 'Salvage Drone', 'Combat Drone Mk. I',
+    'Repair Nanite Drone', 'Exploration Drone', 'Shield Boost Drone', 'Mining Drone Mk. II', 'Heavy Salvage Drone',
+    'Combat Drone Mk. II', 'Tactical Jammer Drone', 'Resource Prospector', 'Advanced Repair Swarm', 'Shield Transference Drone',
+    'Gatling Combat Drone', 'Stealth Recon Drone', 'Artifact Retrieval Drone', 'Heavy Mining Drone', 'Armored Combat Drone',
+    'Guardian Point-Defense Drone', 'Quantum Entanglement Drone', 'Phase Shift Drone', 'Precursor Tech Drone', 'Singularity Drone',
+    'Mythic Attack Swarm', 'Continuum Drone', 'Omni-Purpose Drone', 'Acausal Scout Drone', 'The Swarm-King'
+];
+export const droneUpgrades: DroneUpgrade[] = droneNames.map((name, i) => ({
+    level: i + 1,
+    name,
+    cost: droneCosts[i]
 }));

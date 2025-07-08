@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -61,6 +61,9 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
     newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
     
+    const droneTier = droneUpgrades[activeShip.droneLevel - 1];
+    newStats.droneLevel = droneTier ? droneTier.level : 1;
+
     newStats.shipHealth = Math.min(playerStats.shipHealth ?? newStats.maxShipHealth, newStats.maxShipHealth);
     newStats.fuel = Math.min(playerStats.fuel ?? newStats.maxFuel, newStats.maxFuel);
 
@@ -71,7 +74,7 @@ const initialShip: PlayerShip = {
     instanceId: Date.now(),
     shipId: 'shuttle-s',
     name: 'My Shuttle',
-    cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1,
+    cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
 };
 
 const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes' | 'systems' > & { playerStats: Partial<PlayerStats>, routes: [], systems: [] } = {
@@ -133,6 +136,8 @@ export function useGameState() {
             const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
             let basePlayerStats = syncActiveShipStats(initialGameState.playerStats as PlayerStats);
             basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
+            basePlayerStats.fuel = basePlayerStats.maxFuel;
+            basePlayerStats.shipHealth = basePlayerStats.maxShipHealth;
 
             const playerEntry = { trader: basePlayerStats.name, netWorth: basePlayerStats.netWorth, fleetSize: basePlayerStats.fleet.length, bio: basePlayerStats.bio, rank: 0 };
             const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry].sort((a, b) => b.netWorth - a.netWorth).map((e, i) => ({ ...e, rank: i + 1 }));

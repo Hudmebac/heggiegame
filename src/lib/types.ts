@@ -53,6 +53,7 @@ export interface PlayerShip {
   fuelLevel: number;
   sensorLevel: number;
   cargoLevel: number;
+  droneLevel: number;
 }
 
 export interface PlayerStats {
@@ -78,6 +79,7 @@ export interface PlayerStats {
   fuelLevel: number;
   sensorLevel: number;
   cargoLevel: number;
+  droneLevel: number;
 
   // Business stats
   barLevel: number;
@@ -241,6 +243,12 @@ export interface FuelUpgrade {
 }
 
 export interface SensorUpgrade {
+    level: number;
+    name: string;
+    cost: number;
+}
+
+export interface DroneUpgrade {
     level: number;
     name: string;
     cost: number;

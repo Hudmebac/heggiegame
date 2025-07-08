@@ -6,7 +6,7 @@ import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip } from
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo } from '@/lib/utils';
 
@@ -36,6 +36,9 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
 
     const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
     newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
+    
+    const droneTier = droneUpgrades[activeShip.droneLevel - 1];
+    newStats.droneLevel = droneTier ? droneTier.level : 1;
     
     newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
@@ -184,7 +187,7 @@ export function usePlayerActions(
                 instanceId: Date.now(),
                 shipId: ship.id,
                 name: ship.name,
-                cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1,
+                cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
             };
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
             setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);
@@ -210,6 +213,7 @@ export function usePlayerActions(
             totalValue += hullUpgrades[shipToSell.hullLevel - 1].cost;
             totalValue += fuelUpgrades[shipToSell.fuelLevel - 1].cost;
             totalValue += sensorUpgrades[shipToSell.sensorLevel - 1].cost;
+            totalValue += droneUpgrades[shipToSell.droneLevel - 1].cost;
 
             const salePrice = Math.round(totalValue * 0.7);
             const newFleet = prev.playerStats.fleet.filter(s => s.instanceId !== shipInstanceId);
@@ -225,7 +229,7 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
-    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone') => {
         setGameState(prev => {
             if (!prev) return null;
             const fleet = [...prev.playerStats.fleet];
@@ -240,6 +244,7 @@ export function usePlayerActions(
                 hull: { levels: hullUpgrades, current: shipToUpgrade.hullLevel },
                 fuel: { levels: fuelUpgrades, current: shipToUpgrade.fuelLevel },
                 sensor: { levels: sensorUpgrades, current: shipToUpgrade.sensorLevel },
+                drone: { levels: droneUpgrades, current: shipToUpgrade.droneLevel },
             };
 
             const upgradeInfo = upgradeMap[upgradeType];
@@ -267,7 +272,7 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
-    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor') => {
+    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone') => {
         setGameState(prev => {
             if (!prev) return null;
             const fleet = [...prev.playerStats.fleet];
@@ -282,6 +287,7 @@ export function usePlayerActions(
                 hull: { levels: hullUpgrades, current: shipToDowngrade.hullLevel },
                 fuel: { levels: fuelUpgrades, current: shipToDowngrade.fuelLevel },
                 sensor: { levels: sensorUpgrades, current: shipToDowngrade.sensorLevel },
+                drone: { levels: droneUpgrades, current: shipToDowngrade.droneLevel },
             };
             const upgradeInfo = upgradeMap[upgradeType];
             if (upgradeInfo.current <= 1) {
