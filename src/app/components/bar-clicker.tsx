@@ -9,6 +9,7 @@ import { Martini, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-r
 import { barThemes } from '@/lib/bar-themes';
 import BarContracts from './bar-contracts';
 import type { SystemEconomy } from '@/lib/types';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export default function BarClicker() {
     const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeBarAutoClicker, handlePurchaseBar, handleExpandBar, handleSellBar } = useGame();
@@ -20,13 +21,15 @@ export default function BarClicker() {
 
     const { playerStats } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
-    
+    const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
     const totalPartnerShare = (playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
 
     const rawIncomePerClick = theme.baseIncome * playerStats.barLevel;
-    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
+    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
     const economyCostModifiers: Record<SystemEconomy, number> = {
         'High-Tech': 1.15,
@@ -45,7 +48,7 @@ export default function BarClicker() {
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;
-    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare));
+    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare) * planetModifier);
     const isBotLimitReached = playerStats.autoClickerBots >= 25;
 
     // Establishment upgrade logic
@@ -80,7 +83,7 @@ export default function BarClicker() {
     };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        handleBarClick(incomePerClick);
+        handleBarClick();
         
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX - rect.left;

@@ -5,6 +5,7 @@ import { useCallback, useEffect } from 'react';
 import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
 import { constructionThemes } from '@/lib/construction-themes';
 import { useToast } from '@/hooks/use-toast';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export function useConstruction(
     gameState: GameState | null,
@@ -13,10 +14,21 @@ export function useConstruction(
 ) {
   const { toast } = useToast();
 
-  const handleConstructionClick = useCallback((income: number) => {
+  const handleConstructionClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
     setGameState(prev => {
         if (!prev) return null;
+
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && constructionThemes[zoneType]) ? constructionThemes[zoneType] : constructionThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
+        const totalPartnerShare = (prev.playerStats.constructionContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+        const rawIncomePerClick = theme.baseIncome * prev.playerStats.constructionLevel;
+        const income = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
+
         const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress('construction', baseState);
         completedObjectives.forEach(obj => {
@@ -209,12 +221,14 @@ export function useConstruction(
         }
 
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
         const zoneType = currentSystem?.zoneType;
         const theme = zoneType && constructionThemes[zoneType] ? constructionThemes[zoneType] : constructionThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
 
         const totalPartnerShare = (prev.playerStats.constructionContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.constructionLevel;
-        const incomePerSecond = (prev.playerStats.constructionAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const incomePerSecond = (prev.playerStats.constructionAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('construction', { ...prev, playerStats: playerStatsWithIncome });
@@ -223,7 +237,7 @@ export function useConstruction(
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
+  }, [gameState?.playerStats.constructionAutoClickerBots, gameState?.currentSystem, gameState?.currentPlanet, setGameState, updateObjectiveProgress]);
 
   return {
     handleConstructionClick,

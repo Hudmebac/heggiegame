@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { InventoryItem } from "./types";
+import type { InventoryItem, PlanetType } from "./types";
 import { STATIC_ITEMS } from "./items";
 
 
@@ -15,3 +15,12 @@ export function calculateCurrentCargo(inventory: InventoryItem[]): number {
         return acc + (staticItem ? staticItem.cargoSpace * item.owned : 0);
     }, 0);
 }
+
+export const PLANET_TYPE_MODIFIERS: Record<PlanetType, number> = {
+    'Terrestrial': 1.1,
+    'Oceanic': 1.05,
+    'Volcanic': 0.9,
+    'Barren': 0.8,
+    'Ice Giant': 0.95,
+    'Gas Giant': 0.85,
+};

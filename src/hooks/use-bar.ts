@@ -5,6 +5,7 @@ import { useCallback, useEffect } from 'react';
 import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
 import { barThemes } from '@/lib/bar-themes';
 import { useToast } from '@/hooks/use-toast';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export function useBar(
     gameState: GameState | null,
@@ -13,10 +14,21 @@ export function useBar(
 ) {
   const { toast } = useToast();
 
-  const handleBarClick = useCallback((income: number) => {
+  const handleBarClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
     setGameState(prev => {
         if (!prev) return null;
+
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
+        const totalPartnerShare = (prev.playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+        const rawIncomePerClick = theme.baseIncome * prev.playerStats.barLevel;
+        const income = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
+
         const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress('bar', baseState);
 
@@ -211,12 +223,14 @@ export function useBar(
         }
 
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
         const zoneType = currentSystem?.zoneType;
         const theme = zoneType && barThemes[zoneType] ? barThemes[zoneType] : barThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
 
         const totalPartnerShare = (prev.playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
-        const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('bar', { ...prev, playerStats: playerStatsWithIncome });
@@ -225,7 +239,7 @@ export function useBar(
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
+  }, [gameState?.playerStats.autoClickerBots, gameState?.currentSystem, gameState?.currentPlanet, setGameState, updateObjectiveProgress]);
 
   return {
     handleBarClick,

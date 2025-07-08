@@ -9,6 +9,7 @@ import { Landmark, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-
 import { commerceThemes } from '@/lib/commerce-themes';
 import CommerceContracts from './commerce-contracts';
 import type { SystemEconomy } from '@/lib/types';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export default function CommerceClicker() {
     const { gameState, handleCommerceClick, handleUpgradeCommerce, handleUpgradeCommerceAutoClicker, handlePurchaseCommerce, handleExpandCommerce, handleSellCommerce } = useGame();
@@ -20,13 +21,15 @@ export default function CommerceClicker() {
 
     const { playerStats } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && commerceThemes[zoneType]) ? commerceThemes[zoneType] : commerceThemes['Default'];
+    const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
     
     const totalPartnerShare = (playerStats.commerceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
 
     const rawIncomePerClick = theme.baseIncome * playerStats.commerceLevel;
-    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
+    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
     const economyCostModifiers: Record<SystemEconomy, number> = {
         'High-Tech': 1.15,
@@ -45,7 +48,7 @@ export default function CommerceClicker() {
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.commerceAutoClickerBots * rawIncomePerClick;
-    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare));
+    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare) * planetModifier);
     const isBotLimitReached = playerStats.commerceAutoClickerBots >= 25;
 
     // Establishment upgrade logic
@@ -80,7 +83,7 @@ export default function CommerceClicker() {
     };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        handleCommerceClick(incomePerClick);
+        handleCommerceClick();
         
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX - rect.left;

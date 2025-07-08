@@ -9,6 +9,7 @@ import { Home, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-reac
 import { residenceThemes } from '@/lib/residence-themes';
 import ResidenceContracts from './residence-contracts';
 import type { SystemEconomy } from '@/lib/types';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export default function ResidenceClicker() {
     const { gameState, handleResidenceClick, handleUpgradeResidence, handleUpgradeResidenceAutoClicker, handlePurchaseResidence, handleExpandResidence, handleSellResidence } = useGame();
@@ -20,13 +21,15 @@ export default function ResidenceClicker() {
 
     const { playerStats } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && residenceThemes[zoneType]) ? residenceThemes[zoneType] : residenceThemes['Default'];
-    
+    const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
     const totalPartnerShare = (playerStats.residenceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
 
     const rawIncomePerClick = theme.baseIncome * playerStats.residenceLevel;
-    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
+    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
     const economyCostModifiers: Record<SystemEconomy, number> = {
         'High-Tech': 1.15,
@@ -45,7 +48,7 @@ export default function ResidenceClicker() {
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.residenceAutoClickerBots * rawIncomePerClick;
-    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare));
+    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare) * planetModifier);
     const isBotLimitReached = playerStats.residenceAutoClickerBots >= 25;
 
     // Establishment upgrade logic
@@ -80,7 +83,7 @@ export default function ResidenceClicker() {
     };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        handleResidenceClick(incomePerClick);
+        handleResidenceClick();
         
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX - rect.left;

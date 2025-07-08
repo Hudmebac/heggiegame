@@ -5,6 +5,7 @@ import { useGame } from "@/app/components/game-provider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon, Send } from "lucide-react";
+import { PLANET_TYPE_MODIFIERS } from "@/lib/utils";
 
 export default function GalaxyPage() {
     const { gameState, handleInitiateTravel, handlePlanetTravel } = useGame();
@@ -110,6 +111,10 @@ export default function GalaxyPage() {
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Planet Type</span>
                                 <span className="font-mono text-primary">{currentPlanetInfo.type}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Business Income Modifier</span>
+                                <span className="font-mono text-primary">{PLANET_TYPE_MODIFIERS[currentPlanetInfo.type] * 100}%</span>
                             </div>
                             <p className="text-muted-foreground pt-2 border-t mt-2">{currentPlanetInfo.description}</p>
                         </CardContent>

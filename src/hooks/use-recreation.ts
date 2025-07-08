@@ -5,6 +5,7 @@ import { useCallback, useEffect } from 'react';
 import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
 import { recreationThemes } from '@/lib/recreation-themes';
 import { useToast } from '@/hooks/use-toast';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export function useRecreation(
     gameState: GameState | null,
@@ -13,10 +14,21 @@ export function useRecreation(
 ) {
   const { toast } = useToast();
 
-  const handleRecreationClick = useCallback((income: number) => {
+  const handleRecreationClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
     setGameState(prev => {
         if (!prev) return null;
+
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && recreationThemes[zoneType]) ? recreationThemes[zoneType] : recreationThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
+        const totalPartnerShare = (prev.playerStats.recreationContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+        const rawIncomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
+        const income = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
+
         const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress('recreation', baseState);
         completedObjectives.forEach(obj => {
@@ -209,12 +221,14 @@ export function useRecreation(
         }
 
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
         const zoneType = currentSystem?.zoneType;
         const theme = zoneType && recreationThemes[zoneType] ? recreationThemes[zoneType] : recreationThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
 
         const totalPartnerShare = (prev.playerStats.recreationContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
-        const incomePerSecond = (prev.playerStats.recreationAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const incomePerSecond = (prev.playerStats.recreationAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('recreation', { ...prev, playerStats: playerStatsWithIncome });
@@ -223,7 +237,7 @@ export function useRecreation(
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
+  }, [gameState?.playerStats.recreationAutoClickerBots, gameState?.currentSystem, gameState?.currentPlanet, setGameState, updateObjectiveProgress]);
 
   return {
     handleRecreationClick,

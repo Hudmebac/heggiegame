@@ -9,6 +9,7 @@ import { Building2, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { constructionThemes } from '@/lib/construction-themes';
 import ConstructionContracts from './construction-contracts';
 import type { SystemEconomy } from '@/lib/types';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export default function ConstructionClicker() {
     const { gameState, handleConstructionClick, handleUpgradeConstruction, handleUpgradeConstructionAutoClicker, handlePurchaseConstruction, handleExpandConstruction, handleSellConstruction } = useGame();
@@ -20,13 +21,15 @@ export default function ConstructionClicker() {
 
     const { playerStats } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && constructionThemes[zoneType]) ? constructionThemes[zoneType] : constructionThemes['Default'];
+    const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
     
     const totalPartnerShare = (playerStats.constructionContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
 
     const rawIncomePerClick = theme.baseIncome * playerStats.constructionLevel;
-    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
+    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
     const economyCostModifiers: Record<SystemEconomy, number> = {
         'High-Tech': 1.15,
@@ -45,7 +48,7 @@ export default function ConstructionClicker() {
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.constructionAutoClickerBots * rawIncomePerClick;
-    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare));
+    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare) * planetModifier);
     const isBotLimitReached = playerStats.constructionAutoClickerBots >= 25;
 
     // Establishment upgrade logic
@@ -80,7 +83,7 @@ export default function ConstructionClicker() {
     };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        handleConstructionClick(incomePerClick);
+        handleConstructionClick();
         
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX - rect.left;

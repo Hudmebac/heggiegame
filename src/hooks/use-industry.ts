@@ -5,6 +5,7 @@ import { useCallback, useEffect } from 'react';
 import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjective, BarContract, BarPartner, SystemEconomy } from '@/lib/types';
 import { industryThemes } from '@/lib/industry-themes';
 import { useToast } from '@/hooks/use-toast';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export function useIndustry(
     gameState: GameState | null,
@@ -13,10 +14,21 @@ export function useIndustry(
 ) {
   const { toast } = useToast();
 
-  const handleIndustryClick = useCallback((income: number) => {
+  const handleIndustryClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
     setGameState(prev => {
         if (!prev) return null;
+
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
+        const zoneType = currentSystem?.zoneType;
+        const theme = (zoneType && industryThemes[zoneType]) ? industryThemes[zoneType] : industryThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
+        const totalPartnerShare = (prev.playerStats.industryContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
+        const rawIncomePerClick = theme.baseIncome * prev.playerStats.industryLevel;
+        const income = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
+
         const baseState = { ...prev, playerStats: { ...prev.playerStats, netWorth: prev.playerStats.netWorth + income } };
         const [newState, completedObjectives] = updateObjectiveProgress('industry', baseState);
         completedObjectives.forEach(obj => {
@@ -209,12 +221,14 @@ export function useIndustry(
         }
 
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
         const zoneType = currentSystem?.zoneType;
         const theme = zoneType && industryThemes[zoneType] ? industryThemes[zoneType] : industryThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
 
         const totalPartnerShare = (prev.playerStats.industryContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.industryLevel;
-        const incomePerSecond = (prev.playerStats.industryAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare);
+        const incomePerSecond = (prev.playerStats.industryAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('industry', { ...prev, playerStats: playerStatsWithIncome });
@@ -223,7 +237,7 @@ export function useIndustry(
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, setGameState, updateObjectiveProgress]);
+  }, [gameState?.playerStats.industryAutoClickerBots, gameState?.currentSystem, gameState?.currentPlanet, setGameState, updateObjectiveProgress]);
 
   return {
     handleIndustryClick,

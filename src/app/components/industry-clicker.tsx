@@ -9,6 +9,7 @@ import { Factory, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { industryThemes } from '@/lib/industry-themes';
 import IndustryContracts from './industry-contracts';
 import type { SystemEconomy } from '@/lib/types';
+import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 
 export default function IndustryClicker() {
     const { gameState, handleIndustryClick, handleUpgradeIndustry, handleUpgradeIndustryAutoClicker, handlePurchaseIndustry, handleExpandIndustry, handleSellIndustry } = useGame();
@@ -20,13 +21,15 @@ export default function IndustryClicker() {
 
     const { playerStats } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && industryThemes[zoneType]) ? industryThemes[zoneType] : industryThemes['Default'];
+    const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
     
     const totalPartnerShare = (playerStats.industryContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
 
     const rawIncomePerClick = theme.baseIncome * playerStats.industryLevel;
-    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare));
+    const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
     const economyCostModifiers: Record<SystemEconomy, number> = {
         'High-Tech': 1.15,
@@ -45,7 +48,7 @@ export default function IndustryClicker() {
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.industryAutoClickerBots * rawIncomePerClick;
-    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare));
+    const incomePerSecond = Math.round(rawIncomePerSecond * (1 - totalPartnerShare) * planetModifier);
     const isBotLimitReached = playerStats.industryAutoClickerBots >= 25;
 
     // Establishment upgrade logic
@@ -80,7 +83,7 @@ export default function IndustryClicker() {
     };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        handleIndustryClick(incomePerClick);
+        handleIndustryClick();
         
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX - rect.left;
