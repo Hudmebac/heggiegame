@@ -11,6 +11,8 @@ import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { bios } from '@/lib/bios';
 import { useToast } from '@/hooks/use-toast';
+import { calculateCurrentCargo } from '@/lib/utils';
+
 
 const ECONOMY_MULTIPLIERS: Record<ItemCategory, Record<SystemEconomy, number>> = {
     'Biological':   { 'Agricultural': 0.7, 'High-Tech': 1.2, 'Industrial': 1.3, 'Extraction': 1.1, 'Refinery': 1.2 },
@@ -30,13 +32,6 @@ function calculatePrice(basePrice: number, supply: number, demand: number, econo
     const demandFactor = demand / supply;
     const price = basePrice * economyMultiplier * Math.pow(demandFactor, 0.5);
     return Math.round(price);
-}
-
-function calculateCurrentCargo(inventory: InventoryItem[]): number {
-    return inventory.reduce((acc, item) => {
-        const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
-        return acc + (staticItem ? staticItem.cargoSpace * item.owned : 0);
-    }, 0);
 }
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
@@ -65,10 +60,9 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
 
     const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
     newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
-
-    newStats.cargo = Math.min(newStats.cargo || 0, newStats.maxCargo);
-    newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
-    newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
+    
+    newStats.shipHealth = Math.min(playerStats.shipHealth ?? newStats.maxShipHealth, newStats.maxShipHealth);
+    newStats.fuel = Math.min(playerStats.fuel ?? newStats.maxFuel, newStats.maxFuel);
 
     return newStats;
 }
