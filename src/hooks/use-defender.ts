@@ -115,8 +115,11 @@ export function useDefender(
             // Pirate risk check - higher for defenders
             const riskValue = { 'Low': 0.01, 'Medium': 0.03, 'High': 0.06, 'Critical': 0.1 }[mission.riskLevel];
             if (Math.random() < riskValue) {
-                updatedMissions[index].status = 'Failed';
-                newPlayerStats.pirateEncounter = generateRandomPirate(prev.crew.some(c => c.role === 'Navigator'));
+                newPlayerStats.pirateEncounter = {
+                    ...generateRandomPirate(prev.crew.some(c => c.role === 'Navigator')),
+                    missionId: mission.id,
+                    missionType: 'escort',
+                };
                 setTimeout(() => toast({ variant: "destructive", title: "Ambush!", description: `Your escort convoy is under attack en route to ${mission.toSystem}!` }), 0);
             }
           }

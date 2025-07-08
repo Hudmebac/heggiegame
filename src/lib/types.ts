@@ -265,6 +265,8 @@ export interface Pirate {
   shipType: string;
   threatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   scanResult?: string;
+  missionId?: string;
+  missionType?: 'escort' | 'trade' | 'taxi';
 }
 
 export type SystemEconomy = 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';

@@ -121,8 +121,11 @@ export function useHauler(
             // Pirate risk check
             const riskValue = { 'Low': 0.005, 'Medium': 0.01, 'High': 0.02, 'Critical': 0.05 }[contract.riskLevel];
             if (Math.random() < riskValue) {
-                updatedContracts[index].status = 'Failed';
-                newPlayerStats.pirateEncounter = generateRandomPirate(prev.crew.some(c => c.role === 'Navigator'));
+                newPlayerStats.pirateEncounter = {
+                    ...generateRandomPirate(prev.crew.some(c => c.role === 'Navigator')),
+                    missionId: contract.id,
+                    missionType: 'trade',
+                };
                 setTimeout(() => toast({ variant: "destructive", title: "Ambush!", description: `Your route to ${contract.toSystem} has been intercepted by pirates!` }), 0);
             }
           }
