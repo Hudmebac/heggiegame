@@ -194,33 +194,12 @@ export function useGameState() {
                 setTimeout(() => toast({ title: "Game Loaded", description: "Continuing your spacefaring journey." }), 0);
             } catch (error) {
                 console.error("Failed to parse saved game state, starting fresh:", error);
-                generateNewGameState();
+                setTimeout(generateNewGameState, 0);
             }
         } else {
-            generateNewGameState();
+            setTimeout(generateNewGameState, 0);
         }
     }, [calculateMarketDataForSystem, generateNewGameState, toast]);
-
-    useEffect(() => {
-        if (isClient && gameState) {
-            try {
-                const stateToSave = {
-                    playerStats: gameState.playerStats,
-                    inventory: gameState.inventory,
-                    priceHistory: gameState.priceHistory,
-                    leaderboard: gameState.leaderboard,
-                    currentSystem: gameState.currentSystem,
-                    currentPlanet: gameState.currentPlanet,
-                    quests: gameState.quests,
-                    activeObjectives: gameState.activeObjectives,
-                    crew: gameState.crew,
-                };
-                localStorage.setItem('heggieGameState', JSON.stringify(stateToSave));
-            } catch (error) {
-                console.error("Failed to save game state to local storage:", error);
-            }
-        }
-    }, [gameState, isClient]);
     
     return { gameState, setGameState, isClient };
 }
