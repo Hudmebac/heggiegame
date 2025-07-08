@@ -247,17 +247,6 @@ export const TradeRouteContractSchema = z.object({
 });
 export type TradeRouteContract = z.infer<typeof TradeRouteContractSchema>;
 
-export const GenerateTradeContractsInputSchema = z.object({
-    reputation: z.number().describe("Player's current reputation score."),
-    currentSystem: z.string().describe("The player's current system to generate routes from."),
-});
-export type GenerateTradeContractsInput = z.infer<typeof GenerateTradeContractsInputSchema>;
-
-export const GenerateTradeContractsOutputSchema = z.object({
-    contracts: z.array(TradeRouteContractSchema).describe("An array of generated trade route contracts."),
-});
-export type GenerateTradeContractsOutput = z.infer<typeof GenerateTradeContractsOutputSchema>;
-
 // Schemas for generate-taxi-missions
 export const TaxiMissionSchema = z.object({
   id: z.string().describe("A unique identifier for the mission."),
@@ -272,14 +261,3 @@ export const TaxiMissionSchema = z.object({
   status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
 });
 export type TaxiMission = z.infer<typeof TaxiMissionSchema>;
-
-export const GenerateTaxiMissionsInputSchema = z.object({
-    reputation: z.number().describe("Player's current reputation score, which influences the quality of missions offered."),
-    currentSystem: z.string().describe("The player's current system to generate missions from."),
-});
-export type GenerateTaxiMissionsInput = z.infer<typeof GenerateTaxiMissionsInputSchema>;
-
-export const GenerateTaxiMissionsOutputSchema = z.object({
-    missions: z.array(TaxiMissionSchema).describe("An array of generated taxi missions."),
-});
-export type GenerateTaxiMissionsOutput = z.infer<typeof GenerateTaxiMissionsOutputSchema>;

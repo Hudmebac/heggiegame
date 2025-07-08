@@ -4,8 +4,19 @@
 import { useState, useCallback, useEffect, useTransition } from 'react';
 import type { GameState, TradeRouteContract, Pirate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { runGenerateTradeContracts } from '@/app/actions';
 import { pirateNames, shipTypes } from '@/lib/pirates';
+import { STATIC_TRADE_CONTRACTS } from '@/lib/trade-contracts';
+import { ROUTES } from '@/lib/systems';
+
+
+const getConnectedSystems = (systemName: string): string[] => {
+    const connected = new Set<string>();
+    ROUTES.forEach(route => {
+        if (route.from === systemName) connected.add(route.to);
+        if (route.to === systemName) connected.add(route.from);
+    });
+    return Array.from(connected);
+}
 
 const generateRandomPirate = (hasNavigator: boolean): Pirate => {
     const weightedThreats: Pirate['threatLevel'][] = hasNavigator
@@ -29,18 +40,35 @@ export function useHauler(
 
   const handleGenerateContracts = useCallback(() => {
     if (!gameState) return;
+    const { currentSystem, playerStats } = gameState;
 
-    startContractGeneration(async () => {
-      try {
-        const result = await runGenerateTradeContracts({
-          reputation: gameState.playerStats.reputation,
-          currentSystem: gameState.currentSystem,
+    startContractGeneration(() => {
+        const connectedSystems = getConnectedSystems(currentSystem);
+        if (connectedSystems.length === 0) {
+            toast({ variant: "destructive", title: "Isolation", description: "No outbound routes from this system to generate contracts for." });
+            return;
+        }
+
+        const shuffledContracts = [...STATIC_TRADE_CONTRACTS].sort(() => 0.5 - Math.random());
+        const contractCount = 4 + Math.floor(Math.random() * 2); // 4 or 5 contracts
+        
+        const newContracts: TradeRouteContract[] = shuffledContracts.slice(0, contractCount).map((contractTemplate, index) => {
+            const repModifier = 1 + (playerStats.reputation / 200); // up to 50% bonus at 100 rep
+            const payout = Math.round(contractTemplate.payout * repModifier);
+
+            return {
+                ...contractTemplate,
+                id: `${Date.now()}-${index}`,
+                fromSystem: currentSystem,
+                toSystem: connectedSystems[Math.floor(Math.random() * connectedSystems.length)],
+                status: 'Available',
+                payout,
+            };
         });
+        
         setGameState(prev => {
           if (!prev) return null;
-          // Filter out old "Available" contracts and add new ones
-          const activeContracts = prev.playerStats.tradeContracts.filter(c => c.status !== 'Available');
-          const newContracts = result.contracts.map(c => ({...c, status: 'Available' as const}));
+          const activeContracts = (prev.playerStats.tradeContracts || []).filter(c => c.status !== 'Available');
           return {
             ...prev,
             playerStats: {
@@ -50,13 +78,9 @@ export function useHauler(
           };
         });
         toast({ title: 'Contract Board Updated', description: 'New trade routes are available for review.' });
-      } catch (error) {
-        console.error("Failed to generate trade contracts:", error);
-        toast({ variant: "destructive", title: "Network Error", description: "Could not retrieve new contracts at this time." });
-      }
     });
   }, [gameState, setGameState, toast]);
-
+  
   const handleAcceptContract = useCallback((contractId: string) => {
     if (!gameState) return;
       
@@ -120,7 +144,7 @@ export function useHauler(
           } else {
             // Pirate risk check
             const riskValue = { 'Low': 0.005, 'Medium': 0.01, 'High': 0.02, 'Critical': 0.05 }[contract.riskLevel];
-            if (Math.random() < riskValue) {
+            if (!newPlayerStats.pirateEncounter && Math.random() < riskValue) {
                 newPlayerStats.pirateEncounter = {
                     ...generateRandomPirate(prev.crew.some(c => c.role === 'Navigator')),
                     missionId: contract.id,

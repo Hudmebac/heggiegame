@@ -4,7 +4,17 @@
 import { useState, useCallback, useEffect, useTransition } from 'react';
 import type { GameState, TaxiMission } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { runGenerateTaxiMissions } from '@/app/actions';
+import { STATIC_TAXI_MISSIONS } from '@/lib/taxi-missions';
+import { ROUTES } from '@/lib/systems';
+
+const getConnectedSystems = (systemName: string): string[] => {
+    const connected = new Set<string>();
+    ROUTES.forEach(route => {
+        if (route.from === systemName) connected.add(route.to);
+        if (route.to === systemName) connected.add(route.from);
+    });
+    return Array.from(connected);
+}
 
 export function useTaxi(
   gameState: GameState | null,
@@ -15,17 +25,37 @@ export function useTaxi(
 
   const handleGenerateTaxiMissions = useCallback(() => {
     if (!gameState) return;
+    const { currentSystem, playerStats } = gameState;
 
-    startMissionGeneration(async () => {
-      try {
-        const result = await runGenerateTaxiMissions({
-          reputation: gameState.playerStats.reputation,
-          currentSystem: gameState.currentSystem,
+    startMissionGeneration(() => {
+        const connectedSystems = getConnectedSystems(currentSystem);
+        if (connectedSystems.length === 0) {
+            toast({ variant: "destructive", title: "Isolation", description: "No outbound routes from this system to generate fares for." });
+            return;
+        }
+
+        const shuffledMissions = [...STATIC_TAXI_MISSIONS].sort(() => 0.5 - Math.random());
+        const missionCount = 4 + Math.floor(Math.random() * 2); // 4 or 5 missions
+        
+        const newMissions: TaxiMission[] = shuffledMissions.slice(0, missionCount).map((missionTemplate, index) => {
+            const repModifier = 1 + (playerStats.reputation / 200); // up to 50% bonus at 100 rep
+            const fare = Math.round(missionTemplate.fare * repModifier);
+            const bonus = Math.round(missionTemplate.bonus * repModifier);
+
+            return {
+                ...missionTemplate,
+                id: `${Date.now()}-${index}`,
+                fromSystem: currentSystem,
+                toSystem: connectedSystems[Math.floor(Math.random() * connectedSystems.length)],
+                status: 'Available',
+                fare,
+                bonus,
+            };
         });
+        
         setGameState(prev => {
           if (!prev) return null;
-          const activeMissions = prev.playerStats.taxiMissions.filter(m => m.status !== 'Available');
-          const newMissions = result.missions.map(m => ({...m, status: 'Available' as const}));
+          const activeMissions = (prev.playerStats.taxiMissions || []).filter(m => m.status !== 'Available');
           return {
             ...prev,
             playerStats: {
@@ -35,13 +65,9 @@ export function useTaxi(
           };
         });
         toast({ title: 'Dispatch Updated', description: 'New fares are available on the network.' });
-      } catch (error) {
-        console.error("Failed to generate taxi missions:", error);
-        toast({ variant: "destructive", title: "Network Error", description: "Could not retrieve new fares at this time." });
-      }
     });
   }, [gameState, setGameState, toast]);
-
+  
   const handleAcceptTaxiMission = useCallback((missionId: string) => {
     if (!gameState) return;
       

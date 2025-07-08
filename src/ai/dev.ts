@@ -15,5 +15,3 @@ import '@/ai/flows/generate-industry-partnership-offers.ts';
 import '@/ai/flows/generate-construction-partnership-offers.ts';
 import '@/ai/flows/generate-recreation-partnership-offers.ts';
 import '@/ai/flows/generate-bank-partnership-offers.ts';
-import '@/ai/flows/generate-trade-contracts.ts';
-import '@/ai/flows/generate-taxi-missions.ts';
