@@ -1,13 +1,13 @@
 
-
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CAREER_DATA } from '@/lib/careers';
 
 function HeggieIcon() {
   return (
@@ -57,6 +57,9 @@ const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, ico
 };
 
 export default function Header({ playerStats }: {playerStats: PlayerStats}) {
+  const career = playerStats.career;
+  const careerInfo = CAREER_DATA.find(c => c.id === career);
+
   return (
     <div className="flex flex-col h-full">
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-b">
@@ -82,6 +85,9 @@ export default function Header({ playerStats }: {playerStats: PlayerStats}) {
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">
         {navItems.map(item => <NavLink key={item.href} {...item} />)}
+        {careerInfo && careerInfo.page && (
+            <NavLink href={careerInfo.page} label={careerInfo.name} icon={careerInfo.icon as LucideIcon} />
+        )}
       </nav>
     </div>
   );

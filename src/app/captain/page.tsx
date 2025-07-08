@@ -4,7 +4,7 @@ import PlayerProfile from '@/app/components/player-profile';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { CAREER_DATA } from '@/lib/careers';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -53,6 +54,9 @@ export default function CaptainPage() {
 
   const reputationInfo = getReputationTier(playerStats.reputation);
   const reputationProgress = (Math.max(0, playerStats.reputation) / 100) * 100;
+
+  const careerInfo = CAREER_DATA.find(c => c.id === playerStats.career);
+  const CareerIcon = careerInfo?.icon as LucideIcon | undefined;
 
   // --- Income Calculations ---
   const calculateIncome = (level: number, bots: number, contract: any, themes: any) => {
@@ -184,6 +188,31 @@ export default function CaptainPage() {
                     </div>
                 </CardContent>
             </Card>
+             {careerInfo && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            {CareerIcon && <CareerIcon className="text-primary" />}
+                            Career: {careerInfo.name}
+                        </CardTitle>
+                        <CardDescription>{careerInfo.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div>
+                            <h4 className="font-semibold text-sm">Perks:</h4>
+                            <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-sm">Risks:</h4>
+                            <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
         <div className="lg:col-span-2">
              <Card>
