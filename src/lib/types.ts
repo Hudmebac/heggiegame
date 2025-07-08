@@ -136,6 +136,21 @@ export interface TaxiMission {
   duration: number;
 }
 
+export interface EscortMission {
+  id: string;
+  clientName: string;
+  missionType: 'VIP Escort' | 'Cargo Convoy' | 'Data Runner';
+  description: string;
+  fromSystem: string;
+  toSystem: string;
+  payout: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Available' | 'Active' | 'Completed' | 'Failed';
+  progress?: number;
+  startTime?: number;
+  duration: number;
+}
+
 export interface Warehouse {
   systemName: string;
   level: number;
@@ -227,9 +242,10 @@ export interface PlayerStats {
   creditCard?: CreditCard;
   debt: number;
 
-  // Hauler Career
+  // Career Specific
   tradeContracts: TradeRouteContract[];
   taxiMissions: TaxiMission[];
+  escortMissions: EscortMission[];
 }
 
 export interface PriceHistory {
