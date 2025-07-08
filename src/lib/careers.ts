@@ -1,6 +1,7 @@
 
 import type { Career, PlayerShip } from '@/lib/types';
 import { Truck, CarTaxiFront, Building, CandlestickChart, Shield, Sword, Scale, LucideIcon } from 'lucide-react';
+import { hullUpgrades } from './upgrades';
 
 export interface CareerData {
     id: Career;
@@ -19,6 +20,8 @@ const baseShip: Omit<PlayerShip, 'instanceId' | 'shipId' | 'name'> = {
     cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
     powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
     gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
+    health: hullUpgrades[0].health,
+    status: 'operational',
 };
 
 export const CAREER_DATA: CareerData[] = [
