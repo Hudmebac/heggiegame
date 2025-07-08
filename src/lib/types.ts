@@ -2,6 +2,7 @@
 
 
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -157,6 +158,21 @@ export interface EscortMission {
   assignedShipName?: string;
 }
 
+export interface MilitaryMission {
+  id: string;
+  title: string;
+  missionType: 'Strike' | 'Raid' | 'Recon' | 'Assassination';
+  description: string;
+  target: string;
+  system: string;
+  payout: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Available' | 'Active' | 'Completed' | 'Failed';
+  progress?: number;
+  startTime?: number;
+  duration: number;
+}
+
 export interface Warehouse {
   systemName: string;
   level: number;
@@ -252,6 +268,7 @@ export interface PlayerStats {
   tradeContracts: TradeRouteContract[];
   taxiMissions: TaxiMission[];
   escortMissions: EscortMission[];
+  militaryMissions: MilitaryMission[];
 }
 
 export interface PriceHistory {
@@ -272,7 +289,7 @@ export interface Pirate {
   threatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   scanResult?: string;
   missionId?: string;
-  missionType?: 'escort' | 'trade' | 'taxi';
+  missionType?: 'escort' | 'trade' | 'taxi' | 'military';
 }
 
 export type SystemEconomy = 'Industrial' | 'Agricultural' | 'High-Tech' | 'Extraction' | 'Refinery';
