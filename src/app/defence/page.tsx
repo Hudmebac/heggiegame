@@ -4,9 +4,59 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Shield, ShieldCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Anchor } from 'lucide-react';
+import { Shield, ShieldCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Anchor, Rocket } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import type { PlayerShip } from '@/lib/types';
+
+const riskColorMap = {
+    'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
+    'Medium': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+    'High': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+    'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
+};
+
+const missionTypeIcons: Record<string, React.ElementType> = {
+    'VIP Escort': ShieldCheck,
+    'Cargo Convoy': Anchor,
+    'Data Runner': FileText,
+}
+
+const FleetStatus = ({ fleet, activeMissions }: { fleet: PlayerShip[], activeMissions: any[] }) => {
+    const assignedShipIds = new Set(activeMissions.map(m => m.assignedShipInstanceId));
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-lg flex items-center gap-2">
+                    <Rocket className="text-primary"/>
+                    Fleet Status
+                </CardTitle>
+                <CardDescription>Your ships available for escort missions.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {fleet.map(ship => {
+                    const isAssigned = assignedShipIds.has(ship.instanceId);
+                    const mission = isAssigned ? activeMissions.find(m => m.assignedShipInstanceId === ship.instanceId) : null;
+                    return (
+                        <div key={ship.instanceId} className={cn("p-3 rounded-md border", isAssigned ? "bg-muted/50 border-amber-500/30" : "bg-card/50")}>
+                            <div className="flex justify-between items-center">
+                                <h4 className="font-semibold text-sm">{ship.name}</h4>
+                                {isAssigned ? (
+                                    <Badge variant="outline" className="text-amber-400 border-amber-500/30">On Mission</Badge>
+                                ) : (
+                                    <Badge variant="outline" className="text-green-400 border-green-500/30">Available</Badge>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{isAssigned ? `Escorting to ${mission?.toSystem}` : "Awaiting orders"}</p>
+                        </div>
+                    )
+                })}
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function DefencePage() {
     const { gameState, handleGenerateEscortMissions, handleAcceptEscortMission, isGeneratingMissions } = useGame();
@@ -18,19 +68,8 @@ export default function DefencePage() {
 
     const availableMissions = escortMissions.filter(m => m.status === 'Available');
     const activeMissions = escortMissions.filter(m => m.status === 'Active');
-
-    const riskColorMap = {
-        'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
-        'Medium': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-        'High': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-        'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
-    };
-    
-    const missionTypeIcons: Record<string, React.ElementType> = {
-        'VIP Escort': ShieldCheck,
-        'Cargo Convoy': Anchor,
-        'Data Runner': FileText,
-    }
+    const assignedShipIds = new Set(activeMissions.map(m => m.assignedShipInstanceId));
+    const hasAvailableShips = playerStats.fleet.length > assignedShipIds.size;
 
     return (
         <div className="space-y-6">
@@ -41,7 +80,7 @@ export default function DefencePage() {
                         Aegis Command
                     </CardTitle>
                     <CardDescription>
-                        As a Defender, your duty is to protect the spacelanes. Accept high-stakes escort missions to earn credits and bolster galactic security.
+                        As a Defender, your duty is to protect the spacelanes. Assign your available ships to high-stakes escort missions to earn credits and bolster galactic security.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -51,6 +90,8 @@ export default function DefencePage() {
                     </Button>
                 </CardContent>
             </Card>
+
+            <FleetStatus fleet={playerStats.fleet} activeMissions={activeMissions} />
 
             {activeMissions.length > 0 && (
                 <Card>
@@ -78,9 +119,12 @@ export default function DefencePage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-2">
-                                        <Progress value={mission.progress || 0} />
-                                        <div className="flex justify-between text-xs text-muted-foreground">
+                                         <div className="flex justify-between items-center text-xs mb-1">
+                                            <span className="text-muted-foreground">Assigned Ship: <span className="font-semibold text-foreground">{mission.assignedShipName}</span></span>
                                             <span>En route...</span>
+                                        </div>
+                                        <Progress value={mission.progress || 0} />
+                                        <div className="flex justify-end text-xs text-muted-foreground">
                                             <span>Payout: <span className="font-mono text-amber-300">{mission.payout.toLocaleString()}¢</span></span>
                                         </div>
                                     </div>
@@ -94,6 +138,9 @@ export default function DefencePage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2"><FileText className="text-primary"/> Available Contracts</CardTitle>
+                    {!hasAvailableShips && (
+                        <CardDescription className="text-amber-400">All ships are currently assigned. You must have an available ship to accept new contracts.</CardDescription>
+                    )}
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {isGeneratingMissions && availableMissions.length === 0 ? (
@@ -125,7 +172,7 @@ export default function DefencePage() {
                                         <p className="flex items-center gap-2"><Coins className="h-4 w-4 text-amber-300" /> Payout: <span className="font-mono text-amber-300">{mission.payout.toLocaleString()}¢</span></p>
                                         <p className="flex items-center gap-2 text-muted-foreground"><Hourglass className="h-4 w-4" /> Duration: {mission.duration}s</p>
                                     </div>
-                                    <Button onClick={() => handleAcceptEscortMission(mission.id)}>Accept Contract</Button>
+                                    <Button onClick={() => handleAcceptEscortMission(mission.id)} disabled={!hasAvailableShips}>Accept Contract</Button>
                                 </CardContent>
                             </Card>
                         )})

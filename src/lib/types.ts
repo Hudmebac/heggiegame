@@ -1,5 +1,6 @@
 
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -149,6 +150,8 @@ export interface EscortMission {
   progress?: number;
   startTime?: number;
   duration: number;
+  assignedShipInstanceId?: number | null;
+  assignedShipName?: string;
 }
 
 export interface Warehouse {

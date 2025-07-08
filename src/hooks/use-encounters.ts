@@ -46,7 +46,7 @@ export function useEncounters(
                             const missions = [...newPlayerStats.escortMissions];
                             const missionIndex = missions.findIndex(m => m.id === pirate.missionId);
                             if (missionIndex > -1) {
-                                missions[missionIndex] = { ...missions[missionIndex], status: 'Failed' };
+                                missions[missionIndex] = { ...missions[missionIndex], status: 'Failed', assignedShipInstanceId: null };
                                 newPlayerStats.escortMissions = missions;
                                 setTimeout(() => {
                                     toast({ variant: "destructive", title: "Escort Failed", description: "You failed to protect your client from the ambush." })

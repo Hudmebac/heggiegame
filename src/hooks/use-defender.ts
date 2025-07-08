@@ -58,19 +58,36 @@ export function useDefender(
   }, [gameState, setGameState, toast]);
 
   const handleAcceptEscortMission = useCallback((missionId: string) => {
-    if (!gameState) return;
-      
-    const mission = gameState.playerStats.escortMissions.find(m => m.id === missionId);
-    if (!mission) {
-      toast({ variant: "destructive", title: "Mission Not Found", description: "This contract is no longer available." });
-      return;
-    }
-
     setGameState(prev => {
         if(!prev) return null;
-        const updatedMissions = prev.playerStats.escortMissions.map(m => 
-            m.id === missionId ? { ...m, status: 'Active' as const, startTime: Date.now(), progress: 0 } : m
+
+        const mission = prev.playerStats.escortMissions.find(m => m.id === missionId);
+        if (!mission) {
+            setTimeout(() => toast({ variant: "destructive", title: "Mission Not Found", description: "This contract is no longer available." }), 0);
+            return prev;
+        }
+
+        const assignedShipIds = new Set(prev.playerStats.escortMissions.filter(m => m.status === 'Active' && m.assignedShipInstanceId).map(m => m.assignedShipInstanceId));
+        const availableShip = prev.playerStats.fleet.find(s => !assignedShipIds.has(s.instanceId));
+
+        if (!availableShip) {
+            setTimeout(() => toast({ variant: "destructive", title: "No Ships Available", description: "All your ships are currently on other missions." }), 0);
+            return prev;
+        }
+
+        const updatedMissions = prev.playerStats.escortMissions.map(m =>
+            m.id === missionId ? {
+                ...m,
+                status: 'Active' as const,
+                startTime: Date.now(),
+                progress: 0,
+                assignedShipInstanceId: availableShip.instanceId,
+                assignedShipName: availableShip.name,
+            } : m
         );
+
+        setTimeout(() => toast({ title: "Contract Accepted!", description: `${availableShip.name} is now escorting ${mission.clientName} to ${mission.toSystem}.` }), 0);
+
         return {
             ...prev,
             playerStats: {
@@ -79,10 +96,7 @@ export function useDefender(
             }
         };
     });
-
-    toast({ title: "Contract Accepted!", description: `Escorting ${mission.clientName} to ${mission.toSystem}.` });
-
-  }, [gameState, setGameState, toast]);
+  }, [setGameState, toast]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -103,23 +117,28 @@ export function useDefender(
 
           const elapsed = (now - (mission.startTime || now)) / 1000;
           const progress = Math.min(100, (elapsed / mission.duration) * 100);
-          updatedMissions[index].progress = progress;
-          stateChanged = true;
+          
+          if (updatedMissions[index].progress !== progress) {
+              updatedMissions[index].progress = progress;
+              stateChanged = true;
+          }
           
           if (progress >= 100) {
             updatedMissions[index].status = 'Completed';
+            updatedMissions[index].assignedShipInstanceId = null;
             newPlayerStats.netWorth += mission.payout;
             newPlayerStats.reputation += 2; // Defenders get more rep
             setTimeout(() => toast({ title: "Escort Complete!", description: `Safely escorted ${mission.clientName} to ${mission.toSystem}. You earned ${mission.payout.toLocaleString()}¢.` }), 0);
           } else {
             // Pirate risk check - higher for defenders
             const riskValue = { 'Low': 0.01, 'Medium': 0.03, 'High': 0.06, 'Critical': 0.1 }[mission.riskLevel];
-            if (Math.random() < riskValue) {
+            if (!newPlayerStats.pirateEncounter && Math.random() < riskValue) {
                 newPlayerStats.pirateEncounter = {
                     ...generateRandomPirate(prev.crew.some(c => c.role === 'Navigator')),
                     missionId: mission.id,
                     missionType: 'escort',
                 };
+                stateChanged = true;
                 setTimeout(() => toast({ variant: "destructive", title: "Ambush!", description: `Your escort convoy is under attack en route to ${mission.toSystem}!` }), 0);
             }
           }
