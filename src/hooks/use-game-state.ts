@@ -129,7 +129,7 @@ export function useGameState() {
     }, []);
 
     const generateNewGameState = useCallback(async () => {
-        const toastId = toast({ title: "Generating New Game...", description: "Preparing the galaxy for your adventure.", duration: Infinity });
+        const toastInstance = toast({ title: "Generating New Game...", description: "Preparing the galaxy for your adventure.", duration: Infinity });
 
         try {
             const [tradersResult, questsResult] = await Promise.all([runTraderGeneration(), runQuestGeneration()]);
@@ -155,10 +155,10 @@ export function useGameState() {
             };
 
             setGameState(newGameState);
-            toast.update(toastId, { title: "New Game Generated", description: "Your adventure begins now!", duration: 5000 });
+            toastInstance.update({ title: "New Game Generated", description: "Your adventure begins now!", duration: 5000 });
         } catch(e) {
             console.error("Failed to generate new game state", e);
-            toast({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
+            toastInstance.update({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
         }
     }, [calculateMarketDataForSystem, toast]);
 
