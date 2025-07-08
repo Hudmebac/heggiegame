@@ -114,7 +114,7 @@ export default function GalaxyPage() {
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Business Income Modifier</span>
-                                <span className="font-mono text-primary">{PLANET_TYPE_MODIFIERS[currentPlanetInfo.type] * 100}%</span>
+                                <span className="font-mono text-primary">{Math.round(PLANET_TYPE_MODIFIERS[currentPlanetInfo.type] * 100)}%</span>
                             </div>
                             <p className="text-muted-foreground pt-2 border-t mt-2">{currentPlanetInfo.description}</p>
                         </CardContent>
