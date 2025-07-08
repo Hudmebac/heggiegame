@@ -72,6 +72,14 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.targetingMatrix = activeShip.targetingMatrix;
     newStats.anomalyAnalyzer = activeShip.anomalyAnalyzer;
     newStats.fabricatorBay = activeShip.fabricatorBay;
+    newStats.gravAnchor = activeShip.gravAnchor;
+    newStats.aiCoreInterface = activeShip.aiCoreInterface;
+    newStats.bioDomeModule = activeShip.bioDomeModule;
+    newStats.flakDispensers = activeShip.flakDispensers;
+    newStats.boardingTubeSystem = activeShip.boardingTubeSystem;
+    newStats.terraformToolkit = activeShip.terraformToolkit;
+    newStats.thermalRegulator = activeShip.thermalRegulator;
+    newStats.diplomaticUplink = activeShip.diplomaticUplink;
 
     newStats.shipHealth = Math.min(playerStats.shipHealth ?? newStats.maxShipHealth, newStats.maxShipHealth);
     newStats.fuel = Math.min(playerStats.fuel ?? newStats.maxFuel, newStats.maxFuel);
@@ -85,6 +93,7 @@ const initialShip: PlayerShip = {
     name: 'My Shuttle',
     cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
     powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
+    gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
 };
 
 const initialCasinoState: CasinoState = {
@@ -124,6 +133,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     creditCard: undefined,
     debt: 0,
     powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
+    gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),

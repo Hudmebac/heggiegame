@@ -73,6 +73,14 @@ export interface PlayerShip {
   targetingMatrix: boolean;
   anomalyAnalyzer: boolean;
   fabricatorBay: boolean;
+  gravAnchor: boolean;
+  aiCoreInterface: boolean;
+  bioDomeModule: boolean;
+  flakDispensers: boolean;
+  boardingTubeSystem: boolean;
+  terraformToolkit: boolean;
+  thermalRegulator: boolean;
+  diplomaticUplink: boolean;
 }
 
 export interface InsurancePolicies {
@@ -130,6 +138,14 @@ export interface PlayerStats {
   targetingMatrix: boolean;
   anomalyAnalyzer: boolean;
   fabricatorBay: boolean;
+  gravAnchor: boolean;
+  aiCoreInterface: boolean;
+  bioDomeModule: boolean;
+  flakDispensers: boolean;
+  boardingTubeSystem: boolean;
+  terraformToolkit: boolean;
+  thermalRegulator: boolean;
+  diplomaticUplink: boolean;
 
   // Business stats
   barLevel: number;

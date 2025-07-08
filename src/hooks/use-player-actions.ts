@@ -47,6 +47,14 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.targetingMatrix = activeShip.targetingMatrix;
     newStats.anomalyAnalyzer = activeShip.anomalyAnalyzer;
     newStats.fabricatorBay = activeShip.fabricatorBay;
+    newStats.gravAnchor = activeShip.gravAnchor;
+    newStats.aiCoreInterface = activeShip.aiCoreInterface;
+    newStats.bioDomeModule = activeShip.bioDomeModule;
+    newStats.flakDispensers = activeShip.flakDispensers;
+    newStats.boardingTubeSystem = activeShip.boardingTubeSystem;
+    newStats.terraformToolkit = activeShip.terraformToolkit;
+    newStats.thermalRegulator = activeShip.thermalRegulator;
+    newStats.diplomaticUplink = activeShip.diplomaticUplink;
     
     newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
@@ -197,7 +205,8 @@ export function usePlayerActions(
                 shipId: ship.id,
                 name: ship.name,
                 cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
-                powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false
+                powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
+                gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false
             };
             const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
             setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);

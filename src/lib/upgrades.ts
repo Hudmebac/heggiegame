@@ -147,7 +147,7 @@ export const powerCoreUpgrades: AdvancedLeveledUpgrade[] = [
 ];
 
 export interface AdvancedToggleableUpgrade {
-    id: 'overdriveEngine' | 'warpStabilizer' | 'stealthPlating' | 'targetingMatrix' | 'anomalyAnalyzer' | 'fabricatorBay';
+    id: 'overdriveEngine' | 'warpStabilizer' | 'stealthPlating' | 'targetingMatrix' | 'anomalyAnalyzer' | 'fabricatorBay' | 'gravAnchor' | 'aiCoreInterface' | 'bioDomeModule' | 'flakDispensers' | 'boardingTubeSystem' | 'terraformToolkit' | 'thermalRegulator' | 'diplomaticUplink';
     name: string;
     category: string;
     description: string;
@@ -157,8 +157,20 @@ export interface AdvancedToggleableUpgrade {
 export const advancedUpgrades: AdvancedToggleableUpgrade[] = [
     { id: 'overdriveEngine', name: 'Overdrive Engine', category: 'Advanced Ship Systems', description: 'Temporarily boosts speed and evasion at the cost of fuel.', cost: 120000 },
     { id: 'warpStabilizer', name: 'Warp Stabilizer', category: 'Advanced Ship Systems', description: 'Reduces high-threat encounters and fuel costs for long jumps.', cost: 95000 },
+    { id: 'gravAnchor', name: 'Grav Anchor', category: 'Advanced Ship Systems', description: 'Temporarily locks a ship in space despite cosmic forces—useful in spatial anomalies.', cost: 110000 },
+    
     { id: 'stealthPlating', name: 'Stealth Plating', category: 'Specialized Subsystems', description: 'Reduces enemy sensor detection range, lowering encounter chances.', cost: 250000 },
+    { id: 'aiCoreInterface', name: 'AI Core Interface', category: 'Specialized Subsystems', description: 'Enables autonomous systems or buffed drone coordination.', cost: 275000 },
+    { id: 'bioDomeModule', name: 'Bio-Dome Module', category: 'Specialized Subsystems', description: 'Supports crew sustainability and morale, reducing salary costs.', cost: 130000 },
+
     { id: 'targetingMatrix', name: 'Targeting Matrix', category: 'Combat Enhancers', description: 'Increases hit chance and highlights weak points in combat.', cost: 180000 },
+    { id: 'flakDispensers', name: 'Flak Dispensers', category: 'Combat Enhancers', description: 'Counters incoming missiles and drones with a defensive cloud of shrapnel.', cost: 165000 },
+    { id: 'boardingTubeSystem', name: 'Boarding Tube System', category: 'Combat Enhancers', description: 'Enables ship-to-ship breaching mechanics and crew boarding actions.', cost: 220000 },
+
     { id: 'anomalyAnalyzer', name: 'Anomaly Analyzer', category: 'Exploration & Environment', description: 'Improves scan results from deep space phenomena.', cost: 150000 },
+    { id: 'terraformToolkit', name: 'Terraform Toolkit', category: 'Exploration & Environment', description: 'Aids in planet-side missions, resource extraction, or influencing local environments.', cost: 450000 },
+    
     { id: 'fabricatorBay', name: 'Fabricator Bay', category: 'Utility Modules', description: 'Slowly produces basic ship repair materials.', cost: 300000 },
+    { id: 'thermalRegulator', name: 'Thermal Regulator', category: 'Utility Modules', description: 'Prevents overheating, allowing for longer high-load performance of ship systems.', cost: 140000 },
+    { id: 'diplomaticUplink', name: 'Diplomatic Uplink', category: 'Utility Modules', description: 'Unlocks faction-based dialogue trees or unlocks trade routes.', cost: 195000 },
 ];
