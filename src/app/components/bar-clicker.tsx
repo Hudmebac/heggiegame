@@ -40,11 +40,11 @@ export default function BarClicker() {
     };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-    const upgradeCost = Math.round(300 * Math.pow(playerStats.barLevel, 2.5) * costModifier);
+    const upgradeCost = Math.round(450 * Math.pow(playerStats.barLevel, 2.5) * costModifier);
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
-    const botCost = Math.round(9000 * Math.pow(1.25, playerStats.autoClickerBots) * costModifier);
+    const botCost = Math.round(9000 * Math.pow(2.25, playerStats.autoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;
