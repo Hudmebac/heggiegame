@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale, Clipboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAREER_DATA } from '@/lib/careers';
 
@@ -44,6 +44,7 @@ const allNavItems = [
     { href: '/defence', label: 'Defender', icon: Shield, career: 'Defender' },
     { href: '/military', label: 'Fighter', icon: Sword, career: 'Fighter' },
     { href: '/official', label: 'Galactic Official', icon: Scale, career: 'Galactic Official' },
+    { href: '/contractor', label: 'Contractor', icon: Clipboard, career: 'Heggie Contractor' },
 ];
 
 const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, icon: React.ElementType }) => {

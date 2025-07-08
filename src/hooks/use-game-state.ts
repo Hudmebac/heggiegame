@@ -116,7 +116,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
     netWorth: 10000,
     avatarUrl: '/images/avatars/avatar_01.png',
-    pirateRisk: 0, reputation: 0,
+    pirateRisk: 0, reputation: 0, inspiration: 0,
     fleet: [initialShip],
     barLevel: 1, autoClickerBots: 0, establishmentLevel: 0,
     residenceLevel: 1, residenceAutoClickerBots: 0, residenceEstablishmentLevel: 0,
@@ -196,6 +196,7 @@ export function useGameState() {
                     career,
                     fleet: careerData.startingFleet,
                     netWorth: careerData.startingNetWorth,
+                    inspiration: 0,
                     influence: careerData.startingInfluence || 0,
                     tradeContracts: [],
                     taxiMissions: [],
@@ -267,6 +268,7 @@ export function useGameState() {
                         status: ship.status ?? 'operational',
                     }));
                 }
+                mergedPlayerStats.inspiration = mergedPlayerStats.inspiration || 0;
                 // --- END MIGRATION ---
 
                 mergedPlayerStats.inventory = savedProgress.inventory || initialGameState.inventory;

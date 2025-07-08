@@ -1,6 +1,6 @@
 
 import type { Career, PlayerShip } from '@/lib/types';
-import { Truck, CarTaxiFront, Building, CandlestickChart, Shield, Sword, Scale, LucideIcon } from 'lucide-react';
+import { Truck, CarTaxiFront, Building, CandlestickChart, Shield, Sword, Scale, LucideIcon, Clipboard } from 'lucide-react';
 import { hullUpgrades } from './upgrades';
 
 export interface CareerData {
@@ -25,6 +25,17 @@ const baseShip: Omit<PlayerShip, 'instanceId' | 'shipId' | 'name'> = {
 };
 
 export const CAREER_DATA: CareerData[] = [
+    {
+        id: 'Heggie Contractor',
+        name: 'Heggie Contractor',
+        icon: Clipboard,
+        description: 'A flexible, introspective path for those seeking purpose among the stars.',
+        perks: ['Total freedom to pursue hybrid career routes', 'Unlocks adaptive quests that react to playstyle', 'Access to the Inspiration Meter to track progress', 'Increased experience from "first-time" actions'],
+        risks: ['No initial bonuses or passive income', 'Limited access to high-tier faction perks', 'Vulnerable without specialization'],
+        startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Contractor's Vessel" }],
+        startingNetWorth: 10000,
+        page: '/contractor'
+    },
     {
         id: 'Hauler',
         name: 'Hauler',
