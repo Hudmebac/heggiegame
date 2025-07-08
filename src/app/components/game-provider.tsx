@@ -141,28 +141,27 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...officialLogic,
     };
     
+    const showLoader = !isClient;
+    const showSetup = isClient && !gameState;
+    const showGameOver = isClient && gameState && gameState.isGameOver;
+    const showGame = isClient && gameState && !gameState.isGameOver;
+
     return (
         <GameContext.Provider value={contextValue}>
-            {(() => {
-                if (!isClient) {
-                    return (
-                        <div className="flex h-screen w-full items-center justify-center bg-background">
-                            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                        </div>
-                    );
-                }
-
-                if (!gameState) {
-                    return <GameSetup />;
-                }
-
-                if (gameState.isGameOver) {
-                    return <GameOver />;
-                }
-
-                // If game is active, render the main layout with the page content
-                return <AppLayout>{children}</AppLayout>;
-            })()}
+            <div style={{ display: showLoader ? 'block' : 'none' }}>
+                <div className="flex h-screen w-full items-center justify-center bg-background">
+                    <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                </div>
+            </div>
+            <div style={{ display: showSetup ? 'block' : 'none' }}>
+                <GameSetup />
+            </div>
+            <div style={{ display: showGameOver ? 'block' : 'none' }}>
+                <GameOver />
+            </div>
+            <div style={{ display: showGame ? 'block' : 'none' }}>
+                <AppLayout>{children}</AppLayout>
+            </div>
             <Toaster />
         </GameContext.Provider>
     );

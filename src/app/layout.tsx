@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { GameProvider } from '@/app/components/game-provider';
@@ -25,7 +26,9 @@ export default function RootLayout({
         <link rel="icon" href="/images/favicon/favicon.ico" sizes="any" />
       </head>
       <body suppressHydrationWarning={true}>
-        <GameProvider>{children}</GameProvider>
+        <GameProvider>
+          {children}
+        </GameProvider>
       </body>
     </html>
   );
