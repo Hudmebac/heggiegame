@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
-import type { GameState, System, MarketItem, Pirate, ItemCategory, SystemEconomy } from '@/lib/types';
+import type { GameState, System, MarketItem, Pirate, ItemCategory, SystemEconomy, PlayerStats, BarContract } from '@/lib/types';
 import { runMarketSimulation, runPirateScan, runEventGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
@@ -100,7 +100,9 @@ export function useTravel(
         let fuelCost = Math.round(distance / 5);
 
         if (gameState.playerStats.fuel < fuelCost) {
-            toast({ variant: "destructive", title: "Travel Failed", description: `Not enough fuel. You need ${fuelCost} SU.` });
+            setTimeout(() => {
+                toast({ variant: "destructive", title: "Travel Failed", description: `Not enough fuel. You need ${fuelCost} SU.` });
+            }, 0);
             setTravelDestination(null);
             return;
         }
@@ -108,6 +110,7 @@ export function useTravel(
         startSimulationTransition(async () => {
             setTravelDestination(null);
             try {
+                // Determine if a pirate encounter occurs
                 let baseEncounterChance = 0;
                 switch (travelDestination.security) {
                     case 'Anarchy': baseEncounterChance = 0.4; break;
@@ -119,26 +122,29 @@ export function useTravel(
                 const hasNavigator = gameState.crew.some(c => c.role === 'Navigator');
                 const pirateEncounterObject = Math.random() < totalEncounterChance ? generateRandomPirate(hasNavigator) : null;
                 
-                let scannedPirateEncounter: Pirate | null = null;
-                if (pirateEncounterObject) {
-                    const scanResult = await runPirateScan({
+                // Sequentially generate event, then simulate market and scan for pirates in parallel
+                const eventResult = await runEventGeneration();
+
+                const [simResult, scanResult] = await Promise.all([
+                     runMarketSimulation({
+                        items: calculateMarketDataForSystem(travelDestination),
+                        systemEconomy: travelDestination.economy,
+                        systemVolatility: travelDestination.volatility,
+                        eventDescription: eventResult.eventDescription,
+                    }),
+                    pirateEncounterObject ? runPirateScan({
                         pirateName: pirateEncounterObject.name,
                         pirateShipType: pirateEncounterObject.shipType,
                         pirateThreatLevel: pirateEncounterObject.threatLevel,
                         sensorLevel: gameState.playerStats.sensorLevel,
-                    });
-                    scannedPirateEncounter = { ...pirateEncounterObject, scanResult: scanResult.scanReport };
-                }
-
-                const [eventResult, simResult] = await Promise.all([
-                    runEventGeneration(),
-                    runMarketSimulation({
-                        items: calculateMarketDataForSystem(travelDestination),
-                        systemEconomy: travelDestination.economy,
-                        systemVolatility: travelDestination.volatility,
-                    })
+                    }) : Promise.resolve(null)
                 ]);
 
+                let scannedPirateEncounter: Pirate | null = null;
+                if (pirateEncounterObject && scanResult) {
+                     scannedPirateEncounter = { ...pirateEncounterObject, scanResult: scanResult.scanReport };
+                }
+               
                 const newMarketItems: MarketItem[] = simResult.map(update => {
                     const staticItem = STATIC_ITEMS.find(si => si.name === update.name)!;
                     const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category][travelDestination.economy];
@@ -156,16 +162,44 @@ export function useTravel(
                     newMarketItems.forEach(item => {
                         newPriceHistory[item.name] = [...(newPriceHistory[item.name] || []), item.currentPrice].slice(-20);
                     });
-                    const newPlayerStats = { ...prev.playerStats, fuel: prev.playerStats.fuel - fuelCost };
                     
-                    setTimeout(() => toast({ title: `Arrival: ${travelDestination.name}`, description: eventResult.eventDescription }), 0);
+                    const newPlayerStats = { ...prev.playerStats, fuel: prev.playerStats.fuel - fuelCost };
+                    const contractKeys: Array<keyof PlayerStats> = ['barContract', 'residenceContract', 'commerceContract', 'industryContract', 'constructionContract', 'recreationContract'];
+                    
+                    contractKeys.forEach(key => {
+                        const contract = newPlayerStats[key] as BarContract | undefined;
+                        if (contract) {
+                            const volatility = (Math.random() - 0.5) * 0.2 * travelDestination.volatility; // Fluctuation of +/- 10% * volatility
+                            let newMarketValue = Math.round(contract.currentMarketValue * (1 + volatility));
+                            newMarketValue = Math.max(1000, newMarketValue);
+                            
+                            (newPlayerStats as any)[key] = {
+                                ...contract,
+                                currentMarketValue: newMarketValue,
+                                valueHistory: [...contract.valueHistory, newMarketValue].slice(-20)
+                            };
+                        }
+                    });
+
+                    setTimeout(() => {
+                        toast({ title: `Arrival: ${travelDestination.name}`, description: eventResult.eventDescription });
+                    }, 0);
 
                     return {
-                        ...prev, playerStats: newPlayerStats, currentSystem: travelDestination.name, currentPlanet: travelDestination.planets[0].name, marketItems: newMarketItems, priceHistory: newPriceHistory, pirateEncounter: scannedPirateEncounter
+                        ...prev, 
+                        playerStats: newPlayerStats, 
+                        currentSystem: travelDestination.name, 
+                        currentPlanet: travelDestination.planets[0].name, 
+                        marketItems: newMarketItems, 
+                        priceHistory: newPriceHistory, 
+                        pirateEncounter: scannedPirateEncounter
                     };
                 });
             } catch (e) {
-                toast({ variant: "destructive", title: "Warp Malfunction", description: "Something went wrong during travel." });
+                console.error(e);
+                setTimeout(() => {
+                    toast({ variant: "destructive", title: "Warp Malfunction", description: "Something went wrong during travel." });
+                }, 0);
             }
         });
     };
