@@ -25,9 +25,10 @@ const generateLevels = (
 
 const costMultiplier = 1.4;
 const costGrowthFactor = 2.0;
+const upgradeLevelCount = 30;
 
 export const cargoUpgrades: CargoUpgrade[] = generateLevels(
-    20, 
+    upgradeLevelCount, 
     5000 * costMultiplier, 
     'Cargo Bay Expansion', 
     costGrowthFactor, 
@@ -35,7 +36,7 @@ export const cargoUpgrades: CargoUpgrade[] = generateLevels(
 );
 
 export const weaponUpgrades: WeaponUpgrade[] = generateLevels(
-    20, 
+    upgradeLevelCount, 
     10000 * costMultiplier, 
     'Weapon System', 
     costGrowthFactor, 
@@ -43,7 +44,7 @@ export const weaponUpgrades: WeaponUpgrade[] = generateLevels(
 );
 
 export const shieldUpgrades: ShieldUpgrade[] = generateLevels(
-    20, 
+    upgradeLevelCount, 
     7500 * costMultiplier, 
     'Shield Generator', 
     costGrowthFactor, 
@@ -51,7 +52,7 @@ export const shieldUpgrades: ShieldUpgrade[] = generateLevels(
 );
 
 export const hullUpgrades: HullUpgrade[] = generateLevels(
-    20, 
+    upgradeLevelCount, 
     8000 * costMultiplier, 
     'Hull Plating', 
     costGrowthFactor, 
@@ -59,7 +60,7 @@ export const hullUpgrades: HullUpgrade[] = generateLevels(
 );
 
 export const fuelUpgrades: FuelUpgrade[] = generateLevels(
-    20, 
+    upgradeLevelCount, 
     4000 * costMultiplier, 
     'Fuel Tank', 
     costGrowthFactor, 
@@ -67,7 +68,7 @@ export const fuelUpgrades: FuelUpgrade[] = generateLevels(
 );
 
 export const sensorUpgrades: SensorUpgrade[] = generateLevels(
-    20, 
+    upgradeLevelCount, 
     6000 * costMultiplier, 
     'Sensor Suite', 
     costGrowthFactor, 
