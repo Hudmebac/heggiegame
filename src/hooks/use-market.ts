@@ -5,13 +5,8 @@ import { useState, useCallback } from 'react';
 import type { GameState, MarketItem, InventoryItem } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
+import { calculateCurrentCargo } from '@/lib/utils';
 
-function calculateCurrentCargo(inventory: InventoryItem[]): number {
-    return inventory.reduce((acc, item) => {
-        const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
-        return acc + (staticItem ? staticItem.cargoSpace * item.owned : 0);
-    }, 0);
-}
 
 export function useMarket(
     gameState: GameState | null,

@@ -8,6 +8,7 @@ import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
+import { calculateCurrentCargo } from '@/lib/utils';
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
@@ -35,8 +36,7 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
 
     const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
     newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
-
-    newStats.cargo = Math.min(newStats.cargo || 0, newStats.maxCargo);
+    
     newStats.shipHealth = Math.min(newStats.shipHealth || 0, newStats.maxShipHealth);
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
 
@@ -217,6 +217,7 @@ export function usePlayerActions(
             
             if (shipIndex === 0) {
                 newPlayerStats = syncActiveShipStats(newPlayerStats);
+                newPlayerStats.cargo = calculateCurrentCargo(prev.inventory);
             }
             
             toast({ title: "Ship Sold", description: `You sold the ${shipToSell.name} for ${salePrice.toLocaleString()}¢.` });
@@ -287,6 +288,16 @@ export function usePlayerActions(
                 toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." });
                 return prev;
             }
+
+            if (upgradeType === 'cargo') {
+                const newMaxCargo = upgradeInfo.levels[upgradeInfo.current - 2].capacity;
+                const currentCargo = calculateCurrentCargo(prev.inventory);
+                if (currentCargo > newMaxCargo) {
+                    toast({ variant: "destructive", title: "Downgrade Failed", description: `Cannot downgrade cargo hold, you have too much cargo (${currentCargo.toFixed(2)}t / ${newMaxCargo}t).` });
+                    return prev;
+                }
+            }
+
             const currentTierCost = upgradeInfo.levels[upgradeInfo.current - 1].cost;
             const prevTierCost = upgradeInfo.levels[upgradeInfo.current - 2].cost;
             const refund = Math.round((currentTierCost - prevTierCost) * 0.7);
@@ -313,6 +324,7 @@ export function usePlayerActions(
             
             let newPlayerStats = { ...prev.playerStats, fleet: newFleet };
             newPlayerStats = syncActiveShipStats(newPlayerStats);
+            newPlayerStats.cargo = calculateCurrentCargo(prev.inventory);
             toast({ title: "Active Ship Changed", description: `The ${activeShip.name} is now your active vessel.` });
             return { ...prev, playerStats: newPlayerStats };
         });
