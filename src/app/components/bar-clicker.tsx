@@ -44,7 +44,7 @@ export default function BarClicker() {
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
-    const botCost = Math.round(9000 * Math.pow(1.15, playerStats.autoClickerBots) * costModifier);
+    const botCost = Math.round(9000 * Math.pow(1.25, playerStats.autoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;

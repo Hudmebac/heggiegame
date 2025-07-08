@@ -44,7 +44,7 @@ export default function RecreationClicker() {
     const isRecreationLevelMaxed = playerStats.recreationLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isRecreationLevelMaxed;
 
-    const botCost = Math.round(5625 * Math.pow(1.15, playerStats.recreationAutoClickerBots) * costModifier);
+    const botCost = Math.round(5625 * Math.pow(1.25, playerStats.recreationAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.recreationAutoClickerBots * rawIncomePerClick;

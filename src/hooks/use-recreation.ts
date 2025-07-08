@@ -81,7 +81,7 @@ export function useRecreation(
         return prev;
       }
 
-      const botCost = Math.round(5625 * Math.pow(1.15, prev.playerStats.recreationAutoClickerBots) * costModifier);
+      const botCost = Math.round(5625 * Math.pow(1.25, prev.playerStats.recreationAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

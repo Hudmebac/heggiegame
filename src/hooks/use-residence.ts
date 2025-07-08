@@ -81,7 +81,7 @@ export function useResidence(
         return prev;
       }
 
-      const botCost = Math.round(4250 * Math.pow(1.15, prev.playerStats.residenceAutoClickerBots) * costModifier);
+      const botCost = Math.round(4250 * Math.pow(1.25, prev.playerStats.residenceAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

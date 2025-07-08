@@ -44,7 +44,7 @@ export default function ResidenceClicker() {
     const isResidenceLevelMaxed = playerStats.residenceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isResidenceLevelMaxed;
 
-    const botCost = Math.round(4250 * Math.pow(1.15, playerStats.residenceAutoClickerBots) * costModifier);
+    const botCost = Math.round(4250 * Math.pow(1.25, playerStats.residenceAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.residenceAutoClickerBots * rawIncomePerClick;

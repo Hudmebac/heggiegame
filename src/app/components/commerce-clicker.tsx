@@ -44,7 +44,7 @@ export default function CommerceClicker() {
     const isCommerceLevelMaxed = playerStats.commerceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isCommerceLevelMaxed;
 
-    const botCost = Math.round(12750 * Math.pow(1.15, playerStats.commerceAutoClickerBots) * costModifier);
+    const botCost = Math.round(12750 * Math.pow(1.25, playerStats.commerceAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.commerceAutoClickerBots * rawIncomePerClick;

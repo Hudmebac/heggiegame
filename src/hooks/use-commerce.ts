@@ -81,7 +81,7 @@ export function useCommerce(
         return prev;
       }
 
-      const botCost = Math.round(12750 * Math.pow(1.15, prev.playerStats.commerceAutoClickerBots) * costModifier);
+      const botCost = Math.round(12750 * Math.pow(1.25, prev.playerStats.commerceAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

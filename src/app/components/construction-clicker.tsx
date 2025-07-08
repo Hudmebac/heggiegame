@@ -44,7 +44,7 @@ export default function ConstructionClicker() {
     const isConstructionLevelMaxed = playerStats.constructionLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isConstructionLevelMaxed;
 
-    const botCost = Math.round(29000 * Math.pow(1.15, playerStats.constructionAutoClickerBots) * costModifier);
+    const botCost = Math.round(29000 * Math.pow(1.25, playerStats.constructionAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.constructionAutoClickerBots * rawIncomePerClick;

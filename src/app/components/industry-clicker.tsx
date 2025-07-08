@@ -44,7 +44,7 @@ export default function IndustryClicker() {
     const isIndustryLevelMaxed = playerStats.industryLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isIndustryLevelMaxed;
 
-    const botCost = Math.round(40500 * Math.pow(1.15, playerStats.industryAutoClickerBots) * costModifier);
+    const botCost = Math.round(40500 * Math.pow(1.25, playerStats.industryAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.industryAutoClickerBots * rawIncomePerClick;

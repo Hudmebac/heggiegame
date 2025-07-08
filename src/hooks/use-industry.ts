@@ -81,7 +81,7 @@ export function useIndustry(
         return prev;
       }
 
-      const botCost = Math.round(40500 * Math.pow(1.15, prev.playerStats.industryAutoClickerBots) * costModifier);
+      const botCost = Math.round(40500 * Math.pow(1.25, prev.playerStats.industryAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

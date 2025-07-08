@@ -83,7 +83,7 @@ export function useBar(
         return prev;
       }
 
-      const botCost = Math.round(9000 * Math.pow(1.15, prev.playerStats.autoClickerBots) * costModifier);
+      const botCost = Math.round(9000 * Math.pow(1.25, prev.playerStats.autoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
