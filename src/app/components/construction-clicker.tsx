@@ -40,11 +40,11 @@ export default function ConstructionClicker() {
     };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-    const upgradeCost = Math.round(1000 * Math.pow(playerStats.constructionLevel, 2.5) * costModifier);
+    const upgradeCost = Math.round(1500 * Math.pow(playerStats.constructionLevel, 2.5) * costModifier);
     const isConstructionLevelMaxed = playerStats.constructionLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isConstructionLevelMaxed;
 
-    const botCost = Math.round(29000 * Math.pow(1.25, playerStats.constructionAutoClickerBots) * costModifier);
+    const botCost = Math.round(29000 * Math.pow(2.25, playerStats.constructionAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.constructionAutoClickerBots * rawIncomePerClick;

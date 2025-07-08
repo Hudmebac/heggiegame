@@ -40,11 +40,11 @@ export default function ResidenceClicker() {
     };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-    const upgradeCost = Math.round(125 * Math.pow(playerStats.residenceLevel, 2.5) * costModifier);
+    const upgradeCost = Math.round(188 * Math.pow(playerStats.residenceLevel, 2.5) * costModifier);
     const isResidenceLevelMaxed = playerStats.residenceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isResidenceLevelMaxed;
 
-    const botCost = Math.round(4250 * Math.pow(1.25, playerStats.residenceAutoClickerBots) * costModifier);
+    const botCost = Math.round(4250 * Math.pow(2.25, playerStats.residenceAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.residenceAutoClickerBots * rawIncomePerClick;

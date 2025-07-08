@@ -40,7 +40,7 @@ export default function BarClicker() {
     };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-    const upgradeCost = Math.round(450 * Math.pow(playerStats.barLevel, 2.5) * costModifier);
+    const upgradeCost = Math.round(675 * Math.pow(playerStats.barLevel, 2.5) * costModifier);
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 

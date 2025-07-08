@@ -58,7 +58,7 @@ export function useBar(
         return prev;
       }
 
-      const upgradeCost = Math.round(450 * Math.pow(prev.playerStats.barLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(675 * Math.pow(prev.playerStats.barLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);

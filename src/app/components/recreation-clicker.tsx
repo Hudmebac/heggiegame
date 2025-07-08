@@ -40,11 +40,11 @@ export default function RecreationClicker() {
     };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
 
-    const upgradeCost = Math.round(281 * Math.pow(playerStats.recreationLevel, 2.5) * costModifier);
+    const upgradeCost = Math.round(422 * Math.pow(playerStats.recreationLevel, 2.5) * costModifier);
     const isRecreationLevelMaxed = playerStats.recreationLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isRecreationLevelMaxed;
 
-    const botCost = Math.round(5625 * Math.pow(1.25, playerStats.recreationAutoClickerBots) * costModifier);
+    const botCost = Math.round(5625 * Math.pow(2.25, playerStats.recreationAutoClickerBots) * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.recreationAutoClickerBots * rawIncomePerClick;
