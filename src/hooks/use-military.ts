@@ -125,7 +125,7 @@ export function useMilitary(
 
         let stateChanged = false;
         const now = Date.now();
-        const updatedMissions = [...prev.playerStats.militaryMissions];
+        const updatedMissions = [...(prev.playerStats.militaryMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
         const index = updatedMissions.findIndex(m => m.id === activeMission.id);
 

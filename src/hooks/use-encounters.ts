@@ -100,7 +100,7 @@ export function useEncounters(
                 if (pirate.missionId && pirate.missionType) {
                     if (result.outcome === 'failure') {
                          const missionsKey = `${pirate.missionType}Missions` as keyof PlayerStats;
-                         const missions = [...(newPlayerStats as any)[missionsKey]];
+                         const missions = [...((newPlayerStats as any)[missionsKey] || [])];
                          const missionIndex = missions.findIndex((m: any) => m.id === pirate.missionId);
 
                         if (missionIndex > -1) {

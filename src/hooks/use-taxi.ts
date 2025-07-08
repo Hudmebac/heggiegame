@@ -100,12 +100,12 @@ export function useTaxi(
       setGameState(prev => {
         if (!prev || prev.isGameOver) return prev;
       
-        const activeMissions = prev.playerStats.taxiMissions.filter(m => m.status === 'Active');
+        const activeMissions = (prev.playerStats.taxiMissions || []).filter(m => m.status === 'Active');
         if (activeMissions.length === 0) return prev;
 
         let stateChanged = false;
         const now = Date.now();
-        const updatedMissions = [...prev.playerStats.taxiMissions];
+        const updatedMissions = [...(prev.playerStats.taxiMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
 
         activeMissions.forEach(mission => {

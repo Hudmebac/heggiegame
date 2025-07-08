@@ -120,12 +120,12 @@ export function useHauler(
       setGameState(prev => {
         if (!prev || prev.isGameOver) return prev;
       
-        const activeContracts = prev.playerStats.tradeContracts.filter(c => c.status === 'Active');
+        const activeContracts = (prev.playerStats.tradeContracts || []).filter(c => c.status === 'Active');
         if (activeContracts.length === 0) return prev;
 
         let stateChanged = false;
         const now = Date.now();
-        const updatedContracts = [...prev.playerStats.tradeContracts];
+        const updatedContracts = [...(prev.playerStats.tradeContracts || [])];
         let newPlayerStats = { ...prev.playerStats };
 
         activeContracts.forEach(contract => {

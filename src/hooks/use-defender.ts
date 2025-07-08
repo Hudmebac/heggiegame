@@ -147,7 +147,7 @@ export function useDefender(
 
         let stateChanged = false;
         const now = Date.now();
-        const updatedMissions = [...prev.playerStats.escortMissions];
+        const updatedMissions = [...(prev.playerStats.escortMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
 
         activeMissions.forEach(mission => {
