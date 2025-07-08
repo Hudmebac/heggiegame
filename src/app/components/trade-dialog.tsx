@@ -15,7 +15,7 @@ interface TradeDialogProps {
   onOpenChange: (open: boolean) => void;
   item: MarketItem | null;
   tradeType: 'buy' | 'sell';
-  playerStats: PlayerStats;
+  playerStats: PlayerStats | null;
   inventory: InventoryItem[];
   onTrade: (itemName: string, type: 'buy' | 'sell', amount: number) => void;
 }
@@ -28,7 +28,11 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
     setAmount(1);
   }, [item]);
 
-  if (!item) return null;
+  if (!item || !playerStats) {
+      // This guard prevents rendering when the dialog is not supposed to be visible or data is missing.
+      // The component is always mounted, so hooks are always called.
+      return null;
+  }
 
   const staticItemData = STATIC_ITEMS.find(i => i.name === item.name);
   if (!staticItemData) return null; // Should not happen

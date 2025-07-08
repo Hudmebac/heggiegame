@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
@@ -203,13 +204,11 @@ export default function FleetManagement() {
         </CardContent>
       </Card>
 
-      {outfittingShipId && (
-        <ShipOutfittingDialog
-          shipInstanceId={outfittingShipId}
-          isOpen={!!outfittingShipId}
-          onOpenChange={(isOpen) => !isOpen && setOutfittingShipId(null)}
-        />
-      )}
+      <ShipOutfittingDialog
+        shipInstanceId={outfittingShipId}
+        isOpen={!!outfittingShipId}
+        onOpenChange={(isOpen) => !isOpen && setOutfittingShipId(null)}
+      />
     </div>
   );
 }

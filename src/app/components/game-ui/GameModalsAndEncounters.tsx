@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -79,17 +80,15 @@ export default function GameModalsAndEncounters() {
 
 
             {/* Trade Dialog */}
-            {tradeDetails && gameState && gameState.marketItems && (
-                <TradeDialog
-                    isOpen={!!tradeDetails}
-                    onOpenChange={(open) => !open && setTradeDetails(null)}
-                    item={tradeDetails.item}
-                    tradeType={tradeDetails.type}
-                    playerStats={gameState.playerStats}
-                    inventory={gameState.inventory}
-                    onTrade={handleTrade}
-                />
-            )}
+            <TradeDialog
+                isOpen={!!tradeDetails}
+                onOpenChange={(open) => !open && setTradeDetails(null)}
+                item={tradeDetails?.item ?? null}
+                tradeType={tradeDetails?.type ?? 'buy'}
+                playerStats={gameState?.playerStats ?? null}
+                inventory={gameState?.inventory ?? []}
+                onTrade={handleTrade}
+            />
 
             {/* Travel Confirmation Dialog */}
             {travelDestination && gameState && (

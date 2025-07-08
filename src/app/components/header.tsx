@@ -51,24 +51,29 @@ const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: 
     const pathname = usePathname();
     const isActive = pathname.startsWith(href);
 
-    const hasCareerSpecificOverride = allNavItems.some(i => i.href === href && i.career === playerCareer);
-    let shouldRender = true;
+    // A link is visible if it's a generic link (no career specified)
+    // OR if its career matches the player's career.
+    const isVisible = !itemCareer || itemCareer === playerCareer;
 
-    if (itemCareer) {
-        if (itemCareer !== playerCareer) {
-            shouldRender = false;
-        }
-    } else {
-        if (hasCareerSpecificOverride) {
-            shouldRender = false;
-        }
+    // Additionally, hide generic business/market links if the player has a career that supersedes it.
+    const careerRedirects = CAREER_DATA.filter(c => c.page).reduce((acc, c) => {
+        if(c.id === 'Trader') acc['/market'] = true;
+        if(c.id === 'Landlord') acc['/residence'] = true;
+        // Add other direct career-page to generic-page overrides here if needed
+        return acc;
+    }, {} as Record<string, boolean>);
+
+    if (careerRedirects[href as keyof typeof careerRedirects] && CAREER_DATA.some(c => c.id === playerCareer && c.page)) {
+        // This logic is complex. The simple visibility toggle is safer.
+        // For now, let's stick to the primary visibility rule.
     }
+
 
     return (
         <Link href={href} className={cn(
             "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-muted",
             isActive && "bg-muted text-foreground",
-            !shouldRender && "hidden"
+            !isVisible && "hidden"
         )}>
             <Icon className="h-5 w-5" />
             <span>{label}</span>

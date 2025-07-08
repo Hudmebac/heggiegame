@@ -6,13 +6,16 @@ import type { PlayerShip, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrad
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, AdvancedLeveledUpgrade } from '@/lib/upgrades';
-import { Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar, Bot, Zap, FastForward, Anchor, Ghost, ScanLine, Search, Wrench, CheckCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+    Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar, Bot, Zap, FastForward, Anchor, 
+    Ghost, ScanLine, Wrench, CheckCircle, Brain, Leaf, ShieldAlert, DoorOpen, Globe, Thermometer, 
+    Handshake, GitCommit, Crosshair
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
 interface ShipOutfittingDialogProps {
-  shipInstanceId: number;
+  shipInstanceId: number | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -20,16 +23,35 @@ interface ShipOutfittingDialogProps {
 type UpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore';
 type UpgradeInfo = (CargoUpgrade | WeaponUpgrade | ShieldUpgrade | HullUpgrade | FuelUpgrade | SensorUpgrade | DroneUpgrade | AdvancedLeveledUpgrade);
 
+const advancedIconMap: Record<AdvancedToggleableUpgrade['id'], React.ElementType> = {
+    overdriveEngine: FastForward,
+    warpStabilizer: Anchor,
+    stealthPlating: Ghost,
+    targetingMatrix: Crosshair,
+    anomalyAnalyzer: ScanLine,
+    fabricatorBay: Wrench,
+    gravAnchor: GitCommit,
+    aiCoreInterface: Brain,
+    bioDomeModule: Leaf,
+    flakDispensers: ShieldAlert,
+    boardingTubeSystem: DoorOpen,
+    terraformToolkit: Globe,
+    thermalRegulator: Thermometer,
+    diplomaticUplink: Handshake,
+};
 
 export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenChange }: ShipOutfittingDialogProps) {
   const { gameState, handleUpgradeShip, handleDowngradeShip, handlePurchaseAdvancedModule } = useGame();
 
-  if (!gameState) return null;
-
-  const ship = gameState.playerStats.fleet.find(s => s.instanceId === shipInstanceId);
-  const { playerStats } = gameState;
+  const ship = gameState?.playerStats.fleet.find(s => s.instanceId === shipInstanceId);
   
-  if (!ship) return null;
+  if (!gameState || !ship) {
+      return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange} />
+      );
+  }
+
+  const { playerStats } = gameState;
 
   const getUpgradeCost = (currentLevel: number, upgrades: { level: number; cost: number }[]) => {
     if (currentLevel >= upgrades.length) return Infinity;
@@ -83,15 +105,15 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     );
   };
   
-  const AdvancedUpgradeRow = ({ upgrade }: { upgrade: AdvancedToggleableUpgrade }) => {
+  const AdvancedUpgradeRow = ({ upgrade, icon: Icon }: { upgrade: AdvancedToggleableUpgrade, icon: React.ElementType }) => {
       const isInstalled = ship[upgrade.id];
       const canAfford = playerStats.netWorth >= upgrade.cost;
       return (
           <div className="grid grid-cols-1 md:grid-cols-3 items-center py-3 border-b border-border/50 last:border-b-0 gap-2">
               <div className="flex items-center gap-3 md:col-span-1">
+                <Icon className="h-5 w-5 text-primary/70 flex-shrink-0" />
                 <div>
                   <p className="font-semibold">{upgrade.name}</p>
-                  <p className="text-xs text-muted-foreground">{upgrade.category}</p>
                 </div>
               </div>
               <p className="md:col-span-1 text-sm text-muted-foreground text-left md:text-center">{upgrade.description}</p>
@@ -99,12 +121,17 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
                   {isInstalled ? (
                       <span className="flex items-center gap-2 text-sm text-green-400 font-semibold"><CheckCircle className="h-4 w-4"/> Installed</span>
                   ) : (
-                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford}>Purchase ({upgrade.cost.toLocaleString()}¢)</Button>
+                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford}>
+                        <Wrench className="mr-2" />
+                        Purchase ({upgrade.cost.toLocaleString()}¢)
+                      </Button>
                   )}
               </div>
           </div>
       )
   }
+
+  const advancedCategories = [...new Set(advancedUpgrades.map(u => u.category))];
 
 
   return (
@@ -114,7 +141,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
           <DialogTitle className='flex items-center gap-2 text-xl'><Rocket className='text-primary'/>Outfitting: {ship.name}</DialogTitle>
           <DialogDescription>Upgrade and manage components for this specific ship. Changes are permanent.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 gap-y-8 pt-4 max-h-[70vh] overflow-y-auto pr-2">
           <div className="space-y-4">
             <h3 className="font-headline text-lg text-primary border-b pb-2">Standard Systems</h3>
             <UpgradeRow type="cargo" label="Cargo Hold" currentLevel={ship.cargoLevel} upgrades={cargoUpgrades} icon={Warehouse} />
@@ -127,8 +154,18 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
           </div>
            <div className="space-y-4">
             <h3 className="font-headline text-lg text-primary border-b pb-2">Advanced Systems</h3>
-             <UpgradeRow type="powerCore" label="Power Core" currentLevel={ship.powerCoreLevel} upgrades={powerCoreUpgrades} icon={Zap} />
-             {advancedUpgrades.map(upgrade => <AdvancedUpgradeRow key={upgrade.id} upgrade={upgrade} />)}
+             <div>
+                <h4 className="font-semibold text-muted-foreground text-sm mb-2 mt-4">Power Core</h4>
+                <UpgradeRow type="powerCore" label="Power Core" currentLevel={ship.powerCoreLevel} upgrades={powerCoreUpgrades} icon={Zap} />
+             </div>
+             {advancedCategories.map(category => (
+                <div key={category}>
+                    <h4 className="font-semibold text-muted-foreground text-sm mb-2">{category}</h4>
+                    {advancedUpgrades.filter(u => u.category === category).map(upgrade => (
+                    <AdvancedUpgradeRow key={upgrade.id} upgrade={upgrade} icon={advancedIconMap[upgrade.id]} />
+                    ))}
+                </div>
+            ))}
           </div>
         </div>
       </DialogContent>
