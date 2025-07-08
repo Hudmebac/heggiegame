@@ -3,13 +3,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
+import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo } from '@/lib/utils';
@@ -134,6 +135,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     debt: 0,
     powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
     gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
+    tradeContracts: [],
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -175,17 +177,30 @@ export function useGameState() {
         return availableItems;
     }, []);
 
-    const startNewGame = useCallback(async (difficulty: Difficulty) => {
+    const startNewGame = useCallback(async (difficulty: Difficulty, career: Career) => {
         startNewGameTransition(async () => {
             try {
                 const [tradersResult, questsResult] = await Promise.all([runTraderGeneration(), runQuestGeneration()]);
-                const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
-                let basePlayerStats = syncActiveShipStats(initialGameState.playerStats as PlayerStats);
+                
+                const careerData = CAREER_DATA.find(c => c.id === career);
+                if (!careerData) throw new Error("Invalid career selected");
+
+                let newPlayerStats = {
+                    ...initialGameState.playerStats,
+                    career,
+                    fleet: careerData.startingFleet,
+                    netWorth: careerData.startingNetWorth,
+                    influence: careerData.startingInfluence || 0,
+                    tradeContracts: [],
+                }
+
+                let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
                 basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
                 basePlayerStats.fuel = basePlayerStats.maxFuel;
                 basePlayerStats.shipHealth = basePlayerStats.maxShipHealth;
     
                 const playerEntry = { trader: basePlayerStats.name, netWorth: basePlayerStats.netWorth, fleetSize: basePlayerStats.fleet.length, bio: basePlayerStats.bio, rank: 0 };
+                const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
                 const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry].sort((a, b) => b.netWorth - a.netWorth).map((e, i) => ({ ...e, rank: i + 1 }));
     
                 const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem)!;
@@ -197,13 +212,13 @@ export function useGameState() {
                     marketItems,
                     leaderboard: sortedLeaderboard,
                     quests: questsResult.quests,
-                    systems: SYSTEMS, routes: ROUTES, crew: AVAILABLE_CREW,
+                    systems: SYSTEMS, routes: ROUTES, crew: [],
                     difficulty: difficulty,
                     isGameOver: false,
                 };
     
                 setGameState(newGameState);
-                toast({ title: "New Game Started", description: `Your adventure begins on ${difficulty} difficulty!`, duration: 5000 });
+                toast({ title: "New Game Started", description: `Your career as a ${career} begins on ${difficulty} difficulty!`, duration: 5000 });
             } catch(e) {
                 console.error("Failed to generate new game state", e);
                 toast({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
@@ -243,7 +258,7 @@ export function useGameState() {
                     playerStats: mergedPlayerStats,
                     currentPlanet: currentPlanetName,
                     marketItems: calculateMarketDataForSystem(currentSystem),
-                    crew: savedProgress.crew || AVAILABLE_CREW,
+                    crew: savedProgress.crew || [],
                     difficulty: savedProgress.difficulty || 'Medium',
                 });
                 setTimeout(() => toast({ title: "Game Loaded", description: "Continuing your spacefaring journey." }), 0);

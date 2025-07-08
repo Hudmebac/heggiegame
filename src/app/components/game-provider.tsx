@@ -19,6 +19,7 @@ import { useConstruction } from '@/hooks/use-construction';
 import { useRecreation } from '@/hooks/use-recreation';
 import { useCasino } from '@/hooks/use-casino';
 import { useBank } from '@/hooks/use-bank';
+import { useHauler } from '@/hooks/use-hauler';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -32,12 +33,13 @@ import type { useCasino as useCasinoType } from '@/hooks/use-casino';
 import type { useBank as useBankType } from '@/hooks/use-bank';
 import type { useMarket as useMarketType } from '@/hooks/use-market';
 import type { useTravel as useTravelType } from '@/hooks/use-travel';
+import type { useHauler as useHaulerType } from '@/hooks/use-hauler';
 
 type GameContextType = {
     gameState: GameState | null;
     isClient: boolean;
     isGeneratingNewGame: boolean;
-    startNewGame: (difficulty: Difficulty) => void;
+    startNewGame: (difficulty: Difficulty, career: Career) => void;
 } & ReturnType<typeof useQuestsType> &
   ReturnType<typeof usePlayerActionsType> &
   ReturnType<typeof useEncountersType> &
@@ -50,7 +52,8 @@ type GameContextType = {
   ReturnType<typeof useCasinoType> &
   ReturnType<typeof useBankType> &
   ReturnType<typeof useMarketType> &
-  ReturnType<typeof useTravelType>;
+  ReturnType<typeof useTravelType> &
+  ReturnType<typeof useHaulerType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -70,6 +73,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const { updateObjectiveProgress, ...questLogic } = useQuests(gameState, setGameState);
     const playerActions = usePlayerActions(gameState, setGameState);
     const encounters = useEncounters(gameState, setGameState);
+    const haulerLogic = useHauler(gameState, setGameState);
 
     // Business Logic Hooks
     const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
@@ -104,6 +108,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...bankLogic,
         ...marketLogic,
         ...travelLogic,
+        ...haulerLogic,
     };
     
     return (

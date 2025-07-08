@@ -106,6 +106,20 @@ export interface CreditCard {
   dueDate?: number;
 }
 
+export interface TradeRouteContract {
+  id: string;
+  fromSystem: string;
+  toSystem: string;
+  cargo: string;
+  quantity: number;
+  payout: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Available' | 'Active' | 'Completed' | 'Failed';
+  progress?: number; // 0-100 for active routes
+  startTime?: number; // To calculate progress
+  duration: number; // in seconds
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -188,6 +202,9 @@ export interface PlayerStats {
   loan?: Loan;
   creditCard?: CreditCard;
   debt: number;
+
+  // Hauler Career
+  tradeContracts: TradeRouteContract[];
 }
 
 export interface PriceHistory {

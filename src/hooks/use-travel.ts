@@ -6,9 +6,7 @@ import type { GameState, System, MarketItem, Pirate, ItemCategory, SystemEconomy
 import { runMarketSimulation, runPirateScan, runEventGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
-
-const pirateNames = ['Dread Captain "Scar" Ironheart', 'Admiral "Voidgazer" Kael', 'Captain "Mad" Mel', 'Commander "Hex" Stryker'];
-const shipTypes = ['Marauder-class Corvette', 'Reaper-class Frigate', 'Void-reaver Battleship', 'Shadow-class Interceptor'];
+import { pirateNames, shipTypes } from '@/lib/pirates';
 
 function generateRandomPirate(hasNavigator: boolean): Pirate {
     const weightedThreats: Pirate['threatLevel'][] = hasNavigator

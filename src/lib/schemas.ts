@@ -232,3 +232,28 @@ export const GenerateBankPartnershipOffersOutputSchema = z.object({
     offers: z.array(BankPartnershipOfferSchema).describe("An array of generated partnership offers for the bank."),
 });
 export type GenerateBankPartnershipOffersOutput = z.infer<typeof GenerateBankPartnershipOffersOutputSchema>;
+
+// Schemas for generate-trade-contracts
+export const TradeRouteContractSchema = z.object({
+  id: z.string().describe("A unique identifier for the contract."),
+  fromSystem: z.string().describe("The starting system for the contract."),
+  toSystem: z.string().describe("The destination system for the contract."),
+  cargo: z.string().describe("The name of the commodity to be transported."),
+  quantity: z.number().describe("The amount of the commodity to be transported."),
+  payout: z.number().describe("The credit payout upon successful completion."),
+  riskLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe("The assessed risk level of the route."),
+  duration: z.number().describe("The estimated duration of the contract in seconds."),
+  status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the contract."),
+});
+export type TradeRouteContract = z.infer<typeof TradeRouteContractSchema>;
+
+export const GenerateTradeContractsInputSchema = z.object({
+    reputation: z.number().describe("Player's current reputation score."),
+    currentSystem: z.string().describe("The player's current system to generate routes from."),
+});
+export type GenerateTradeContractsInput = z.infer<typeof GenerateTradeContractsInputSchema>;
+
+export const GenerateTradeContractsOutputSchema = z.object({
+    contracts: z.array(TradeRouteContractSchema).describe("An array of generated trade route contracts."),
+});
+export type GenerateTradeContractsOutput = z.infer<typeof GenerateTradeContractsOutputSchema>;

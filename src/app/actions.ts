@@ -14,6 +14,7 @@ import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-
 import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
 import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
 import { generateBankPartnershipOffers } from '@/ai/flows/generate-bank-partnership-offers';
+import { generateTradeContracts } from '@/ai/flows/generate-trade-contracts';
 import { z } from 'zod';
 
 import {
@@ -50,6 +51,9 @@ import {
   GenerateBankPartnershipOffersInputSchema,
   type GenerateBankPartnershipOffersInput,
   type GenerateBankPartnershipOffersOutput,
+  GenerateTradeContractsInputSchema,
+  type GenerateTradeContractsInput,
+  type GenerateTradeContractsOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -220,5 +224,19 @@ export async function runBankPartnershipOfferGeneration(input: GenerateBankPartn
             throw new Error(`Invalid input for bank partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate bank partnership offers.');
+    }
+}
+
+export async function runGenerateTradeContracts(input: GenerateTradeContractsInput): Promise<GenerateTradeContractsOutput> {
+    try {
+        const validatedInput = GenerateTradeContractsInputSchema.parse(input);
+        const result = await generateTradeContracts(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running trade contract generation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for trade contract generation: ${error.message}`);
+        }
+        throw new Error('Failed to generate trade contracts.');
     }
 }
