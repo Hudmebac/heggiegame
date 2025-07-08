@@ -1,15 +1,15 @@
-
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Shield, ShieldCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Anchor, Rocket } from 'lucide-react';
+import { Shield, ShieldCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Anchor, Rocket, Sword } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { PlayerShip } from '@/lib/types';
 import DefenceMinigame from '@/app/components/defence-minigame';
+import AssaultMinigame from '@/app/components/assault-minigame';
 import { hullUpgrades } from '@/lib/upgrades';
 
 const riskColorMap = {
@@ -102,7 +102,19 @@ export default function DefencePage() {
                 </CardContent>
             </Card>
 
-            <DefenceMinigame />
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Sword className="text-primary"/>
+                        Training Simulators
+                    </CardTitle>
+                    <CardDescription>Hone your skills and earn extra credits.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <DefenceMinigame />
+                    <AssaultMinigame />
+                </CardContent>
+            </Card>
 
             <FleetStatus fleet={playerStats.fleet} activeMissions={activeMissions} />
 

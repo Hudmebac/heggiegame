@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -9,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import type { MilitaryMission } from '@/lib/types';
 import AssaultMinigame from '@/app/components/assault-minigame';
+import DefenceMinigame from '@/app/components/defence-minigame';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -55,7 +55,19 @@ export default function MilitaryPage() {
                 </CardContent>
             </Card>
 
-            <AssaultMinigame />
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Sword className="text-primary"/>
+                        Training Simulators
+                    </CardTitle>
+                    <CardDescription>Hone your combat skills and earn extra credits.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <AssaultMinigame />
+                    <DefenceMinigame />
+                </CardContent>
+            </Card>
 
             {activeMission && (
                 <Card>
