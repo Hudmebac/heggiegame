@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 // Schemas for simulate-market-prices
@@ -261,3 +262,83 @@ export const TaxiMissionSchema = z.object({
   status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
 });
 export type TaxiMission = z.infer<typeof TaxiMissionSchema>;
+
+// Schemas for generate-escort-missions
+export const EscortMissionSchema = z.object({
+  id: z.string().describe("A unique identifier for the mission."),
+  clientName: z.string().describe("A creative name for the client or vessel being escorted."),
+  missionType: z.enum(['VIP Escort', 'Cargo Convoy', 'Data Runner']).describe("The category of the escort mission."),
+  description: z.string().describe("A short, flavourful description of the escort target and why they need protection."),
+  fromSystem: z.string().describe("The starting system for the mission."),
+  toSystem: z.string().describe("The destination system for the mission."),
+  payout: z.number().describe("The credit payout upon successful completion."),
+  riskLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe("The assessed risk level of the route."),
+  duration: z.number().describe("The estimated duration of the trip in seconds."),
+  status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
+});
+export type EscortMission = z.infer<typeof EscortMissionSchema>;
+
+export const GenerateEscortMissionsInputSchema = z.object({
+  reputation: z.number().describe("The player's current reputation score."),
+  currentSystem: z.string().describe("The player's current star system."),
+});
+export type GenerateEscortMissionsInput = z.infer<typeof GenerateEscortMissionsInputSchema>;
+
+export const GenerateEscortMissionsOutputSchema = z.object({
+    missions: z.array(EscortMissionSchema).describe("An array of 4-5 generated escort missions."),
+});
+export type GenerateEscortMissionsOutput = z.infer<typeof GenerateEscortMissionsOutputSchema>;
+
+
+// Schemas for generate-military-missions
+export const MilitaryMissionSchema = z.object({
+  id: z.string().describe("A unique identifier for the mission."),
+  title: z.string().describe("A codename or official title for the mission."),
+  missionType: z.enum(['Strike', 'Raid', 'Recon', 'Assassination']).describe("The category of the military operation."),
+  description: z.string().describe("A short, tactical briefing of the mission objectives."),
+  target: z.string().describe("The primary target of the mission (e.g., a specific ship, station, or individual)."),
+  system: z.string().describe("The star system where the mission will take place."),
+  payout: z.number().describe("The credit payout upon successful completion."),
+  riskLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe("The assessed risk level of the operation."),
+  duration: z.number().describe("The estimated duration of the mission in seconds."),
+  status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
+});
+export type MilitaryMission = z.infer<typeof MilitaryMissionSchema>;
+
+export const GenerateMilitaryMissionsInputSchema = z.object({
+  reputation: z.number().describe("The player's current reputation score."),
+  currentSystem: z.string().describe("The player's current star system."),
+});
+export type GenerateMilitaryMissionsInput = z.infer<typeof GenerateMilitaryMissionsInputSchema>;
+
+export const GenerateMilitaryMissionsOutputSchema = z.object({
+    missions: z.array(MilitaryMissionSchema).describe("An array of 4-5 generated military missions."),
+});
+export type GenerateMilitaryMissionsOutput = z.infer<typeof GenerateMilitaryMissionsOutputSchema>;
+
+// Schemas for generate-diplomatic-missions
+export const DiplomaticMissionSchema = z.object({
+  id: z.string().describe("A unique identifier for the mission."),
+  title: z.string().describe("The official title of the diplomatic mission."),
+  missionType: z.enum(['Treaty', 'Mediation', 'Investigation']).describe("The nature of the diplomatic task."),
+  description: z.string().describe("A short, formal description of the mission objectives and context."),
+  system: z.string().describe("The star system where the mission will primarily take place."),
+  stakeholders: z.array(z.string()).describe("A list of the key factions or individuals involved."),
+  payoutCredits: z.number().describe("The credit reward upon successful completion."),
+  payoutInfluence: z.number().describe("The influence points awarded upon successful completion."),
+  riskLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe("The political and physical risk level of the mission."),
+  duration: z.number().describe("The estimated duration of the mission in seconds."),
+  status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
+});
+export type DiplomaticMission = z.infer<typeof DiplomaticMissionSchema>;
+
+export const GenerateDiplomaticMissionsInputSchema = z.object({
+  influence: z.number().describe("The player's current influence level."),
+  currentSystem: z.string().describe("The player's current star system."),
+});
+export type GenerateDiplomaticMissionsInput = z.infer<typeof GenerateDiplomaticMissionsInputSchema>;
+
+export const GenerateDiplomaticMissionsOutputSchema = z.object({
+    missions: z.array(DiplomaticMissionSchema).describe("An array of 4-5 generated diplomatic missions."),
+});
+export type GenerateDiplomaticMissionsOutput = z.infer<typeof GenerateDiplomaticMissionsOutputSchema>;

@@ -24,6 +24,7 @@ import { useTaxi } from '@/hooks/use-taxi';
 import { useTrader } from '@/hooks/use-trader';
 import { useDefender } from '@/hooks/use-defender';
 import { useMilitary } from '@/hooks/use-military';
+import { useOfficial } from '@/hooks/use-official';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -42,6 +43,7 @@ import type { useTaxi as useTaxiType } from '@/hooks/use-taxi';
 import type { useTrader as useTraderType } from '@/hooks/use-trader';
 import type { useDefender as useDefenderType } from '@/hooks/use-defender';
 import type { useMilitary as useMilitaryType } from '@/hooks/use-military';
+import type { useOfficial as useOfficialType } from '@/hooks/use-official';
 
 
 type GameContextType = {
@@ -66,7 +68,8 @@ type GameContextType = {
   ReturnType<typeof useTaxiType> &
   ReturnType<typeof useTraderType> &
   ReturnType<typeof useDefenderType> &
-  ReturnType<typeof useMilitaryType>;
+  ReturnType<typeof useMilitaryType> &
+  ReturnType<typeof useOfficialType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -91,6 +94,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const traderLogic = useTrader(gameState, setGameState);
     const defenderLogic = useDefender(gameState, setGameState);
     const militaryLogic = useMilitary(gameState, setGameState);
+    const officialLogic = useOfficial(gameState, setGameState);
 
     // Business Logic Hooks
     const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
@@ -130,6 +134,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...traderLogic,
         ...defenderLogic,
         ...militaryLogic,
+        ...officialLogic,
     };
     
     return (

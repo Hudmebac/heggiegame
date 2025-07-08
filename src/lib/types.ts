@@ -3,6 +3,7 @@
 
 
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -173,6 +174,22 @@ export interface MilitaryMission {
   duration: number;
 }
 
+export interface DiplomaticMission {
+  id: string;
+  title: string;
+  missionType: 'Treaty' | 'Mediation' | 'Investigation';
+  description: string;
+  system: string;
+  stakeholders: string[];
+  payoutCredits: number;
+  payoutInfluence: number;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Available' | 'Active' | 'Completed' | 'Failed';
+  progress?: number;
+  startTime?: number;
+  duration: number;
+}
+
 export interface Warehouse {
   systemName: string;
   level: number;
@@ -186,7 +203,7 @@ export interface PlayerStats {
   netWorth: number;
   avatarUrl: string;
   career: Career;
-  influence?: number;
+  influence: number;
   pirateRisk: number;
   reputation: number;
   insurance: InsurancePolicies;
@@ -269,6 +286,7 @@ export interface PlayerStats {
   taxiMissions: TaxiMission[];
   escortMissions: EscortMission[];
   militaryMissions: MilitaryMission[];
+  diplomaticMissions: DiplomaticMission[];
 }
 
 export interface PriceHistory {
