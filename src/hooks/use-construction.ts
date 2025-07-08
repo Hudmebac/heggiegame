@@ -56,7 +56,7 @@ export function useConstruction(
         return prev;
       }
 
-      const upgradeCost = Math.round(1000 * Math.pow(prev.playerStats.constructionLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(1500 * Math.pow(prev.playerStats.constructionLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -81,7 +81,7 @@ export function useConstruction(
         return prev;
       }
 
-      const botCost = Math.round(29000 * Math.pow(1.25, prev.playerStats.constructionAutoClickerBots) * costModifier);
+      const botCost = Math.round(29000 * Math.pow(2.25, prev.playerStats.constructionAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

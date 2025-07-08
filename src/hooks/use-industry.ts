@@ -56,7 +56,7 @@ export function useIndustry(
         return prev;
       }
 
-      const upgradeCost = Math.round(1200 * Math.pow(prev.playerStats.industryLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(1800 * Math.pow(prev.playerStats.industryLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -81,7 +81,7 @@ export function useIndustry(
         return prev;
       }
 
-      const botCost = Math.round(40500 * Math.pow(1.25, prev.playerStats.industryAutoClickerBots) * costModifier);
+      const botCost = Math.round(40500 * Math.pow(2.25, prev.playerStats.industryAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

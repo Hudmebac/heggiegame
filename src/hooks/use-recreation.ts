@@ -56,7 +56,7 @@ export function useRecreation(
         return prev;
       }
 
-      const upgradeCost = Math.round(281 * Math.pow(prev.playerStats.recreationLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(422 * Math.pow(prev.playerStats.recreationLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -81,7 +81,7 @@ export function useRecreation(
         return prev;
       }
 
-      const botCost = Math.round(5625 * Math.pow(1.25, prev.playerStats.recreationAutoClickerBots) * costModifier);
+      const botCost = Math.round(5625 * Math.pow(2.25, prev.playerStats.recreationAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
