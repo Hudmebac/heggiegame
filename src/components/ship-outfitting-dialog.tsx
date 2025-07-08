@@ -118,7 +118,10 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
                   {isInstalled ? (
                       <span className="flex items-center gap-2 text-sm text-green-400 font-semibold"><CheckCircle className="h-4 w-4"/> Installed</span>
                   ) : (
-                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford}>Purchase ({upgrade.cost.toLocaleString()}¢)</Button>
+                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford}>
+                        <Wrench className="mr-2" />
+                        Purchase ({upgrade.cost.toLocaleString()}¢)
+                      </Button>
                   )}
               </div>
           </div>
@@ -135,7 +138,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
           <DialogTitle className='flex items-center gap-2 text-xl'><Rocket className='text-primary'/>Outfitting: {ship.name}</DialogTitle>
           <DialogDescription>Upgrade and manage components for this specific ship. Changes are permanent.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 pt-4 max-h-[70vh] overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 gap-y-8 pt-4 max-h-[70vh] overflow-y-auto pr-2">
           <div className="space-y-4">
             <h3 className="font-headline text-lg text-primary border-b pb-2">Standard Systems</h3>
             <UpgradeRow type="cargo" label="Cargo Hold" currentLevel={ship.cargoLevel} upgrades={cargoUpgrades} icon={Warehouse} />
