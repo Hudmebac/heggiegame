@@ -12,8 +12,8 @@ export default function UpgradesCodex() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {cargoUpgrades.map(upgrade => (
-                        <div key={upgrade.capacity} className="flex justify-between items-center text-sm">
-                            <span>{upgrade.capacity}t Capacity</span>
+                        <div key={upgrade.level} className="flex justify-between items-center text-sm">
+                            <span>{upgrade.name} ({upgrade.capacity}t)</span>
                             <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>
                         </div>
                     ))}
