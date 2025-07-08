@@ -39,7 +39,7 @@ export function useMarket(
                 }
                 const currentCargo = calculateCurrentCargo(prev.inventory);
                 if (currentCargo + totalCargo > newPlayerStats.maxCargo) {
-                    toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough cargo space." });
+                    toast({ variant: "destructive", title: "Transaction Failed", description: `Not enough cargo space. Available: ${(newPlayerStats.maxCargo - currentCargo).toFixed(2)}t. Needed: ${totalCargo.toFixed(2)}t.` });
                     return prev;
                 }
                 newPlayerStats.netWorth -= totalCost;
