@@ -1,11 +1,9 @@
-
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
-import type { PlayerShip } from '@/lib/types';
+import type { PlayerShip, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades } from '@/lib/upgrades';
 import { Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar } from 'lucide-react';
 
@@ -14,6 +12,10 @@ interface ShipOutfittingDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+type UpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor';
+type UpgradeInfo = (CargoUpgrade | WeaponUpgrade | ShieldUpgrade | HullUpgrade | FuelUpgrade | SensorUpgrade);
+
 
 export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenChange }: ShipOutfittingDialogProps) {
   const { gameState, handleUpgradeShip, handleDowngradeShip } = useGame();
@@ -41,32 +43,45 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     return Math.round((currentTier.cost - prevTier.cost) * 0.7);
   };
   
-  const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor', label: string, currentLevel: number, upgrades: any[], icon: React.ElementType }) => {
+  const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: UpgradeType, label: string, currentLevel: number, upgrades: UpgradeInfo[], icon: React.ElementType }) => {
     const cost = getUpgradeCost(currentLevel, upgrades);
     const refund = getDowngradeValue(currentLevel, upgrades);
     const canAfford = playerStats.netWorth >= cost;
 
+    const currentUpgrade = upgrades[currentLevel - 1];
+    const nextUpgrade = currentLevel < upgrades.length ? upgrades[currentLevel] : null;
+
     return (
-      <div className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
-        <div className='flex items-center gap-4'>
-            <Icon className="h-6 w-6 text-primary/70" />
+      <div className="grid grid-cols-1 md:grid-cols-3 items-center py-3 border-b border-border/50 last:border-b-0 gap-4 md:gap-2">
+        <div className='flex items-center gap-3 md:col-span-1'>
+            <Icon className="h-6 w-6 text-primary/70 flex-shrink-0" />
             <div>
                 <p className='font-semibold'>{label}</p>
-                <p className="text-xs text-muted-foreground">Level {currentLevel} / {upgrades.length}</p>
+                <p className="text-xs text-muted-foreground">
+                  Lvl {currentLevel} / {upgrades.length}
+                </p>
             </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="md:col-span-1 text-sm md:text-center">
+          <p className="text-muted-foreground truncate" title={currentUpgrade.name}>Current: {currentUpgrade.name}</p>
+          {nextUpgrade && (
+            <p className="text-primary/90 truncate" title={nextUpgrade.name}>Next: {nextUpgrade.name}</p>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 md:justify-end md:col-span-1">
           {currentLevel > 1 && (
             <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)}>
               Sell ({refund.toLocaleString()}¢)
             </Button>
           )}
-          {currentLevel < upgrades.length ? (
+          {nextUpgrade ? (
             <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford}>
-              Upgrade ({cost.toLocaleString()}¢)
+              {`Upgrade (${cost.toLocaleString()}¢)`}
             </Button>
           ) : (
-            <Button size="sm" disabled>Max</Button>
+            <Button size="sm" disabled>Max Level</Button>
           )}
         </div>
       </div>

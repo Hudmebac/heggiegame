@@ -209,6 +209,7 @@ export interface EncounterResult {
 
 export interface CargoUpgrade {
   level: number;
+  name: string;
   capacity: number;
   cost: number;
 }
