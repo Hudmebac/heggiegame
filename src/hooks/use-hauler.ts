@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
-import type { GameState, TradeRouteContract } from '@/lib/types';
+import type { GameState, TradeRouteContract, Pirate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { runGenerateTradeContracts } from '@/app/actions';
 import { pirateNames, shipTypes } from '@/lib/pirates';
@@ -58,48 +58,47 @@ export function useHauler(
   }, [gameState, setGameState, toast]);
 
   const handleAcceptContract = useCallback((contractId: string) => {
+    if (!gameState) return;
+      
+    const contract = gameState.playerStats.tradeContracts.find(c => c.id === contractId);
+    if (!contract) return;
+
+    const cargoNeeded = contract.quantity;
+    if (gameState.playerStats.maxCargo < cargoNeeded) {
+      toast({
+        variant: "destructive",
+        title: "Contract Rejected",
+        description: `Your ship's cargo hold (${gameState.playerStats.maxCargo}t) is too small for this contract (${cargoNeeded}t).`
+      });
+      return;
+    }
+    
     setGameState(prev => {
-      if (!prev) return null;
-      
-      const contract = prev.playerStats.tradeContracts.find(c => c.id === contractId);
-      if (!contract) return prev;
-
-      const cargoNeeded = contract.quantity;
-      if (prev.playerStats.maxCargo < cargoNeeded) {
-        toast({
-          variant: "destructive",
-          title: "Contract Rejected",
-          description: `Your ship's cargo hold (${prev.playerStats.maxCargo}t) is too small for this contract (${cargoNeeded}t).`
-        });
-        return prev;
-      }
-      
-      const updatedContracts = prev.playerStats.tradeContracts.map(c => 
-        c.id === contractId ? { ...c, status: 'Active' as const, startTime: Date.now(), progress: 0 } : c
-      );
-
-      toast({ title: "Contract Accepted!", description: `Route from ${contract.fromSystem} to ${contract.toSystem} is now active.` });
-
-      return {
-        ...prev,
-        playerStats: {
-          ...prev.playerStats,
-          tradeContracts: updatedContracts,
-        }
-      };
+        if(!prev) return null;
+        const updatedContracts = prev.playerStats.tradeContracts.map(c => 
+            c.id === contractId ? { ...c, status: 'Active' as const, startTime: Date.now(), progress: 0 } : c
+        );
+        return {
+            ...prev,
+            playerStats: {
+            ...prev.playerStats,
+            tradeContracts: updatedContracts,
+            }
+        };
     });
-  }, [setGameState, toast]);
+
+    toast({ title: "Contract Accepted!", description: `Route from ${contract.fromSystem} to ${contract.toSystem} is now active.` });
+
+  }, [gameState, setGameState, toast]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!gameState || gameState.isGameOver) return;
-      
-      const activeContracts = gameState.playerStats.tradeContracts.filter(c => c.status === 'Active');
-      if (activeContracts.length === 0) return;
-
       setGameState(prev => {
-        if (!prev) return null;
-        
+        if (!prev || prev.isGameOver) return prev;
+      
+        const activeContracts = prev.playerStats.tradeContracts.filter(c => c.status === 'Active');
+        if (activeContracts.length === 0) return prev;
+
         let stateChanged = false;
         const now = Date.now();
         const updatedContracts = [...prev.playerStats.tradeContracts];
@@ -138,7 +137,7 @@ export function useHauler(
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [gameState, setGameState, toast]);
+  }, [setGameState, toast]);
 
   return {
     handleGenerateContracts,
