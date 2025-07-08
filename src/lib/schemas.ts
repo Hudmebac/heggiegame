@@ -6,7 +6,7 @@ export const MarketItemSchema = z.object({
   name: z.string().describe('The name of the item.'),
   currentPrice: z.number().describe('The current price of the item.'),
   supply: z.number().describe('The current supply of the item.'),
-  demand: z.number().describe('The current demand for the item.'),
+  demand: z.number().describe('The current demand of the item.'),
 });
 
 export const SimulateMarketPricesInputSchema = z.object({
@@ -199,21 +199,3 @@ export const GenerateRecreationPartnershipOffersOutputSchema = z.object({
     offers: z.array(RecreationPartnershipOfferSchema).describe("An array of generated partnership offers for the recreation facility."),
 });
 export type GenerateRecreationPartnershipOffersOutput = z.infer<typeof GenerateRecreationPartnershipOffersOutputSchema>;
-
-
-// Schemas for resolve-casino-game
-export const ResolveCasinoGameInputSchema = z.object({
-    gameType: z.enum(['slots', 'table', 'poker', 'vip', 'sportsbook', 'lottery']).describe("The type of casino game being played."),
-    stake: z.number().describe("The amount of credits the player is staking."),
-    playerReputation: z.number().describe("The player's reputation score, which can slightly influence luck."),
-});
-export type ResolveCasinoGameInput = z.infer<typeof ResolveCasinoGameInputSchema>;
-
-export const ResolveCasinoGameOutputSchema = z.object({
-    didWin: z.boolean().describe("Whether the player won the game."),
-    winnings: z.number().describe("The amount of credits won, excluding the initial stake. 0 if the player lost."),
-    narrative: z.string().describe("A short, flavourful description of the game's outcome."),
-    bonusWin: z.boolean().describe("Whether a special bonus was triggered."),
-    bonusAmount: z.number().describe("The amount of bonus credits won. 0 if no bonus."),
-});
-export type ResolveCasinoGameOutput = z.infer<typeof ResolveCasinoGameOutputSchema>;
