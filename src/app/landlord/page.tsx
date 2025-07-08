@@ -1,8 +1,7 @@
 
 'use client';
-
-import ResidenceClicker from '@/app/components/residence-clicker';
+import { redirect } from 'next/navigation';
 
 export default function LandlordPage() {
-    return <ResidenceClicker />;
+    redirect('/residence');
 }

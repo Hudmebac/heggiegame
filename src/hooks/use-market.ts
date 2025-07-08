@@ -28,8 +28,10 @@ export function useMarket(
             const newInventory = [...prev.inventory];
             const inventoryItemIndex = newInventory.findIndex(i => i.name === itemName);
             let inventoryItem = newInventory[inventoryItemIndex];
-
-            const totalCost = marketItem.currentPrice * amount;
+            
+            const isTrader = prev.playerStats.career === 'Trader';
+            const price = (type === 'buy' && isTrader) ? marketItem.currentPrice * 0.8 : marketItem.currentPrice;
+            const totalCost = price * amount;
             const totalCargo = staticItemData.cargoSpace * amount;
 
             if (type === 'buy') {
@@ -54,7 +56,8 @@ export function useMarket(
                     setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough items to sell." }), 0);
                     return prev;
                 }
-                newPlayerStats.netWorth += totalCost;
+                // Sell price is the market price, no discount/premium for trader for now.
+                newPlayerStats.netWorth += marketItem.currentPrice * amount;
                 newInventory[inventoryItemIndex] = { ...inventoryItem, owned: inventoryItem.owned - amount };
             }
 

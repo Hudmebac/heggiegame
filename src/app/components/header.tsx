@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAREER_DATA } from '@/lib/careers';
 
@@ -28,6 +28,7 @@ const allNavItems = [
     { href: '/market', label: 'Market', icon: LineChart },
     { href: '/galaxy', label: 'Galaxy', icon: Map },
     { href: '/bar', label: 'Bar', icon: Martini },
+    { href: '/residence', label: 'Residence', icon: Home },
     { href: '/commerce', label: 'Commerce', icon: Briefcase },
     { href: '/construction', label: 'Construction', icon: Building2 },
     { href: '/industry', label: 'Industry', icon: Factory },
@@ -37,6 +38,12 @@ const allNavItems = [
     { href: '/quests', label: 'Quests', icon: ScrollText },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/encyclopedia', label: 'Encyclopedia', icon: BookOpen },
+    // Career specific pages that might need direct access
+    { href: '/hauler', label: 'Hauler', icon: Truck, career: 'Hauler' },
+    { href: '/taxi', label: 'Taxi Pilot', icon: CarTaxiFront, career: 'Taxi Pilot' },
+    { href: '/defence', label: 'Defender', icon: Shield, career: 'Defender' },
+    { href: '/military', label: 'Fighter', icon: Sword, career: 'Fighter' },
+    { href: '/official', label: 'Galactic Official', icon: Scale, career: 'Galactic Official' },
 ];
 
 const NavLink = ({ href, label, icon: Icon }: { href: string, label: string, icon: React.ElementType }) => {
@@ -60,8 +67,15 @@ export default function Header({ playerStats }: {playerStats: PlayerStats}) {
   const careerInfo = CAREER_DATA.find(c => c.id === career);
 
   const navItems = allNavItems.filter(item => {
-    // Hide generic /market link if player is a Trader, since they have a dedicated career page
-    if (career === 'Trader' && item.href === '/market') {
+    // Show career-specific links only if the player has that career.
+    if (item.career && item.career !== career) {
+        return false;
+    }
+    // Don't show generic links if there is a career specific link for it
+    if (item.career && item.career === career && allNavItems.some(i => i.href === item.href && !i.career)) {
+        return true;
+    }
+    if (!item.career && allNavItems.some(i => i.href === item.href && i.career === career)) {
         return false;
     }
     return true;
@@ -92,9 +106,6 @@ export default function Header({ playerStats }: {playerStats: PlayerStats}) {
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">
         {navItems.map(item => <NavLink key={item.href} {...item} />)}
-        {careerInfo && careerInfo.page && (
-            <NavLink href={careerInfo.page} label={careerInfo.name} icon={careerInfo.icon as LucideIcon} />
-        )}
       </nav>
     </div>
   );

@@ -9,6 +9,7 @@ import type { MarketItem, ItemGrade } from '@/lib/types';
 import { useState, useEffect } from 'react';
 import { STATIC_ITEMS } from '@/lib/items';
 import InventoryView from '@/app/components/inventory-view';
+import WarehouseManagement from './warehouse-management';
 
 export default function MarketPageComponent() {
   const { 
@@ -50,6 +51,7 @@ export default function MarketPageComponent() {
   
   return (
      <div className="flex flex-col gap-6">
+        {gameState.playerStats.career === 'Trader' && <WarehouseManagement />}
         <InventoryView
           inventory={gameState.inventory}
           marketItems={gameState.marketItems}

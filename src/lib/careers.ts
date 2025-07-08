@@ -12,7 +12,7 @@ export interface CareerData {
     startingFleet: PlayerShip[];
     startingNetWorth: number;
     startingInfluence?: number;
-    page: string;
+    page?: string;
 }
 
 const baseShip: Omit<PlayerShip, 'instanceId' | 'shipId' | 'name'> = {
@@ -38,8 +38,8 @@ export const CAREER_DATA: CareerData[] = [
         name: 'Taxi Pilot',
         icon: CarTaxiFront,
         description: 'Transport diplomats, civilians, and VIPs across the galaxy in short-range shuttles.',
-        perks: ['Frequent, fast-turnaround side missions', 'High income variability with bonus tips', 'Build reputation with repeat clients'],
-        risks: ['Time-sensitive routes with penalties', 'Hostile encounters targeting VIPs'],
+        perks: ['Frequent, fast-turnaround side missions ("Quick Quests")', 'High income variability with bonus tips', 'Build reputation with repeat clients'],
+        risks: ['Time-sensitive routes; hostile encounters'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "My First Taxi" }],
         startingNetWorth: 15000,
         page: '/taxi'
@@ -49,22 +49,20 @@ export const CAREER_DATA: CareerData[] = [
         name: 'Landlord',
         icon: Building,
         description: 'Build, rent, upgrade, and flip property across planets for long-term passive income.',
-        perks: ['Reliable long-term income stream', 'Engage in property valuation events and bidding wars', 'Upgradeable utilities, aesthetics, and security'],
-        risks: ['Property maintenance decay', 'Planetary economy changes affecting rent values'],
+        perks: ['20% discount on all property development costs', 'Reliable long-term income stream', 'Property valuation events and bidding wars'],
+        risks: ['Maintenance decay, planetary economy changes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Proprietor's Shuttle" }],
         startingNetWorth: 75000,
-        page: '/landlord'
     },
     {
         id: 'Trader',
         name: 'Trader',
         icon: CandlestickChart,
         description: 'Master the galactic market by buying low and selling high across star systems.',
-        perks: ['Start with discounted market access', 'Establish planetary bases and warehouses', 'Access to trade route forecasting tools'],
-        risks: ['Pirate theft of cargo', 'Warehouse break-ins and price crashes'],
+        perks: ['20% discount on all market purchases.', 'Access to private warehouses in each system.', 'Trade route forecasting tools'],
+        risks: ['Pirate theft, warehouse break-ins, price crashes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Trader's Skiff" }],
         startingNetWorth: 30000,
-        page: '/trader'
     },
     {
         id: 'Defender',
@@ -83,7 +81,7 @@ export const CAREER_DATA: CareerData[] = [
         icon: Sword,
         description: 'Take on strike missions, planetary raids, and conflict quests for galactic factions.',
         perks: ['Access to high-command attack quests', 'Bonuses for tactical precision', 'Unique assault uplink mini-game'],
-        risks: ['Faction retaliation events', 'High resource drain from unsuccessful strikes'],
+        risks: ['Faction retaliation events', 'Resource drain from unsuccessful strikes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Mercenary's Viper", weaponLevel: 2, shieldLevel: 2 }],
         startingNetWorth: 25000,
         page: '/military'
@@ -92,7 +90,7 @@ export const CAREER_DATA: CareerData[] = [
         id: 'Galactic Official',
         name: 'Galactic Official',
         icon: Scale,
-        description: 'Rise from Governor to Galactic Ambassador through polls and political influence.',
+        description: 'Rise from Governor to Galactic Ambassador via polls and influence.',
         perks: ['Assign Defender/Fighter missions', 'Unlock planetary negotiation interface', 'Passive income from governance'],
         risks: ['Reputation loss for ignored duties', 'Diplomatic backlash from failed treaties'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Diplomat's Courier" }],

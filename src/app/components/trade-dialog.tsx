@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,6 +32,9 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
 
   const staticItemData = STATIC_ITEMS.find(i => i.name === item.name);
   if (!staticItemData) return null; // Should not happen
+  
+  const isTrader = playerStats.career === 'Trader';
+  const effectivePrice = (tradeType === 'buy' && isTrader) ? item.currentPrice * 0.8 : item.currentPrice;
 
   const handleAmountChange = (newAmount: number) => {
     if (newAmount >= 0) {
@@ -40,13 +44,13 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
 
   const currentOwned = inventory.find(i => i.name === item.name)?.owned ?? 0;
 
-  const maxBuyableByCredits = item.currentPrice > 0 ? Math.floor(playerStats.netWorth / item.currentPrice) : Infinity;
+  const maxBuyableByCredits = effectivePrice > 0 ? Math.floor(playerStats.netWorth / effectivePrice) : Infinity;
   const maxBuyableByCargo = staticItemData.cargoSpace > 0 ? Math.floor((playerStats.maxCargo - playerStats.cargo) / staticItemData.cargoSpace) : Infinity;
   const maxBuy = Math.min(maxBuyableByCredits, maxBuyableByCargo);
   const maxSell = currentOwned;
 
   const maxAmount = tradeType === 'buy' ? maxBuy : maxSell;
-  const totalPrice = amount * item.currentPrice;
+  const totalPrice = amount * effectivePrice;
   const totalCargo = amount * staticItemData.cargoSpace;
   const isTransactionValid = amount > 0 && amount <= maxAmount;
 
@@ -63,9 +67,7 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="capitalize text-primary">{tradeType} {item.name}</DialogTitle>
-          <DialogDescription>
-            Specify the quantity you wish to {tradeType}.
-          </DialogDescription>
+           {isTrader && tradeType === 'buy' && <DialogDescription>As a Trader, you get a 20% discount on purchases.</DialogDescription>}
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -93,7 +95,7 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
            </div>
           <div className="space-y-2 rounded-md border border-border/50 p-3 bg-card/50">
              <div className="flex justify-between items-center text-sm">
-                <p className="flex items-center gap-2 text-muted-foreground"><Coins className="h-4 w-4 text-amber-400" /> Total Price:</p>
+                <p className="flex items-center gap-2 text-muted-foreground"><Coins className="h-4 w-4 text-amber-400" /> Total Price ({effectivePrice.toLocaleString()}¢ each):</p>
                 <p className={`font-mono ${tradeType === 'buy' && totalPrice > playerStats.netWorth ? 'text-destructive' : 'text-foreground'}`}>
                     {totalPrice.toLocaleString()} ¢
                 </p>

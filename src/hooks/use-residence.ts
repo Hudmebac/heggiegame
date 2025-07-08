@@ -50,13 +50,14 @@ export function useResidence(
       const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
       const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
 
       if (prev.playerStats.residenceLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." }), 0);
         return prev;
       }
 
-      const upgradeCost = Math.round(188 * Math.pow(prev.playerStats.residenceLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(188 * Math.pow(prev.playerStats.residenceLevel, 2.5) * costModifier * landlordDiscount);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -75,13 +76,14 @@ export function useResidence(
       const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
       const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
 
       if (prev.playerStats.residenceAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 bots." }), 0);
         return prev;
       }
 
-      const botCost = Math.round(4250 * Math.pow(2.25, prev.playerStats.residenceAutoClickerBots) * costModifier);
+      const botCost = Math.round(4250 * Math.pow(2.25, prev.playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +104,8 @@ export function useResidence(
              return prev;
         }
 
-        const cost = 5000 * 4;
+        const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
+        const cost = 5000 * 4 * landlordDiscount;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -129,6 +132,7 @@ export function useResidence(
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
         const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
         const contract = prev.playerStats.residenceContract;
+        const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
 
         if (!contract || prev.playerStats.residenceEstablishmentLevel < 1 || prev.playerStats.residenceEstablishmentLevel > 4) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or property not owned." }), 0);
@@ -136,7 +140,7 @@ export function useResidence(
         }
         
         const expansionTiers = [50000, 500000, 5000000, 50000000].map(v => v * 4);
-        const cost = Math.round(expansionTiers[prev.playerStats.residenceEstablishmentLevel - 1] * costModifier);
+        const cost = Math.round(expansionTiers[prev.playerStats.residenceEstablishmentLevel - 1] * costModifier * landlordDiscount);
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
