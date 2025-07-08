@@ -49,32 +49,29 @@ const allNavItems = [
 
 const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: { href: string; label: string; icon: React.ElementType; career?: string, playerCareer: string; }) => {
     const pathname = usePathname();
-
-    const hasCareerSpecificOverride = allNavItems.some(i => i.href === href && i.career === playerCareer);
-
-    if (itemCareer) {
-        // This is a career-specific link. Only show if it's for the current career.
-        if (itemCareer !== playerCareer) {
-            return null;
-        }
-    } else {
-        // This is a generic link. Only show if there isn't a career-specific override.
-        if (hasCareerSpecificOverride) {
-            return null;
-        }
-    }
-    
     const isActive = pathname.startsWith(href);
 
+    const hasCareerSpecificOverride = allNavItems.some(i => i.href === href && i.career === playerCareer);
+    let shouldRender = true;
+
+    if (itemCareer) {
+        if (itemCareer !== playerCareer) {
+            shouldRender = false;
+        }
+    } else {
+        if (hasCareerSpecificOverride) {
+            shouldRender = false;
+        }
+    }
+
     return (
-        <Link href={href}>
-            <div className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-muted",
-                isActive && "bg-muted text-foreground"
-            )}>
-                <Icon className="h-5 w-5" />
-                <span>{label}</span>
-            </div>
+        <Link href={href} className={cn(
+            "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-muted",
+            isActive && "bg-muted text-foreground",
+            !shouldRender && "hidden"
+        )}>
+            <Icon className="h-5 w-5" />
+            <span>{label}</span>
         </Link>
     );
 };
