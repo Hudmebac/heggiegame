@@ -19,9 +19,9 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     shieldEmitterSlots: 1,
     engineClass: "MicroPulse-5",
     upgradeSlots: {
-      "cargo": 2,
-      "defense": 1,
-      "navigation": 1
+      "cargo": 4,
+      "defense": 2,
+      "navigation": 2
     },
     recommendedUse: "Short-distance courier runs, diplomatic dispatch, low-risk resource transport",
     heggieClearance: "Tier I"
@@ -43,9 +43,9 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     shieldEmitterSlots: 2,
     engineClass: "GravLift-8A",
     upgradeSlots: {
-      "cargo": 4,
-      "defense": 2,
-      "trade_interface": 2
+      "cargo": 6,
+      "defense": 4,
+      "trade_interface": 3
     },
     recommendedUse: "Bulk commodity runs, multi-zone market routes, faction-based trade licenses",
     heggieClearance: "Tier II"
@@ -67,9 +67,9 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     shieldEmitterSlots: 3,
     engineClass: "TalonDrive-VX",
     upgradeSlots: {
-      "weapons": 4,
-      "stealth": 2,
-      "mobility": 2
+      "weapons": 6,
+      "stealth": 4,
+      "mobility": 3
     },
     recommendedUse: "Escort contracts, bounty missions, pirate suppression, vault protection",
     heggieClearance: "Tier III"
@@ -91,9 +91,9 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     shieldEmitterSlots: 6,
     engineClass: "MagDrive-TitanCore",
     upgradeSlots: {
-      "cargo": 6,
-      "defense": 3,
-      "fleet_command": 2
+      "cargo": 10,
+      "defense": 5,
+      "fleet_command": 3
     },
     recommendedUse: "Vault-to-vault exchanges, high-value missions, cross-sector enterprise logistics",
     heggieClearance: "Tier IV"
