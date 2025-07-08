@@ -283,29 +283,3 @@ export const GenerateTaxiMissionsOutputSchema = z.object({
     missions: z.array(TaxiMissionSchema).describe("An array of generated taxi missions."),
 });
 export type GenerateTaxiMissionsOutput = z.infer<typeof GenerateTaxiMissionsOutputSchema>;
-
-// Schemas for generate-escort-missions
-export const EscortMissionSchema = z.object({
-  id: z.string().describe("A unique identifier for the mission."),
-  clientName: z.string().describe("The name of the client or vessel to be escorted."),
-  missionType: z.enum(['VIP Escort', 'Cargo Convoy', 'Data Runner']).describe("The type of escort mission."),
-  description: z.string().describe("A short, flavourful description of the mission."),
-  fromSystem: z.string().describe("The starting system for the mission."),
-  toSystem: z.string().describe("The destination system for the mission."),
-  payout: z.number().describe("The credit payout upon successful completion."),
-  riskLevel: z.enum(['Low', 'Medium', 'High', 'Critical']).describe("The assessed risk level of the route."),
-  duration: z.number().describe("The estimated duration of the mission in seconds."),
-  status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
-});
-export type EscortMission = z.infer<typeof EscortMissionSchema>;
-
-export const GenerateEscortMissionsInputSchema = z.object({
-    reputation: z.number().describe("Player's current reputation score."),
-    currentSystem: z.string().describe("The player's current system to generate missions from."),
-});
-export type GenerateEscortMissionsInput = z.infer<typeof GenerateEscortMissionsInputSchema>;
-
-export const GenerateEscortMissionsOutputSchema = z.object({
-    missions: z.array(EscortMissionSchema).describe("An array of generated escort missions."),
-});
-export type GenerateEscortMissionsOutput = z.infer<typeof GenerateEscortMissionsOutputSchema>;

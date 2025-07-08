@@ -2,10 +2,22 @@
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
-import type { GameState, Pirate } from '@/lib/types';
+import type { GameState, Pirate, EscortMission } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { runGenerateEscortMissions } from '@/app/actions';
 import { pirateNames, shipTypes } from '@/lib/pirates';
+import { STATIC_ESCORT_MISSIONS } from '@/lib/escort-missions';
+import { ROUTES } from '@/lib/systems';
+
+
+const getConnectedSystems = (systemName: string): string[] => {
+    const connected = new Set<string>();
+    ROUTES.forEach(route => {
+        if (route.from === systemName) connected.add(route.to);
+        if (route.to === systemName) connected.add(route.from);
+    });
+    return Array.from(connected);
+}
+
 
 const generateRandomPirate = (hasNavigator: boolean): Pirate => {
     const weightedThreats: Pirate['threatLevel'][] = hasNavigator
@@ -29,18 +41,36 @@ export function useDefender(
 
   const handleGenerateEscortMissions = useCallback(() => {
     if (!gameState) return;
+    const { currentSystem, playerStats } = gameState;
 
-    startMissionGeneration(async () => {
-      try {
-        const result = await runGenerateEscortMissions({
-          reputation: gameState.playerStats.reputation,
-          currentSystem: gameState.currentSystem,
+    startMissionGeneration(() => {
+        const connectedSystems = getConnectedSystems(currentSystem);
+        if (connectedSystems.length === 0) {
+            toast({ variant: "destructive", title: "Isolation", description: "No outbound routes from this system to generate missions for." });
+            return;
+        }
+
+        const shuffledMissions = [...STATIC_ESCORT_MISSIONS].sort(() => 0.5 - Math.random());
+        const missionCount = 4 + Math.floor(Math.random() * 2); // 4 or 5 missions
+        
+        const newMissions: EscortMission[] = shuffledMissions.slice(0, missionCount).map((missionTemplate, index) => {
+            // Adjust payout based on reputation
+            const repModifier = 1 + (playerStats.reputation / 200); // up to 50% bonus at 100 rep
+            const payout = Math.round(missionTemplate.payout * repModifier);
+
+            return {
+                ...missionTemplate,
+                id: `${Date.now()}-${index}`,
+                fromSystem: currentSystem,
+                toSystem: connectedSystems[Math.floor(Math.random() * connectedSystems.length)],
+                status: 'Available',
+                payout,
+            };
         });
+        
         setGameState(prev => {
           if (!prev) return null;
-          // Filter out old "Available" missions and add new ones
           const activeMissions = (prev.playerStats.escortMissions || []).filter(m => m.status !== 'Available');
-          const newMissions = result.missions.map(m => ({...m, status: 'Available' as const}));
           return {
             ...prev,
             playerStats: {
@@ -50,10 +80,6 @@ export function useDefender(
           };
         });
         toast({ title: 'Security Channel Updated', description: 'New escort contracts are available.' });
-      } catch (error) {
-        console.error("Failed to generate escort missions:", error);
-        toast({ variant: "destructive", title: "Network Error", description: "Could not retrieve new missions at this time." });
-      }
     });
   }, [gameState, setGameState, toast]);
 
