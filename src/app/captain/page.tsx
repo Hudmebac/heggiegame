@@ -43,9 +43,10 @@ export default function CaptainPage() {
     return null; 
   }
 
-  const { playerStats, currentSystem: currentSystemName, systems, marketItems, inventory } = gameState;
+  const { playerStats, currentSystem: currentSystemName, systems, marketItems, inventory, difficulty } = gameState;
   const currentSystem = systems.find(s => s.name === currentSystemName);
   const zoneType = currentSystem?.zoneType;
+  const isHardcore = difficulty === 'Hardcore';
   
   const leaderboardRank = gameState.leaderboard.find(e => e.trader === playerStats.name)?.rank || gameState.leaderboard.length;
 
@@ -79,21 +80,27 @@ export default function CaptainPage() {
   const insurancePolicies = {
     health: { 
         name: 'Health Insurance', 
-        description: 'On rebirth after ship destruction, retain 50% of your net worth.', 
+        description: isHardcore 
+            ? 'On ship destruction, your save is deleted. This policy is unavailable in Hardcore mode.' 
+            : 'On rebirth after ship destruction, retain 50% of your net worth.', 
         cost: Math.round(playerStats.netWorth * 0.10),
         icon: Heart,
         type: 'health' as const,
     },
     ship: { 
         name: 'Ship Insurance', 
-        description: 'Reduces repair costs by 50%. Your ship is returned upon rebirth.', 
+        description: isHardcore 
+            ? 'Reduces repair costs by 50%. Does not prevent permanent loss on destruction.' 
+            : 'Reduces repair costs by 50%. Your ship is returned upon rebirth.', 
         cost: Math.round(playerStats.netWorth * 0.10 + shipValue * 0.15),
         icon: Shield,
         type: 'ship' as const,
     },
     cargo: {
         name: 'Cargo Insurance',
-        description: 'Recover 10% of cargo value if lost to pirates, or 25% on rebirth.',
+        description: isHardcore 
+            ? 'Recover 10% of cargo value if lost to pirates. Does not cover ship destruction.' 
+            : 'Recover 10% of cargo value if lost to pirates, or 25% on rebirth.',
         cost: Math.round(playerStats.netWorth * 0.05 + cargoValue * 0.10),
         icon: Package,
         type: 'cargo' as const,
@@ -195,7 +202,7 @@ export default function CaptainPage() {
                             {playerStats.insurance[policy.type] ? (
                                 <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
                             ) : (
-                                <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost}>
+                                <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
                                     Purchase ({policy.cost.toLocaleString()}¢)
                                 </Button>
                             )}
