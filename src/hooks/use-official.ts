@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useTransition } from 'react';
 import type { GameState, DiplomaticMission } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { runDiplomaticMissionGeneration } from '@/app/actions';
+import { STATIC_DIPLOMATIC_MISSIONS } from '@/lib/diplomatic-missions';
 
 export function useOfficial(
   gameState: GameState | null,
@@ -14,32 +14,38 @@ export function useOfficial(
 
   const handleGenerateDiplomaticMissions = useCallback(() => {
     if (!gameState) return;
-    const { currentSystem, playerStats } = gameState;
+    const { playerStats } = gameState;
 
-    startMissionGeneration(async () => {
-      try {
-        const result = await runDiplomaticMissionGeneration({
-          influence: playerStats.influence || 0,
-          currentSystem,
-        });
+    startMissionGeneration(() => {
+      const shuffledMissions = [...STATIC_DIPLOMATIC_MISSIONS].sort(() => 0.5 - Math.random());
+      const missionCount = 4 + Math.floor(Math.random() * 2);
 
-        setGameState(prev => {
-          if (!prev) return null;
-          const activeMissions = (prev.playerStats.diplomaticMissions || []).filter(m => m.status !== 'Available');
-          return {
-            ...prev,
-            playerStats: {
-              ...prev.playerStats,
-              diplomaticMissions: [...activeMissions, ...result.missions]
-            }
-          };
-        });
-        toast({ title: 'New Mandates Received', description: 'Your office has received new diplomatic directives.' });
+      const newMissions: DiplomaticMission[] = shuffledMissions.slice(0, missionCount).map((missionTemplate, index) => {
+        const influenceModifier = 1 + ((playerStats.influence || 0) / 500); // Up to 20% bonus at 100 influence
+        const payoutCredits = Math.round(missionTemplate.payoutCredits * influenceModifier);
+        const payoutInfluence = Math.round(missionTemplate.payoutInfluence * influenceModifier);
 
-      } catch (error) {
-        console.error("Failed to generate diplomatic missions", error);
-        toast({ variant: "destructive", title: "Communication Error", description: "Could not retrieve new mandates from the Galactic Council." });
-      }
+        return {
+          ...missionTemplate,
+          id: `${Date.now()}-${index}`,
+          status: 'Available',
+          payoutCredits,
+          payoutInfluence,
+        };
+      });
+
+      setGameState(prev => {
+        if (!prev) return null;
+        const activeMissions = (prev.playerStats.diplomaticMissions || []).filter(m => m.status !== 'Available');
+        return {
+          ...prev,
+          playerStats: {
+            ...prev.playerStats,
+            diplomaticMissions: [...activeMissions, ...newMissions]
+          }
+        };
+      });
+      toast({ title: 'New Mandates Received', description: 'Your office has received new diplomatic directives.' });
     });
   }, [gameState, setGameState, toast]);
 

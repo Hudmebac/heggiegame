@@ -14,7 +14,6 @@ import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-
 import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
 import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
 import { generateBankPartnershipOffers } from '@/ai/flows/generate-bank-partnership-offers';
-import { generateDiplomaticMissions } from '@/ai/flows/generate-diplomatic-missions';
 import { z } from 'zod';
 
 import {
@@ -51,9 +50,6 @@ import {
   GenerateBankPartnershipOffersInputSchema,
   type GenerateBankPartnershipOffersInput,
   type GenerateBankPartnershipOffersOutput,
-  GenerateDiplomaticMissionsInputSchema,
-  type GenerateDiplomaticMissionsInput,
-  type GenerateDiplomaticMissionsOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -224,19 +220,5 @@ export async function runBankPartnershipOfferGeneration(input: GenerateBankPartn
             throw new Error(`Invalid input for bank partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate bank partnership offers.');
-    }
-}
-
-export async function runDiplomaticMissionGeneration(input: GenerateDiplomaticMissionsInput): Promise<GenerateDiplomaticMissionsOutput> {
-    try {
-        const validatedInput = GenerateDiplomaticMissionsInputSchema.parse(input);
-        const result = await generateDiplomaticMissions(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running diplomatic mission generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for diplomatic mission generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate diplomatic missions.');
     }
 }

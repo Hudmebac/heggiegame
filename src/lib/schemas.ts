@@ -331,14 +331,3 @@ export const DiplomaticMissionSchema = z.object({
   status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
 });
 export type DiplomaticMission = z.infer<typeof DiplomaticMissionSchema>;
-
-export const GenerateDiplomaticMissionsInputSchema = z.object({
-  influence: z.number().describe("The player's current influence level."),
-  currentSystem: z.string().describe("The player's current star system."),
-});
-export type GenerateDiplomaticMissionsInput = z.infer<typeof GenerateDiplomaticMissionsInputSchema>;
-
-export const GenerateDiplomaticMissionsOutputSchema = z.object({
-    missions: z.array(DiplomaticMissionSchema).describe("An array of 4-5 generated diplomatic missions."),
-});
-export type GenerateDiplomaticMissionsOutput = z.infer<typeof GenerateDiplomaticMissionsOutputSchema>;
