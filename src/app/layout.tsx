@@ -22,6 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} dark`}>
+      <head>
+        <link rel="icon" href="/images/favicon/favicon.ico" sizes="any" />
+      </head>
       <body suppressHydrationWarning={true}>
         <GameProvider>
           <AppLayout>{children}</AppLayout>

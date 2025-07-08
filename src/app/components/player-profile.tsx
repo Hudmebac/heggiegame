@@ -50,6 +50,21 @@ const predefinedAvatars = [
     '/images/avatars/avatar_23.png',
     '/images/avatars/avatar_24.png',
     '/images/avatars/avatar_25.png',
+    '/images/avatars/avatar_26.png',
+    '/images/avatars/avatar_27.png',
+    '/images/avatars/avatar_28.png',
+    '/images/avatars/avatar_29.png',
+    '/images/avatars/avatar_30.png',
+    '/images/avatars/avatar_31.png',
+    '/images/avatars/avatar_32.png',
+    '/images/avatars/avatar_33.png',
+    '/images/avatars/avatar_34.png',
+    '/images/avatars/avatar_35.png',
+    '/images/avatars/avatar_36.png',
+    '/images/avatars/avatar_37.png',
+    '/images/avatars/avatar_38.png',
+    '/images/avatars/avatar_39.png',
+    '/images/avatars/avatar_40.png',
    ];
 
 export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange, onResetGame }: PlayerProfileProps) {

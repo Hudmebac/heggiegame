@@ -44,12 +44,17 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
   };
   
   const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: UpgradeType, label: string, currentLevel: number, upgrades: UpgradeInfo[], icon: React.ElementType }) => {
-    const cost = getUpgradeCost(currentLevel, upgrades);
-    const refund = getDowngradeValue(currentLevel, upgrades);
+    const level = currentLevel || 1;
+    const cost = getUpgradeCost(level, upgrades);
+    const refund = getDowngradeValue(level, upgrades);
     const canAfford = playerStats.netWorth >= cost;
 
-    const currentUpgrade = upgrades[currentLevel - 1];
-    const nextUpgrade = currentLevel < upgrades.length ? upgrades[currentLevel] : null;
+    const currentUpgrade = upgrades[level - 1];
+    const nextUpgrade = level < upgrades.length ? upgrades[level] : null;
+
+    if (!currentUpgrade) {
+        return null;
+    }
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 items-center py-3 border-b border-border/50 last:border-b-0 gap-4 md:gap-2">
@@ -58,7 +63,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
             <div>
                 <p className='font-semibold'>{label}</p>
                 <p className="text-xs text-muted-foreground">
-                  Lvl {currentLevel} / {upgrades.length}
+                  Lvl {level} / {upgrades.length}
                 </p>
             </div>
         </div>
@@ -71,7 +76,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
         </div>
         
         <div className="flex items-center gap-2 md:justify-end md:col-span-1">
-          {currentLevel > 1 && (
+          {level > 1 && (
             <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)}>
               Sell ({refund.toLocaleString()}¢)
             </Button>
