@@ -1,4 +1,5 @@
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Heggie Contractor' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -120,6 +121,8 @@ export interface TradeRouteContract {
   progress?: number; // 0-100 for active routes
   startTime?: number; // To calculate progress
   duration: number; // in seconds
+  assignedShipInstanceId?: number | null;
+  assignedShipName?: string;
 }
 
 export interface TaxiMission {

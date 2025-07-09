@@ -62,9 +62,15 @@ export function useEncounters(
 
                 // Determine which ship was in the encounter
                 let shipInstanceId = activeShip.instanceId;
-                if (pirate.missionId && pirate.missionType) {
-                    const mission = (prev.playerStats as any)[`${pirate.missionType}Missions`]?.find((m: any) => m.id === pirate.missionId);
+                if (pirate.missionId && pirate.missionType && pirate.missionType !== 'trade') {
+                    const missionsKey = `${pirate.missionType}Missions` as keyof PlayerStats;
+                    const mission = (prev.playerStats as any)[missionsKey]?.find((m: any) => m.id === pirate.missionId);
                     if(mission?.assignedShipInstanceId) {
+                        shipInstanceId = mission.assignedShipInstanceId;
+                    }
+                } else if (pirate.missionId && pirate.missionType === 'trade') {
+                     const mission = (prev.playerStats.tradeContracts || []).find(m => m.id === pirate.missionId);
+                      if(mission?.assignedShipInstanceId) {
                         shipInstanceId = mission.assignedShipInstanceId;
                     }
                 }
@@ -98,18 +104,17 @@ export function useEncounters(
 
                 // Handle mission failure
                 if (pirate.missionId && pirate.missionType) {
-                    if (result.outcome === 'failure') {
-                         const missionsKey = `${pirate.missionType}Missions` as keyof PlayerStats;
-                         const missions = [...((newPlayerStats as any)[missionsKey] || [])];
-                         const missionIndex = missions.findIndex((m: any) => m.id === pirate.missionId);
+                     const missionsKey = `${pirate.missionType}s` as 'escortMissions' | 'tradeContracts' | 'taxiMissions' | 'militaryMissions';
+                     const missions = [...((newPlayerStats as any)[missionsKey] || [])];
+                     const missionIndex = missions.findIndex((m: any) => m.id === pirate.missionId);
 
-                        if (missionIndex > -1) {
-                            missions[missionIndex] = { ...missions[missionIndex], status: 'Failed', assignedShipInstanceId: null };
-                            (newPlayerStats as any)[missionsKey] = missions;
-                            setTimeout(() => toast({ variant: "destructive", title: `${pirate.missionType.charAt(0).toUpperCase() + pirate.missionType.slice(1)} Failed`, description: `You failed to complete your mission due to the ambush.` }), 0);
-                        }
+                    if (result.outcome === 'failure' && missionIndex > -1) {
+                        missions[missionIndex] = { ...missions[missionIndex], status: 'Failed', assignedShipInstanceId: null };
+                        (newPlayerStats as any)[missionsKey] = missions;
+                        newPlayerStats.reputation = Math.max(0, newPlayerStats.reputation - 5);
+                        setTimeout(() => toast({ variant: "destructive", title: `${pirate.missionType.charAt(0).toUpperCase() + pirate.missionType.slice(1)} Failed`, description: `You failed to complete your mission due to the ambush. Your reputation has suffered.` }), 0);
                     } else {
-                        setTimeout(() => toast({ title: "Threat Neutralized", description: "You've dealt with the ambush and can continue your mission." }), 0);
+                        setTimeout(() => toast({ title: "Threat Neutralized", description: "You've dealt with the ambush and can continue your mission, but you have lost time." }), 0);
                     }
                 }
 

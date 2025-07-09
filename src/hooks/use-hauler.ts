@@ -2,11 +2,13 @@
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
-import type { GameState, TradeRouteContract, Pirate } from '@/lib/types';
+import type { GameState, TradeRouteContract, Pirate, PlayerShip } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
 import { STATIC_TRADE_CONTRACTS } from '@/lib/trade-contracts';
 import { ROUTES } from '@/lib/systems';
+import { cargoUpgrades } from '@/lib/upgrades';
+import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 
 const getConnectedSystems = (systemName: string): string[] => {
@@ -82,26 +84,41 @@ export function useHauler(
   }, [gameState, setGameState, toast]);
   
   const handleAcceptContract = useCallback((contractId: string) => {
-    if (!gameState) return;
-      
-    const contract = gameState.playerStats.tradeContracts.find(c => c.id === contractId);
-    if (!contract) return;
-
-    const cargoNeeded = contract.quantity;
-    if (gameState.playerStats.maxCargo < cargoNeeded) {
-      toast({
-        variant: "destructive",
-        title: "Contract Rejected",
-        description: `Your ship's cargo hold (${gameState.playerStats.maxCargo}t) is too small for this contract (${cargoNeeded}t).`
-      });
-      return;
-    }
-    
     setGameState(prev => {
         if(!prev) return null;
+        
+        const contract = prev.playerStats.tradeContracts.find(c => c.id === contractId);
+        if (!contract) {
+            setTimeout(() => toast({ variant: "destructive", title: "Mission Not Found", description: "This contract is no longer available." }), 0);
+            return prev;
+        }
+
+        const assignedShipIds = new Set(prev.playerStats.tradeContracts.filter(m => m.status === 'Active' && m.assignedShipInstanceId).map(m => m.assignedShipInstanceId));
+
+        const availableShip = prev.playerStats.fleet.find(s => {
+            const shipBase = SHIPS_FOR_SALE.find(base => base.id === s.shipId);
+            const cargoCapacity = cargoUpgrades[s.cargoLevel-1]?.capacity ?? shipBase?.baseCargo ?? 0;
+            return s.status === 'operational' && !assignedShipIds.has(s.instanceId) && cargoCapacity >= contract.quantity;
+        });
+
+        if (!availableShip) {
+            setTimeout(() => toast({ variant: "destructive", title: "No Suitable Ship", description: "No operational ships with sufficient cargo space are available." }), 0);
+            return prev;
+        }
+
         const updatedContracts = prev.playerStats.tradeContracts.map(c => 
-            c.id === contractId ? { ...c, status: 'Active' as const, startTime: Date.now(), progress: 0 } : c
+            c.id === contractId ? { 
+                ...c, 
+                status: 'Active' as const, 
+                startTime: Date.now(), 
+                progress: 0,
+                assignedShipInstanceId: availableShip.instanceId,
+                assignedShipName: availableShip.name,
+            } : c
         );
+        
+        setTimeout(() => toast({ title: "Contract Accepted!", description: `Route from ${contract.fromSystem} to ${contract.toSystem} is now active.` }), 0);
+
         return {
             ...prev,
             playerStats: {
@@ -111,9 +128,7 @@ export function useHauler(
         };
     });
 
-    toast({ title: "Contract Accepted!", description: `Route from ${contract.fromSystem} to ${contract.toSystem} is now active.` });
-
-  }, [gameState, setGameState, toast]);
+  }, [setGameState, toast]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -134,15 +149,28 @@ export function useHauler(
 
           const elapsed = (now - (contract.startTime || now)) / 1000;
           const progress = Math.min(100, (elapsed / contract.duration) * 100);
-          updatedContracts[index].progress = progress;
-          stateChanged = true;
+          
+          if (updatedContracts[index].progress !== progress) {
+            updatedContracts[index].progress = progress;
+            stateChanged = true;
+          }
           
           if (progress >= 100) {
             updatedContracts[index].status = 'Completed';
-            newPlayerStats.netWorth += contract.payout;
-            setTimeout(() => toast({ title: "Contract Complete!", description: `Delivered ${contract.quantity} units of ${contract.cargo} to ${contract.toSystem}. You earned ${contract.payout.toLocaleString()}¢.` }), 0);
+            updatedContracts[index].assignedShipInstanceId = null;
+
+            let payout = contract.payout;
+            let toastDescription = `Delivered ${contract.quantity} units of ${contract.cargo} to ${contract.toSystem}. You earned ${payout.toLocaleString()}¢.`;
+            
+            if (elapsed > contract.duration) {
+                const penalty = Math.round(payout * 0.2); // 20% penalty for being late
+                payout -= penalty;
+                toastDescription = `Delivered ${contract.quantity} units of ${contract.cargo} to ${contract.toSystem}. You earned ${payout.toLocaleString()}¢ after a ${penalty.toLocaleString()}¢ penalty for a delay.`;
+            }
+
+            newPlayerStats.netWorth += payout;
+            setTimeout(() => toast({ title: "Contract Complete!", description: toastDescription }), 0);
           } else {
-            // Pirate risk check
             const riskValue = { 'Low': 0.005, 'Medium': 0.01, 'High': 0.02, 'Critical': 0.05 }[contract.riskLevel];
             if (!newPlayerStats.pirateEncounter && Math.random() < riskValue) {
                 newPlayerStats.pirateEncounter = {
@@ -150,7 +178,13 @@ export function useHauler(
                     missionId: contract.id,
                     missionType: 'trade',
                 };
-                setTimeout(() => toast({ variant: "destructive", title: "Ambush!", description: `Your route to ${contract.toSystem} has been intercepted by pirates!` }), 0);
+                
+                // Add delay to mission
+                const delay = 60; // 60 second delay
+                updatedContracts[index].duration += delay;
+                stateChanged = true;
+
+                setTimeout(() => toast({ variant: "destructive", title: "Ambush!", description: `Your route to ${contract.toSystem} has been intercepted! Your delivery will be delayed.` }), 0);
             }
           }
         });
