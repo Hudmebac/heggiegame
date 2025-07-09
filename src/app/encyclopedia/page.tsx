@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,7 @@ import SystemCodex from "@/app/components/encyclopedia/system-codex";
 import BusinessCodex from "@/app/components/encyclopedia/business-codex";
 import GameplayCodex from "@/app/components/encyclopedia/gameplay-codex";
 import CareerCodex from "@/app/components/encyclopedia/career-codex";
+import HowToPlayCodex from "@/app/components/encyclopedia/how-to-play-codex";
 
 export default function EncyclopediaPage() {
     return (
@@ -18,8 +20,9 @@ export default function EncyclopediaPage() {
                 <h2 className="text-2xl font-headline text-slate-200 tracking-wider">Galactic Encyclopedia</h2>
                 <p className="text-muted-foreground">An archive of all known commodities, ships, and galactic lore.</p>
             </div>
-            <Tabs defaultValue="commodities" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-9">
+            <Tabs defaultValue="how-to-play" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-10">
+                    <TabsTrigger value="how-to-play">How to Play</TabsTrigger>
                     <TabsTrigger value="commodities">Commodities</TabsTrigger>
                     <TabsTrigger value="ships">Ships</TabsTrigger>
                     <TabsTrigger value="careers">Careers</TabsTrigger>
@@ -30,6 +33,9 @@ export default function EncyclopediaPage() {
                     <TabsTrigger value="lore">Lore</TabsTrigger>
                     <TabsTrigger value="systems">Systems</TabsTrigger>
                 </TabsList>
+                <TabsContent value="how-to-play">
+                    <HowToPlayCodex />
+                </TabsContent>
                 <TabsContent value="commodities">
                     <ItemCodex />
                 </TabsContent>
