@@ -1,6 +1,6 @@
-
 'use client';
 
+import { useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import PirateEncounter from '../pirate-encounter';
 import { useGame } from '@/app/components/game-provider';
@@ -25,6 +25,16 @@ export default function GameModalsAndEncounters() {
         isResolvingEncounter,
         isSimulating,
     } = useGame();
+
+    useEffect(() => {
+        if (encounterResult) {
+            const timer = setTimeout(() => {
+                handleCloseEncounterDialog();
+            }, 5000); // Close after 5 seconds
+
+            return () => clearTimeout(timer);
+        }
+    }, [encounterResult, handleCloseEncounterDialog]);
 
     const securityConfig = {
         'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4"/> },
@@ -71,9 +81,6 @@ export default function GameModalsAndEncounters() {
                         <p><strong>Cargo Lost:</strong> <span className="font-mono text-sky-400">{encounterResult?.cargoLost} (value)</span></p>
                         <p><strong>Hull Damage:</strong> <span className="font-mono text-destructive">{encounterResult?.damageTaken}%</span></p>
                     </div>
-                    <AlertDialogFooter>
-                        <AlertDialogAction onClick={handleCloseEncounterDialog}>Continue</AlertDialogAction>
-                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
