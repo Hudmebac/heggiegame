@@ -55,6 +55,7 @@ type GameContextType = {
     isClient: boolean;
     isGeneratingNewGame: boolean;
     startNewGame: (difficulty: Difficulty, career: Career) => void;
+    handleRedeemPromoCode: (code: string) => Promise<void>;
 } & ReturnType<typeof useQuestsType> &
   ReturnType<typeof usePlayerActionsType> &
   ReturnType<typeof useEncountersType> &

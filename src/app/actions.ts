@@ -15,6 +15,9 @@ import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-const
 import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
 import { generateBankPartnershipOffers } from '@/ai/flows/generate-bank-partnership-offers';
 import { z } from 'zod';
+import { promises as fs } from 'fs';
+import path from 'path';
+
 
 import {
   SimulateMarketPricesInputSchema,
@@ -220,5 +223,24 @@ export async function runBankPartnershipOfferGeneration(input: GenerateBankPartn
             throw new Error(`Invalid input for bank partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate bank partnership offers.');
+    }
+}
+
+export async function redeemPromoCode(code: string): Promise<{ tokens: number } | { error: string }> {
+    try {
+        const filePath = path.join(process.cwd(), 'src', 'lib', 'promo-codes.json');
+        const fileContents = await fs.readFile(filePath, 'utf8');
+        const promoCodes = JSON.parse(fileContents);
+        
+        const promo = promoCodes[code.toUpperCase()];
+
+        if (promo) {
+            return { tokens: promo.tokens };
+        } else {
+            return { error: 'Invalid promo code.' };
+        }
+    } catch (error) {
+        console.error("Error reading promo codes:", error);
+        return { error: 'Could not validate promo code at this time.' };
     }
 }

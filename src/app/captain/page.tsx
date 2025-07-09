@@ -145,6 +145,12 @@ export default function CaptainPage() {
                                 Galactic Bank
                             </Button>
                         </Link>
+                        <Link href="/captain/get-tokens" passHref>
+                            <Button className="w-full mt-2">
+                                <Coins className="mr-2"/>
+                                Get Tokens
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
                 <Card>

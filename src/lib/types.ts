@@ -204,6 +204,7 @@ export interface PlayerStats {
   reputation: number;
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
+  usedPromoCodes: string[];
 
   fleet: PlayerShip[];
 

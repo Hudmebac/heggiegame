@@ -9,6 +9,7 @@ import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue } from '@/lib/utils';
+import { redeemPromoCode } from '@/app/actions';
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
@@ -465,6 +466,61 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
     
+    const handleRedeemPromoCode = useCallback(async (code: string) => {
+        if (!code) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please enter a promo code.",
+            });
+            return;
+        }
+
+        if (gameState?.playerStats.usedPromoCodes.includes(code.toUpperCase())) {
+            toast({
+                variant: "destructive",
+                title: "Code Already Used",
+                description: "You have already redeemed this promo code.",
+            });
+            return;
+        }
+
+        try {
+            const result = await redeemPromoCode(code);
+
+            if ('error' in result) {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid Code",
+                    description: result.error,
+                });
+                return;
+            }
+
+            setGameState(prev => {
+                if (!prev) return null;
+                const newPlayerStats = {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + result.tokens,
+                    usedPromoCodes: [...prev.playerStats.usedPromoCodes, code.toUpperCase()],
+                };
+                return { ...prev, playerStats: newPlayerStats };
+            });
+
+            toast({
+                title: "Success!",
+                description: `🎉 You've received ${result.tokens.toLocaleString()} tokens!`,
+            });
+
+        } catch (e) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "An unexpected error occurred while redeeming the code.",
+            });
+        }
+    }, [gameState, setGameState, toast]);
+    
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -484,5 +540,6 @@ export function usePlayerActions(
         handleSetActiveShip,
         handlePurchaseInsurance,
         handlePurchaseAdvancedModule,
+        handleRedeemPromoCode,
     };
 }
