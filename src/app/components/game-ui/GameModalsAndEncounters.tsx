@@ -7,6 +7,7 @@ import { useGame } from '@/app/components/game-provider';
 import { Loader2, AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle } from 'lucide-react';
 import TradeDialog from "../trade-dialog";
 import type { System } from "@/lib/types";
+import WarpingOverlay from "./WarpingOverlay";
 
 export default function GameModalsAndEncounters() {
     const {
@@ -46,6 +47,8 @@ export default function GameModalsAndEncounters() {
 
     return (
         <>
+            {isSimulating && <WarpingOverlay />}
+
             {/* Pirate Encounter Dialog */}
             <PirateEncounter
                 pirate={gameState.pirateEncounter ?? null}

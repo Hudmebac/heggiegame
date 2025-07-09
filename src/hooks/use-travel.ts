@@ -7,6 +7,7 @@ import { runMarketSimulation, runPirateScan, runEventGeneration } from '@/app/ac
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
+import { calculateCargoValue } from '@/lib/utils';
 
 function generateRandomPirate(hasNavigator: boolean): Pirate {
     const weightedThreats: Pirate['threatLevel'][] = hasNavigator
@@ -186,6 +187,10 @@ export function useTravel(
                     });
                     
                     const newPlayerStats = { ...prev.playerStats, fuel: prev.playerStats.fuel - fuelCost };
+                    
+                    const newCargoValue = calculateCargoValue(prev.inventory, newMarketItems);
+                    newPlayerStats.cargoValueHistory = [...(prev.playerStats.cargoValueHistory || [0]), newCargoValue].slice(-20);
+                    
                     const contractKeys: Array<keyof PlayerStats> = ['barContract', 'residenceContract', 'commerceContract', 'industryContract', 'constructionContract', 'recreationContract'];
                     
                     contractKeys.forEach(key => {

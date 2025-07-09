@@ -205,6 +205,7 @@ export interface PlayerStats {
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
   usedPromoCodes: string[];
+  cargoValueHistory?: number[];
 
   fleet: PlayerShip[];
 

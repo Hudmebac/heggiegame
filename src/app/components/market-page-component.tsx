@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { STATIC_ITEMS } from '@/lib/items';
 import InventoryView from '@/app/components/inventory-view';
 import WarehouseManagement from './warehouse-management';
+import CargoValueChart from './cargo-value-chart';
 
 export default function MarketPageComponent() {
   const { 
@@ -75,6 +76,7 @@ export default function MarketPageComponent() {
             selectedGrade={chartGrade}
             onSelectGrade={setChartGrade}
         />
+        <CargoValueChart valueHistory={gameState.playerStats.cargoValueHistory || []} />
     </div>
   );
 }

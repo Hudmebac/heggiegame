@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 import type { GameState, MarketItem, InventoryItem } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo } from '@/lib/utils';
+import { calculateCurrentCargo, calculateCargoValue } from '@/lib/utils';
 
 
 export function useMarket(
@@ -63,6 +63,9 @@ export function useMarket(
 
             const updatedInventory = newInventory.filter(item => item.owned > 0);
             newPlayerStats.cargo = calculateCurrentCargo(updatedInventory);
+
+            const newCargoValue = calculateCargoValue(updatedInventory, prev.marketItems);
+            newPlayerStats.cargoValueHistory = [...(prev.playerStats.cargoValueHistory || [0]), newCargoValue].slice(-20);
 
             return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory };
         });

@@ -11,6 +11,7 @@ import { commerceThemes } from '@/lib/commerce-themes';
 import { industryThemes } from '@/lib/industry-themes';
 import { constructionThemes } from '@/lib/construction-themes';
 import { recreationThemes } from '@/lib/recreation-themes';
+import { bankThemes } from '@/lib/bank-themes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -70,11 +71,21 @@ export default function CaptainPage() {
   const portfolio = [
     { name: 'Bar', icon: Martini, level: playerStats.barLevel, bots: playerStats.autoClickerBots, income: calculateIncome(playerStats.barLevel, playerStats.autoClickerBots, playerStats.barContract, barThemes) },
     { name: 'Residence', icon: Home, level: playerStats.residenceLevel, bots: playerStats.residenceAutoClickerBots, income: calculateIncome(playerStats.residenceLevel, playerStats.residenceAutoClickerBots, playerStats.residenceContract, residenceThemes) },
-    { name: 'Commerce', icon: Landmark, level: playerStats.commerceLevel, bots: playerStats.commerceAutoClickerBots, income: calculateIncome(playerStats.commerceLevel, playerStats.commerceAutoClickerBots, playerStats.commerceContract, commerceThemes) },
+    { name: 'Commerce', icon: Briefcase, level: playerStats.commerceLevel, bots: playerStats.commerceAutoClickerBots, income: calculateIncome(playerStats.commerceLevel, playerStats.commerceAutoClickerBots, playerStats.commerceContract, commerceThemes) },
     { name: 'Industry', icon: Factory, level: playerStats.industryLevel, bots: playerStats.industryAutoClickerBots, income: calculateIncome(playerStats.industryLevel, playerStats.industryAutoClickerBots, playerStats.industryContract, industryThemes) },
     { name: 'Construction', icon: Building2, level: playerStats.constructionLevel, bots: playerStats.constructionAutoClickerBots, income: calculateIncome(playerStats.constructionLevel, playerStats.constructionAutoClickerBots, playerStats.constructionContract, constructionThemes) },
     { name: 'Recreation', icon: Ticket, level: playerStats.recreationLevel, bots: playerStats.recreationAutoClickerBots, income: calculateIncome(playerStats.recreationLevel, playerStats.recreationAutoClickerBots, playerStats.recreationContract, recreationThemes) },
   ];
+
+  if (playerStats.bankEstablishmentLevel > 0) {
+      portfolio.push({
+          name: 'Galactic Bank',
+          icon: Landmark,
+          level: playerStats.bankLevel,
+          bots: playerStats.bankAutoClickerBots,
+          income: calculateIncome(playerStats.bankLevel, playerStats.bankAutoClickerBots, playerStats.bankContract, bankThemes)
+      });
+  }
 
   const totalPassiveIncome = portfolio.reduce((sum, item) => sum + item.income, 0);
 
@@ -178,6 +189,9 @@ export default function CaptainPage() {
                         <Handshake className="text-primary"/>
                         Reputation
                     </CardTitle>
+                    <CardDescription>
+                        Your standing is influenced by successful trades, completing missions, and your business dealings. A higher reputation unlocks better opportunities.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                     <div className="flex justify-between items-center">

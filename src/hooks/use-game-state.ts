@@ -127,6 +127,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     casino: initialCasinoState,
     insurance: initialInsuranceState,
     warehouses: [],
+    cargoValueHistory: [0],
     bankAccount: undefined,
     bankShares: 0,
     bankLevel: 1,
