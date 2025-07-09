@@ -22,6 +22,23 @@ const missionTypeIcons: Record<DiplomaticMission['missionType'], React.ElementTy
     'Investigation': Search,
 }
 
+const influenceTiers = [
+    { level: 'Intern', min: 0, max: 99, color: 'from-gray-500 to-gray-400' },
+    { level: 'Attaché', min: 100, max: 249, color: 'from-sky-500 to-sky-400' },
+    { level: 'Emissary', min: 250, max: 499, color: 'from-blue-500 to-blue-400' },
+    { level: 'Diplomat', min: 500, max: 999, color: 'from-indigo-500 to-indigo-400' },
+    { level: 'Ambassador', min: 1000, max: Infinity, color: 'from-purple-500 to-purple-400' },
+];
+
+function getInfluenceTier(score: number) {
+    for (const tier of influenceTiers) {
+        if (score >= tier.min && score <= tier.max) {
+            return tier;
+        }
+    }
+    return influenceTiers[influenceTiers.length - 1];
+}
+
 export default function OfficialPage() {
     const { gameState, handleGenerateDiplomaticMissions, handleAcceptDiplomaticMission, isGeneratingMissions } = useGame();
 
@@ -32,6 +49,9 @@ export default function OfficialPage() {
 
     const availableMissions = diplomaticMissions.filter(m => m.status === 'Available');
     const activeMission = diplomaticMissions.find(m => m.status === 'Active');
+
+    const tier = getInfluenceTier(influence);
+    const progressInTier = tier ? (tier.max === Infinity ? 100 : ((influence - tier.min) / (tier.max - tier.min)) * 100) : 0;
 
     return (
         <div className="space-y-6">
@@ -62,6 +82,31 @@ export default function OfficialPage() {
                         {isGeneratingMissions ? <Loader2 className="mr-2 animate-spin" /> : <FileText className="mr-2" />}
                         Request New Mandates
                     </Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Award className="text-primary" />
+                        Diplomatic Standing
+                    </CardTitle>
+                    <CardDescription>Your current title and progress towards the next rank.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Current Rank</span>
+                        <span className={`font-mono font-bold text-primary`}>{tier?.level}</span>
+                    </div>
+                    <div>
+                        <Progress value={progressInTier} className="h-2 [&>div]:bg-gradient-to-r" indicatorClassName={tier?.color} />
+                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>{tier?.min}</span>
+                            <span>{tier?.level}</span>
+                            <span>{tier?.max === Infinity ? 'Max' : tier?.max}</span>
+                        </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center pt-2">Gain influence by successfully completing Diplomatic Mandates.</p>
                 </CardContent>
             </Card>
 
@@ -145,3 +190,5 @@ export default function OfficialPage() {
         </div>
     );
 }
+
+    
