@@ -1,11 +1,10 @@
-
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale, Clipboard } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale, Clipboard, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAREER_DATA } from '@/lib/careers';
 
@@ -45,6 +44,8 @@ const allNavItems = [
     { href: '/military', label: 'Fighter', icon: Sword, career: 'Fighter' },
     { href: '/official', label: 'Galactic Official', icon: Scale, career: 'Galactic Official' },
     { href: '/contractor', label: 'Contractor', icon: Clipboard, career: 'Heggie Contractor' },
+    // Game Details Section
+    { href: '/game-details', label: 'Game Details', icon: Info, section: 'Game Details' },
 ];
 
 const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer, onLinkClick }: { href: string; label: string; icon: React.ElementType; career?: string, playerCareer: string; onLinkClick?: () => void }) => {
@@ -68,6 +69,9 @@ const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer, on
 export default function Header({ playerStats, onLinkClick }: {playerStats: PlayerStats | null; onLinkClick?: () => void}) {
   const career = playerStats?.career ?? 'Unselected';
   const netWorth = playerStats?.netWorth ?? 0;
+  
+  const coreItems = allNavItems.filter(item => !item.section);
+  const gameDetailsItems = allNavItems.filter(item => item.section === 'Game Details');
 
   return (
     <div className="flex flex-col h-full">
@@ -93,7 +97,12 @@ export default function Header({ playerStats, onLinkClick }: {playerStats: Playe
       </header>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-        {allNavItems.map(item => <NavLink key={item.href + (item.career || '')} {...item} playerCareer={career} onLinkClick={onLinkClick} />)}
+        {coreItems.map(item => <NavLink key={item.href + (item.career || '')} {...item} playerCareer={career} onLinkClick={onLinkClick} />)}
+        
+        <div className="pt-4 mt-4 border-t">
+            <h3 className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Game Details</h3>
+            {gameDetailsItems.map(item => <NavLink key={item.href} {...item} playerCareer={career} onLinkClick={onLinkClick} />)}
+        </div>
       </nav>
     </div>
   );
