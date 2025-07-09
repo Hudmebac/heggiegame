@@ -35,14 +35,23 @@ Include a mix of quest types:
 - **Quest:** A more story-driven mission, like exploration or resource gathering.
 - **Objective:** A timed challenge related to the player's business operations. These should involve achieving a certain number of actions within a time limit. You can also create objectives that require a combination of actions from different business types ('bar', 'residence', 'commerce', 'industry', 'construction', 'recreation').
 
-For **Objective** quests, you must define:
-- **title**: A catchy name for the objective (e.g., "Rush Hour at the Cantina", "Industrial Boom", "Commercial Blitz").
-- **description**: A brief explanation of the goal.
-- **reward**: A credit amount appropriate for the difficulty (e.g., "25000 ¢").
-- **type**: Set this to "Objective".
-- **difficulty**: 'Low', 'Medium', or 'High'.
-- **tasks**: An array of one or more tasks to complete. Each task has a 'type' (one of 'bar', 'residence', 'commerce', 'industry', 'construction', 'recreation'), a 'target' (e.g., 50), and a 'description' (e.g., "Serve Patrons").
-- **timeLimit**: The time limit in seconds (e.g., 60, 120, 180).
+For **ALL** quest types, you must define:
+- **title**: A descriptive title.
+- **description**: A short summary of the quest.
+- **reward**: The credit amount as a string (e.g., "25000 ¢").
+- **type**: One of 'Daily', 'Bounty', 'Quest', or 'Objective'.
+- **difficulty**: One of 'Low', 'Medium', or 'High'.
+
+Only for **Objective** quests, you must ALSO define 'tasks' and 'timeLimit'.
+
+Example Non-Objective quest:
+{
+  "title": "Bounty: The Void Reaper",
+  "description": "A notorious pirate known as the Void Reaper has been terrorizing the Kepler sector. Hunt them down and claim the substantial bounty.",
+  "reward": "150000 ¢",
+  "type": "Bounty",
+  "difficulty": "High"
+}
 
 Example Objective quest:
 {
