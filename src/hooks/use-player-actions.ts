@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useTransition } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -10,6 +10,8 @@ import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrad
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
+import { CAREER_DATA } from '@/lib/careers';
+
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
@@ -521,6 +523,58 @@ export function usePlayerActions(
         }
     }, [gameState, setGameState, toast]);
     
+    const handleChangeCareerLogic = (currentState: GameState, newCareer: Career): GameState => {
+        const careerData = CAREER_DATA.find(c => c.id === newCareer);
+
+        const newPlayerStats: PlayerStats = {
+            ...currentState.playerStats,
+            career: newCareer,
+            // Reset career-specific missions and progress
+            tradeContracts: [],
+            taxiMissions: [],
+            escortMissions: [],
+            militaryMissions: [],
+            diplomaticMissions: [],
+            inspiration: careerData?.id === 'Heggie Contractor' ? currentState.playerStats.inspiration : 0,
+            influence: careerData?.startingInfluence || 0,
+        };
+        
+        return { ...currentState, playerStats: newPlayerStats };
+    };
+
+    const handlePayToChangeCareer = useCallback((newCareer: Career) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const cost = Math.floor(prev.playerStats.netWorth * 0.25);
+            if (prev.playerStats.netWorth < cost) {
+                toast({ variant: "destructive", title: "Cannot Afford Career Change", description: `You need ${cost.toLocaleString()}¢ to change your career.` });
+                return prev;
+            }
+
+            const stateWithCostDeducted = {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth - cost,
+                }
+            };
+
+            const finalState = handleChangeCareerLogic(stateWithCostDeducted, newCareer);
+            
+            toast({ title: "Career Path Changed!", description: `You spent ${cost.toLocaleString()}¢ to become a ${newCareer}.` });
+            return finalState;
+        });
+    }, [setGameState, toast]);
+
+    const handleChangeCareer = useCallback((newCareer: Career) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const finalState = handleChangeCareerLogic(prev, newCareer);
+            toast({ title: "Career Path Changed!", description: `You have successfully proven your aptitude and become a ${newCareer}.` });
+            return finalState;
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -541,5 +595,7 @@ export function usePlayerActions(
         handlePurchaseInsurance,
         handlePurchaseAdvancedModule,
         handleRedeemPromoCode,
+        handlePayToChangeCareer,
+        handleChangeCareer,
     };
 }

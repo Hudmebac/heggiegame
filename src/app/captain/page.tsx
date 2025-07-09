@@ -1,5 +1,6 @@
 
 'use client';
+import { useState } from 'react';
 import PlayerProfile from '@/app/components/player-profile';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CAREER_DATA } from '@/lib/careers';
+import ChangeCareerDialog from '../components/change-career-dialog';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -41,6 +43,7 @@ function getReputationTier(score: number) {
 
 export default function CaptainPage() {
   const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handlePurchaseInsurance } = useGame();
+  const [isCareerChangeOpen, setIsCareerChangeOpen] = useState(false);
 
   if (!gameState) {
     return null; 
@@ -125,194 +128,198 @@ export default function CaptainPage() {
 
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-2">
-            <PlayerProfile
-                stats={playerStats}
-                onSetAvatar={handleSetAvatar}
-                onGenerateBio={handleGenerateBio}
-                isGeneratingBio={isGeneratingBio}
-                onNameChange={setPlayerName}
-                onResetGame={handleResetGame}
-            />
-        </div>
-        <div className="lg:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-2">
+                <PlayerProfile
+                    stats={playerStats}
+                    onSetAvatar={handleSetAvatar}
+                    onGenerateBio={handleGenerateBio}
+                    isGeneratingBio={isGeneratingBio}
+                    onNameChange={setPlayerName}
+                    onResetGame={handleResetGame}
+                />
+            </div>
+            <div className="lg:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                <Coins className="text-primary"/>
+                                Finances
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Net Worth</span>
+                                <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
+                            </div>
+                            <Link href="/bank" passHref>
+                                <Button className="w-full mt-2" variant="outline">
+                                    <Landmark className="mr-2" />
+                                    Galactic Bank
+                                </Button>
+                            </Link>
+                            <Link href="/captain/get-tokens" passHref>
+                                <Button className="w-full mt-2">
+                                    <Coins className="mr-2"/>
+                                    Get Tokens
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                <Trophy className="text-primary"/>
+                                Ranking
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Global Rank</span>
+                                <span className="font-mono text-primary">#{leaderboardRank}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Fleet Size</span>
+                                <span className="font-mono text-primary">{playerStats.fleet.length}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            <Coins className="text-primary"/>
-                            Finances
+                            <Handshake className="text-primary"/>
+                            Reputation
                         </CardTitle>
+                        <CardDescription>
+                            Your standing is influenced by successful trades, completing missions, and your business dealings. A higher reputation unlocks better opportunities.
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-3">
                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Net Worth</span>
-                            <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
+                            <span className="text-muted-foreground">Galactic Standing</span>
+                            <span className={`font-mono font-bold ${reputationInfo.color}`}>{reputationInfo.label}</span>
                         </div>
-                        <Link href="/bank" passHref>
-                            <Button className="w-full mt-2" variant="outline">
-                                <Landmark className="mr-2" />
-                                Galactic Bank
-                            </Button>
-                        </Link>
-                        <Link href="/captain/get-tokens" passHref>
-                            <Button className="w-full mt-2">
-                                <Coins className="mr-2"/>
-                                Get Tokens
-                            </Button>
-                        </Link>
+                        <div>
+                            <Progress value={reputationProgress} className="h-2 [&>div]:bg-gradient-to-r" indicatorClassName={reputationInfo.progressColor} />
+                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                <span>Outcast</span>
+                                <span>Rookie</span>
+                                <span>Syndicate</span>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
+                 {careerInfo && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                {CareerIcon && <CareerIcon className="text-primary" />}
+                                Career: {careerInfo.name}
+                            </CardTitle>
+                            <CardDescription>{careerInfo.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div>
+                                <h4 className="font-semibold text-sm">Perks:</h4>
+                                <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                    {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-sm">Risks:</h4>
+                                <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                    {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                                </ul>
+                            </div>
+                             <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
+            <div className="lg:col-span-2">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Shield className="text-primary"/>
+                            Insurance Policies
+                        </CardTitle>
+                        <CardDescription>
+                            Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {Object.values(insurancePolicies).map(policy => (
+                            <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
+                               <div className="flex items-start gap-3">
+                                    <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
+                                    <div>
+                                        <h4 className="font-semibold">{policy.name}</h4>
+                                        <p className="text-xs text-muted-foreground">{policy.description}</p>
+                                    </div>
+                               </div>
+                                {playerStats.insurance[policy.type] ? (
+                                    <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
+                                ) : (
+                                    <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
+                                        Purchase ({policy.cost.toLocaleString()}¢)
+                                    </Button>
+                                )}
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            <Trophy className="text-primary"/>
-                            Ranking
+                            <Briefcase className="text-primary"/>
+                            Business Portfolio
                         </CardTitle>
+                        <CardDescription>
+                            Overview of your income-generating assets across the galaxy.
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Global Rank</span>
-                            <span className="font-mono text-primary">#{leaderboardRank}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Fleet Size</span>
-                            <span className="font-mono text-primary">{playerStats.fleet.length}</span>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Asset</TableHead>
+                                        <TableHead className="text-right">Level</TableHead>
+                                        <TableHead className="text-right">Bots</TableHead>
+                                        <TableHead className="text-right">Income/sec</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {portfolio.map(asset => (
+                                        <TableRow key={asset.name}>
+                                            <TableCell className="font-medium flex items-center gap-2">
+                                                <asset.icon className="h-4 w-4 text-muted-foreground" />
+                                                {asset.name}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono">{asset.level}</TableCell>
+                                            <TableCell className="text-right font-mono">{asset.bots}</TableCell>
+                                            <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
+                                        <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            </Table>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline text-lg flex items-center gap-2">
-                        <Handshake className="text-primary"/>
-                        Reputation
-                    </CardTitle>
-                    <CardDescription>
-                        Your standing is influenced by successful trades, completing missions, and your business dealings. A higher reputation unlocks better opportunities.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Galactic Standing</span>
-                        <span className={`font-mono font-bold ${reputationInfo.color}`}>{reputationInfo.label}</span>
-                    </div>
-                    <div>
-                        <Progress value={reputationProgress} className="h-2 [&>div]:bg-gradient-to-r" indicatorClassName={reputationInfo.progressColor} />
-                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                            <span>Outcast</span>
-                            <span>Rookie</span>
-                            <span>Syndicate</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-             {careerInfo && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            {CareerIcon && <CareerIcon className="text-primary" />}
-                            Career: {careerInfo.name}
-                        </CardTitle>
-                        <CardDescription>{careerInfo.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <div>
-                            <h4 className="font-semibold text-sm">Perks:</h4>
-                            <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-sm">Risks:</h4>
-                            <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
-                            </ul>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
         </div>
-        <div className="lg:col-span-2">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline text-lg flex items-center gap-2">
-                        <Shield className="text-primary"/>
-                        Insurance Policies
-                    </CardTitle>
-                    <CardDescription>
-                        Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {Object.values(insurancePolicies).map(policy => (
-                        <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
-                           <div className="flex items-start gap-3">
-                                <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
-                                <div>
-                                    <h4 className="font-semibold">{policy.name}</h4>
-                                    <p className="text-xs text-muted-foreground">{policy.description}</p>
-                                </div>
-                           </div>
-                            {playerStats.insurance[policy.type] ? (
-                                <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
-                            ) : (
-                                <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
-                                    Purchase ({policy.cost.toLocaleString()}¢)
-                                </Button>
-                            )}
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
-        </div>
-        <div className="lg:col-span-2">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline text-lg flex items-center gap-2">
-                        <Briefcase className="text-primary"/>
-                        Business Portfolio
-                    </CardTitle>
-                    <CardDescription>
-                        Overview of your income-generating assets across the galaxy.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Asset</TableHead>
-                                    <TableHead className="text-right">Level</TableHead>
-                                    <TableHead className="text-right">Bots</TableHead>
-                                    <TableHead className="text-right">Income/sec</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {portfolio.map(asset => (
-                                    <TableRow key={asset.name}>
-                                        <TableCell className="font-medium flex items-center gap-2">
-                                            <asset.icon className="h-4 w-4 text-muted-foreground" />
-                                            {asset.name}
-                                        </TableCell>
-                                        <TableCell className="text-right font-mono">{asset.level}</TableCell>
-                                        <TableCell className="text-right font-mono">{asset.bots}</TableCell>
-                                        <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                            <TableFooter>
-                                <TableRow>
-                                    <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
-                                    <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+        <ChangeCareerDialog isOpen={isCareerChangeOpen} onOpenChange={setIsCareerChangeOpen} />
     </div>
   );
 }
