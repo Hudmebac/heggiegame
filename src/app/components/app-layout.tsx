@@ -2,17 +2,48 @@
 
 import { useGame } from '@/app/components/game-provider';
 import Header from '@/app/components/header';
-import { Menu } from 'lucide-react';
+import { Menu, Loader2 } from 'lucide-react';
 import GameModalsAndEncounters from '@/app/components/game-ui/GameModalsAndEncounters';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import GameSetup from '@/app/components/game-setup';
+import GameOver from '@/app/components/game-over';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { gameState } = useGame();
+  const { gameState, isClient, isGeneratingNewGame } = useGame();
 
-  // The parent GameProvider is responsible for only rendering AppLayout when gameState is valid.
-  // We can therefore safely assume gameState is not null here.
-  // This removes the conditional return that was causing the hook rendering error.
+  if (!isClient || isGeneratingNewGame) {
+    return (
+        <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center space-y-4">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            {isGeneratingNewGame && (
+                <>
+                    <h2 className="text-2xl font-headline text-primary">Generating Your Galaxy...</h2>
+                    <p className="text-muted-foreground">Calibrating star charts and preparing your new career.</p>
+                </>
+            )}
+        </div>
+    );
+  }
+  
+  if (!gameState) {
+    return (
+      <>
+        <GameSetup />
+        <Toaster />
+      </>
+    );
+  }
+
+  if (gameState.isGameOver) {
+    return (
+      <>
+        <GameOver />
+        <Toaster />
+      </>
+    );
+  }
   
   return (
     <div className="grid lg:grid-cols-[280px_1fr] h-screen bg-background text-foreground font-body antialiased">
@@ -49,6 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <GameModalsAndEncounters />
+      <Toaster />
     </div>
   );
 }

@@ -4,7 +4,6 @@
 
 import { createContext, useContext } from 'react';
 import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career } from '@/lib/types';
-import { Toaster } from "@/components/ui/toaster";
 import { useGameState } from '@/hooks/use-game-state';
 import { useQuests } from '@/hooks/use-quests';
 import { useMarket } from '@/hooks/use-market';
@@ -45,9 +44,6 @@ import type { useDefender as useDefenderType } from '@/hooks/use-defender';
 import type { useMilitary as useMilitaryType } from '@/hooks/use-military';
 import type { useOfficial as useOfficialType } from '@/hooks/use-official';
 import AppLayout from '@/app/components/app-layout';
-import { Loader2 } from 'lucide-react';
-import GameSetup from '@/app/components/game-setup';
-import GameOver from '@/app/components/game-over';
 
 
 type GameContextType = {
@@ -142,34 +138,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...officialLogic,
     };
     
-    const showLoader = !isClient || isGeneratingNewGame;
-    const showSetup = isClient && !isGeneratingNewGame && !gameState;
-    const showGameOver = isClient && gameState && gameState.isGameOver;
-    const showGame = isClient && gameState && !gameState.isGameOver;
-
     return (
         <GameContext.Provider value={contextValue}>
-            <div style={{ display: showLoader ? 'block' : 'none' }}>
-                <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center space-y-4">
-                    <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                    {isGeneratingNewGame && (
-                        <>
-                            <h2 className="text-2xl font-headline text-primary">Generating Your Galaxy...</h2>
-                            <p className="text-muted-foreground">Calibrating star charts and preparing your new career.</p>
-                        </>
-                    )}
-                </div>
-            </div>
-            <div style={{ display: showSetup ? 'block' : 'none' }}>
-                <GameSetup />
-            </div>
-            <div style={{ display: showGameOver ? 'block' : 'none' }}>
-                <GameOver />
-            </div>
-            <div style={{ display: showGame ? 'block' : 'none' }}>
-                {gameState && <AppLayout>{children}</AppLayout>}
-            </div>
-            <Toaster />
+            <AppLayout>{children}</AppLayout>
         </GameContext.Provider>
     );
 }

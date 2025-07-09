@@ -51,23 +51,7 @@ const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: 
     const pathname = usePathname();
     const isActive = pathname.startsWith(href);
 
-    // A link is visible if it's a generic link (no career specified)
-    // OR if its career matches the player's career.
     const isVisible = !itemCareer || itemCareer === playerCareer;
-
-    // Additionally, hide generic business/market links if the player has a career that supersedes it.
-    const careerRedirects = CAREER_DATA.filter(c => c.page).reduce((acc, c) => {
-        if(c.id === 'Trader') acc['/market'] = true;
-        if(c.id === 'Landlord') acc['/residence'] = true;
-        // Add other direct career-page to generic-page overrides here if needed
-        return acc;
-    }, {} as Record<string, boolean>);
-
-    if (careerRedirects[href as keyof typeof careerRedirects] && CAREER_DATA.some(c => c.id === playerCareer && c.page)) {
-        // This logic is complex. The simple visibility toggle is safer.
-        // For now, let's stick to the primary visibility rule.
-    }
-
 
     return (
         <Link href={href} className={cn(
@@ -81,8 +65,9 @@ const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: 
     );
 };
 
-export default function Header({ playerStats }: {playerStats: PlayerStats}) {
-  const career = playerStats.career;
+export default function Header({ playerStats }: {playerStats: PlayerStats | null}) {
+  const career = playerStats?.career ?? 'Unselected';
+  const netWorth = playerStats?.netWorth ?? 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -97,7 +82,7 @@ export default function Header({ playerStats }: {playerStats: PlayerStats}) {
             <div className="flex items-center gap-2 font-mono">
               <Coins className="h-5 w-5 text-amber-400" />
               <span className="text-lg font-semibold text-slate-200">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 0 }).format(playerStats.netWorth).replace('$', '¢')}
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 0 }).format(netWorth).replace('$', '¢')}
               </span>
             </div>
              <div className="hidden sm:flex items-center gap-2 font-mono text-slate-300">

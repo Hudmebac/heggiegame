@@ -14,7 +14,6 @@ export default function GameModalsAndEncounters() {
         tradeDetails,
         setTradeDetails,
         handleTrade,
-        pirateEncounter,
         encounterResult,
         handlePirateAction,
         handleCloseEncounterDialog,
@@ -41,12 +40,15 @@ export default function GameModalsAndEncounters() {
         'Refinery': <Recycle className="h-4 w-4"/>,
     };
 
+    if (!gameState) {
+        return null; // Don't render modals if there's no game state
+    }
 
     return (
         <>
             {/* Pirate Encounter Dialog */}
             <PirateEncounter
-                pirate={gameState?.pirateEncounter ?? null}
+                pirate={gameState.pirateEncounter ?? null}
                 onAction={handlePirateAction}
                 isResolving={isResolvingEncounter}
             />
@@ -79,8 +81,8 @@ export default function GameModalsAndEncounters() {
                 onOpenChange={(open) => !open && setTradeDetails(null)}
                 item={tradeDetails?.item ?? null}
                 tradeType={tradeDetails?.type ?? 'buy'}
-                playerStats={gameState?.playerStats ?? null}
-                inventory={gameState?.inventory ?? []}
+                playerStats={gameState.playerStats ?? null}
+                inventory={gameState.inventory ?? []}
                 onTrade={handleTrade}
             />
 
