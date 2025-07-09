@@ -87,7 +87,7 @@ export default function Header({ playerStats }: {playerStats: PlayerStats | null
             </div>
              <div className="hidden sm:flex items-center gap-2 font-mono text-slate-300">
                 <Sigma className="h-5 w-5 text-cyan-400" />
-                <span>Net Worth</span>
+                
             </div>
           </div>
       </header>

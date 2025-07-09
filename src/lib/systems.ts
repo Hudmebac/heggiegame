@@ -6,19 +6,12 @@ const solPlanets: Planet[] = [
     { name: 'Venus', type: 'Volcanic', description: 'A toxic greenhouse world with immense atmospheric pressure.' },
     { name: 'Earth', type: 'Terrestrial', description: 'Humanity\'s homeworld, a vibrant and diverse planet.' },
     { name: 'Mars', type: 'Terrestrial', description: 'The red planet, home to sprawling colonies and terraforming projects.' },
-    { name: 'Ceres', type: 'Barren', description: 'The largest object in the asteroid belt, now a hub for mining and trade.' },
     { name: 'Jupiter', type: 'Gas Giant', description: 'A colossal gas giant with a powerful magnetic field and dozens of moons.' },
-    { name: 'Io', type: 'Volcanic', description: 'A moon of Jupiter, its surface constantly reshaped by hundreds of active volcanoes.' },
-    { name: 'Europa', type: 'Oceanic', description: 'An icy moon of Jupiter with a vast subsurface ocean, believed to harbor life.' },
-    { name: 'Ganymede', type: 'Ice Giant', description: 'Jupiter\'s largest moon, a world of ice and rock with a thin oxygen atmosphere.' },
-    { name: 'Callisto', type: 'Barren', description: 'A heavily cratered moon of Jupiter, its ancient surface holding secrets of the early solar system.' },
     { name: 'Saturn', type: 'Gas Giant', description: 'Famous for its magnificent ring system, a sight to behold.' },
-    { name: 'Titan', type: 'Terrestrial', description: 'A moon of Saturn with a thick, nitrogen-rich atmosphere and rivers of liquid methane.' },
     { name: 'Uranus', type: 'Ice Giant', description: 'An icy giant tilted on its side, with a cold, mysterious atmosphere.' },
     { name: 'Neptune', type: 'Ice Giant', description: 'A dark, cold world with supersonic winds and a turbulent atmosphere.' },
     { name: 'Pluto', type: 'Ice Giant', description: 'A distant dwarf planet, a world of frozen plains and icy mountains.' },
-    { name: 'Eris', type: 'Ice Giant', description: 'A dwarf planet in the scattered disc, one of the most distant objects in the Sol system.' },
-];
+    ];
 
 const keplerPlanets: Planet[] = [
     { name: 'Kepler-186f', type: 'Terrestrial', description: 'The crown jewel of the system, a lush world with sprawling farmlands.' },
@@ -78,6 +71,13 @@ const alphaCentauriPlanets: Planet[] = [
     { name: 'Ceto', type: 'Oceanic', description: 'A vast water world with floating cities and advanced aquaculture.' },
     { name: 'Erebus', type: 'Ice Giant', description: 'A dark, cold gas giant on the system\'s fringe, used for secret corporate research.' },
     { name: 'Aion', type: 'Barren', description: 'An ancient, weathered planet with colossal, naturally-formed crystal structures.' },
+    { name: 'Eris', type: 'Ice Giant', description: 'A dwarf planet in the scattered disc, one of the most distant objects in the Sol system.' },
+    { name: 'Ceres', type: 'Barren', description: 'The largest object in the asteroid belt, now a hub for mining and trade.' },
+    { name: 'Io', type: 'Volcanic', description: 'A moon of Jupiter, its surface constantly reshaped by hundreds of active volcanoes.' },
+    { name: 'Europa', type: 'Oceanic', description: 'An icy moon of Jupiter with a vast subsurface ocean, believed to harbor life.' },
+    { name: 'Ganymede', type: 'Ice Giant', description: 'Jupiter\'s largest moon, a world of ice and rock with a thin oxygen atmosphere.' },
+    { name: 'Callisto', type: 'Barren', description: 'A heavily cratered moon of Jupiter, its ancient surface holding secrets of the early solar system.' },
+    { name: 'Titan', type: 'Terrestrial', description: 'A moon of Saturn with a thick, nitrogen-rich atmosphere and rivers of liquid methane.' },
 ];
 
 const tauCetiPlanets: Planet[] = [
@@ -143,14 +143,21 @@ const barnardsStarPlanets: Planet[] = [
 const zetaReticuliPlanets: Planet[] = [
     { name: 'Zeta Reticuli I', type: 'Barren', description: 'A world of shifting sands and whispered legends.' },
     { name: 'The Glitch', type: 'Terrestrial', description: 'A terraformed moon where physics occasionally... flickers.' },
+    { name: 'Reven', type: 'Terrestrial', description: 'Unknown, Unchartered' },
 ];
 
 const groombridge1618Planets: Planet[] = [
     { name: 'Groombridge Prime', type: 'Terrestrial', description: 'A rugged world of mesas and canyons, home to hardy settlers.' },
     { name: 'The Ledge', type: 'Barren', description: 'A massive asteroid converted into a vertical city.' },
+    { name: 'Lochgelly', type: 'Barren', description: 'Old mining village, nothing much to do here' },
+    { name: 'Tannadice', type: 'Terrestrial', description: 'Filled with Arabs, Used to be fountain of success.' },
+    { name: 'Gowrie', type: 'Ice Giant', description: 'A terraformed moon where the squirrels come out to play.' },
+    { name: 'Range Rover', type: 'Barren', description: 'Expensive to Live here, but hope you never need a repair.' },
+    { name: 'AJRen', type: 'Volcanic', description: 'A comet, in fast burned out quick.' },
 ];
 
 const ross128Planets: Planet[] = [
+    { name: 'Ross 128 a', type: 'Terrestrial', description: 'The First world known for its strange, bioluminescent flora.' },
     { name: 'Ross 128 b', type: 'Terrestrial', description: 'A temperate world known for its strange, bioluminescent flora.' },
     { name: 'Veridian', type: 'Oceanic', description: 'An ocean world with floating cities made of woven coral.' },
 ];
@@ -158,6 +165,7 @@ const ross128Planets: Planet[] = [
 const epsilonIndiPlanets: Planet[] = [
     { name: 'Epsilon Indi A', type: 'Gas Giant', description: 'A brown dwarf whose faint light supports a strange ecosystem on its moons.' },
     { name: 'Indi\'s Rock', type: 'Barren', description: 'A resource-rich moon orbiting the brown dwarf.' },
+    { name: 'Beatles', type: 'Terrestrial', description: '8 Days a week.' },
 ];
 
 const deltaPavonisPlanets: Planet[] = [
@@ -166,13 +174,17 @@ const deltaPavonisPlanets: Planet[] = [
 ];
 
 const cygni61Planets: Planet[] = [
-    { name: '61 Cygni A', type: 'Terrestrial', description: 'A bustling planet in a binary star system, known for its 24/7 markets.' },
+    { name: '61 Cygni A', type: 'Barren', description: 'A bustling planet in a binary star system, known for its 24/7 markets.' },
     { name: '61 Cygni B', type: 'Terrestrial', description: 'The "shadow" planet, a mirror of its twin but with a more... discreet economy.' },
+    { name: '61 Cygni C', type: 'Terrestrial', description: 'A bustling planet in a binary star system, known for its 24/7 markets.' },
+    { name: '61 Cygni D', type: 'Gas Giant', description: 'Lets get cracking, make this work' },
+    { name: '61 Cygni E', type: 'Terrestrial', description: 'A bustling planet in a binary star system, known for its 24/7 markets.' },
 ];
 
 const hd40307Planets: Planet[] = [
     { name: 'HD 40307 g', type: 'Terrestrial', description: 'A "Super-Earth" with high gravity, home to advanced research outposts.' },
     { name: 'The Lab', type: 'Barren', description: 'A moon dedicated to zero-gravity experiments.' },
+    { name: 'Fishtank', type: 'Oceanic', description: 'An ocean world with floating cities made of Seehorse tails.' },
 ];
 
 const kapteynsStarPlanets: Planet[] = [
@@ -213,6 +225,7 @@ const skyPlanets: Planet[] = [
     { name: 'Glass', type: 'Barren', description: 'A world covered in silicon plains, harvested to create fiber-optic cables and starship canopies.' },
     { name: 'Stream', type: 'Oceanic', description: 'A liquid data-coolant world, its oceans shimmering with discarded information.' },
     { name: 'Air', type: 'Gas Giant', description: 'A massive gas giant used for atmospheric data processing and signal boosting.' },
+    { name: 'CME', type: 'Ice Giant', description: 'The enabler for Sky Solar system.' },
 ];
 
 
