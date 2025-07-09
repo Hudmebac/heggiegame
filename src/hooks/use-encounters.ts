@@ -3,9 +3,9 @@
 
 import { useState, useTransition, useCallback } from 'react';
 import type { GameState, Pirate, EncounterResult, PlayerStats } from '@/lib/types';
-import { resolveEncounter } from '@/app/actions';
 import { useToast } from "@/hooks/use-toast";
 import { hullUpgrades } from '@/lib/upgrades';
+import { runPirateScan } from '@/app/actions';
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
@@ -18,6 +18,71 @@ function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.shipHealth = activeShip.health;
     
     return newStats;
+}
+
+// Simulated resolveEncounter logic
+async function resolveEncounter(input: {
+    action: 'fight' | 'evade' | 'bribe';
+    playerNetWorth: number;
+    playerCargo: number;
+    pirateName: string;
+    pirateThreatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+    hasGunner: boolean;
+    hasNegotiator: boolean;
+    shipHealth: number;
+    weaponLevel: number;
+    shieldLevel: number;
+}): Promise<EncounterResult> {
+    const { action, playerNetWorth, pirateThreatLevel, hasGunner, hasNegotiator, shipHealth, weaponLevel, shieldLevel } = input;
+    
+    let success = false;
+    let outcome: EncounterResult['outcome'] = 'failure';
+    let narrative = "";
+    let cargoLost = 0;
+    let creditsLost = 0;
+    let damageTaken = 0;
+
+    const threatModifier = { 'Low': 0.8, 'Medium': 1, 'High': 1.25, 'Critical': 1.6 }[pirateThreatLevel];
+
+    if (action === 'fight') {
+        const combatScore = (shipHealth / 100) * (weaponLevel + shieldLevel) * (hasGunner ? 1.5 : 1);
+        const pirateScore = 15 * threatModifier;
+        success = combatScore > pirateScore * (Math.random() + 0.5);
+
+        if (success) {
+            outcome = 'success';
+            narrative = `With a brilliant maneuver, you outgunned ${input.pirateName}, sending them retreating into the void.`;
+            damageTaken = Math.round((Math.random() * 20) / (shieldLevel * 0.5));
+        } else {
+            outcome = 'failure';
+            narrative = `The battle was fierce, but ${input.pirateName}'s vessel was too strong. You were forced to jettison some cargo to escape.`;
+            damageTaken = Math.round(20 + Math.random() * 30 * threatModifier);
+            cargoLost = Math.round(input.playerCargo * (0.1 + Math.random() * 0.2));
+        }
+    } else if (action === 'evade') {
+        success = Math.random() > (0.4 * threatModifier);
+        if (success) {
+            outcome = 'success';
+            narrative = `You pushed your engines to the limit and successfully evaded the pirates!`;
+        } else {
+            outcome = 'failure';
+            narrative = `The pirates outmaneuvered you, landing a few solid hits before you could warp away.`;
+            damageTaken = Math.round(10 + Math.random() * 20);
+        }
+    } else if (action === 'bribe') {
+        const bribeAmount = Math.round(playerNetWorth * (0.05 + Math.random() * 0.1) * threatModifier * (hasNegotiator ? 0.75 : 1));
+        if (playerNetWorth >= bribeAmount) {
+            outcome = 'success';
+            creditsLost = bribeAmount;
+            narrative = `${input.pirateName} accepted your bribe of ${creditsLost.toLocaleString()}¢ and let you pass.`;
+        } else {
+            outcome = 'failure';
+            narrative = `Your paltry offer insulted ${input.pirateName}. They attacked out of spite before you managed to escape.`;
+            damageTaken = Math.round(15 + Math.random() * 15);
+        }
+    }
+    
+    return { outcome, narrative, cargoLost, creditsLost, damageTaken };
 }
 
 

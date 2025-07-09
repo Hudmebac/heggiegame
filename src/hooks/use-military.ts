@@ -132,7 +132,7 @@ export function useMilitary(
         const elapsed = (now - (activeMission.startTime || now)) / 1000;
         const progress = Math.min(100, (elapsed / activeMission.duration) * 100);
         
-        if (updatedMissions[index].progress !== progress) {
+        if (index > -1 && updatedMissions[index].progress !== progress) {
             updatedMissions[index].progress = progress;
             stateChanged = true;
         }

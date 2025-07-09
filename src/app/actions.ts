@@ -1,24 +1,6 @@
-
 'use server';
 
-import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
-import { generateGameEvent } from '@/ai/flows/generate-game-event';
-import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
-import { generateQuests } from '@/lib/generation/quests';
-import { generateTraders } from '@/lib/generation/traders';
-import { generatePartnershipOffers } from '@/ai/flows/generate-partnership-offers';
-import { generateResidencePartnershipOffers } from '@/ai/flows/generate-residence-partnership-offers';
-import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-partnership-offers';
-import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-partnership-offers';
-import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
-import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
-import { generateBankPartnershipOffers } from '@/ai/flows/generate-bank-partnership-offers';
-import { negotiateTradeRoute } from '@/ai/flows/negotiate-trade-route';
 import { z } from 'zod';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-
 import {
   SimulateMarketPricesInputSchema,
   type SimulateMarketPricesInput,
@@ -35,34 +17,48 @@ import {
   GeneratePartnershipOffersInputSchema,
   type GeneratePartnershipOffersInput,
   type GeneratePartnershipOffersOutput,
-  GenerateResidencePartnershipOffersInputSchema,
-  type GenerateResidencePartnershipOffersInput,
-  type GenerateResidencePartnershipOffersOutput,
-  GenerateCommercePartnershipOffersInputSchema,
-  type GenerateCommercePartnershipOffersInput,
-  type GenerateCommercePartnershipOffersOutput,
-  GenerateIndustryPartnershipOffersInputSchema,
-  type GenerateIndustryPartnershipOffersInput,
-  type GenerateIndustryPartnershipOffersOutput,
-  GenerateConstructionPartnershipOffersInputSchema,
-  type GenerateConstructionPartnershipOffersInput,
-  type GenerateConstructionPartnershipOffersOutput,
-  GenerateRecreationPartnershipOffersInputSchema,
-  type GenerateRecreationPartnershipOffersInput,
-  type GenerateRecreationPartnershipOffersOutput,
-  GenerateBankPartnershipOffersInputSchema,
-  type GenerateBankPartnershipOffersInput,
-  type GenerateBankPartnershipOffersOutput,
   NegotiateTradeRouteInputSchema,
   type NegotiateTradeRouteInput,
   type NegotiateTradeRouteOutput,
 } from '@/lib/schemas';
 import { simulateMarket } from '@/lib/utils';
+import { generateQuests } from '@/lib/generation/quests';
+import { generateTraders } from '@/lib/generation/traders';
+
+// Import the JSON file directly
+import promoCodes from '@/lib/promo-codes.json';
+
+// --- SIMULATED AI FUNCTIONS ---
+
+const STATIC_EVENTS = [
+  "A new trade agreement has been signed with the Xylos Corporation, opening up new markets for high-tech goods.",
+  "Pirate activity has surged in the Orion Spur, making trade routes for raw materials more dangerous.",
+  "A rare mineral rush has begun in the Kepler system after a massive asteroid was discovered.",
+  "A diplomatic incident has led to a trade embargo on all goods from the Cygnus sector.",
+  "Technological breakthrough in hydroponics has led to a surplus of exotic foodstuffs."
+];
+
+export async function runEventGeneration(): Promise<GenerateGameEventOutput> {
+  const eventDescription = STATIC_EVENTS[Math.floor(Math.random() * STATIC_EVENTS.length)];
+  return { eventDescription };
+}
+
+export async function runPirateScan(input: ScanPirateVesselInput): Promise<ScanPirateVesselOutput> {
+    const { sensorLevel } = input;
+    let scanReport = "Scan failed to resolve a clear signature.";
+    if (sensorLevel >= 7) {
+        scanReport = "High energy readings from overcharged plasma cannons detected. A sustained attack on their stern section could trigger a reactor cascade failure. Recommend targeting engines to disable and force a surrender.";
+    } else if (sensorLevel >= 4) {
+        scanReport = "Vessel is showing active shields and laser cannons. Engine output appears stable.";
+    } else {
+        scanReport = "Scan complete. Vessel is showing active shields. Weapon signatures detected.";
+    }
+    return { scanReport };
+}
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
   try {
     const validatedInput = SimulateMarketPricesInputSchema.parse(input);
-    // Use the local simulation function instead of an AI flow
     const result = simulateMarket(
       validatedInput.items,
       validatedInput.systemEconomy,
@@ -77,44 +73,6 @@ export async function runMarketSimulation(input: SimulateMarketPricesInput): Pro
     }
     throw error;
   }
-}
-
-export async function resolveEncounter(input: ResolvePirateEncounterInput): Promise<ResolvePirateEncounterOutput> {
-    try {
-        const validatedInput = ResolvePirateEncounterInputSchema.parse(input);
-        const result = await resolvePirateEncounter(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error resolving encounter:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for encounter resolution: ${error.message}`);
-        }
-        throw new Error('Failed to resolve encounter.');
-    }
-}
-
-export async function runEventGeneration(): Promise<GenerateGameEventOutput> {
-    try {
-        const result = await generateGameEvent();
-        return result;
-    } catch (error) {
-        console.error('Error running event generation:', error);
-        throw new Error('Failed to generate game event.');
-    }
-}
-
-export async function runPirateScan(input: ScanPirateVesselInput): Promise<ScanPirateVesselOutput> {
-    try {
-        const validatedInput = ScanPirateVesselInputSchema.parse(input);
-        const result = await scanPirateVessel(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running pirate scan:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for pirate scan: ${error.message}`);
-        }
-        throw new Error('Failed to scan pirate vessel.');
-    }
 }
 
 export async function runQuestGeneration(): Promise<GenerateQuestsOutput> {
@@ -137,125 +95,52 @@ export async function runTraderGeneration(): Promise<GenerateTradersOutput> {
     }
 }
 
+const PARTNER_NAMES = ["The Crimson Syndicate", "Faulcon deLacy Holdings", "The Veritas Guild", "Xylos Corporation", "The Cygnus Credit Union", "Orion Interstellar Bank", "The Titan Trust", "Veridian Financial Group"];
+const DEAL_DESCRIPTIONS = [
+    "A stable, long-term investment from a reputable corporation.",
+    "A high-risk, high-reward deal from a shadowy financial syndicate.",
+    "This guild is known for its ruthless efficiency and expects a return on investment, no matter the cost.",
+    "A desperate holding company looking to offload liquid assets for a quick stake in a promising venture.",
+    "An offer from a prestigious institution known for its fair dealings and long-term growth strategies.",
+];
+
 export async function runPartnershipOfferGeneration(input: GeneratePartnershipOffersInput): Promise<GeneratePartnershipOffersOutput> {
-    try {
-        const validatedInput = GeneratePartnershipOffersInputSchema.parse(input);
-        const result = await generatePartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate partnership offers.');
-    }
-}
-
-export async function runResidencePartnershipOfferGeneration(input: GenerateResidencePartnershipOffersInput): Promise<GenerateResidencePartnershipOffersOutput> {
-    try {
-        const validatedInput = GenerateResidencePartnershipOffersInputSchema.parse(input);
-        const result = await generateResidencePartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running residence partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for residence partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate residence partnership offers.');
-    }
-}
-
-export async function runCommercePartnershipOfferGeneration(input: GenerateCommercePartnershipOffersInput): Promise<GenerateCommercePartnershipOffersOutput> {
-    try {
-        const validatedInput = GenerateCommercePartnershipOffersInputSchema.parse(input);
-        const result = await generateCommercePartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running commerce partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for commerce partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate commerce partnership offers.');
-    }
-}
-
-export async function runIndustryPartnershipOfferGeneration(input: GenerateIndustryPartnershipOffersInput): Promise<GenerateIndustryPartnershipOffersOutput> {
-    try {
-        const validatedInput = GenerateIndustryPartnershipOffersInputSchema.parse(input);
-        const result = await generateIndustryPartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running industry partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for industry partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate industry partnership offers.');
-    }
-}
-
-export async function runConstructionPartnershipOfferGeneration(input: GenerateConstructionPartnershipOffersInput): Promise<GenerateConstructionPartnershipOffersOutput> {
-    try {
-        const validatedInput = GenerateConstructionPartnershipOffersInputSchema.parse(input);
-        const result = await generateConstructionPartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running construction partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for construction partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate construction partnership offers.');
-    }
-}
-
-export async function runRecreationPartnershipOfferGeneration(input: GenerateRecreationPartnershipOffersInput): Promise<GenerateRecreationPartnershipOffersOutput> {
-    try {
-        const validatedInput = GenerateRecreationPartnershipOffersInputSchema.parse(input);
-        const result = await generateRecreationPartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running recreation partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for recreation partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate recreation partnership offers.');
-    }
-}
-
-export async function runBankPartnershipOfferGeneration(input: GenerateBankPartnershipOffersInput): Promise<GenerateBankPartnershipOffersOutput> {
-    try {
-        const validatedInput = GenerateBankPartnershipOffersInputSchema.parse(input);
-        const result = await generateBankPartnershipOffers(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running bank partnership offer generation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for bank partnership offer generation: ${error.message}`);
-        }
-        throw new Error('Failed to generate bank partnership offers.');
-    }
+    const validatedInput = GeneratePartnershipOffersInputSchema.parse(input);
+    const offers = Array.from({ length: 3 + Math.floor(Math.random() * 2) }).map(() => {
+        const stakePercentage = 0.05 + Math.random() * 0.25; // 5% to 30%
+        const valuationMultiplier = 0.8 + Math.random() * 0.4; // 80% to 120% valuation
+        const cashOffer = Math.round(validatedInput.marketValue * stakePercentage * valuationMultiplier);
+        return {
+            partnerName: PARTNER_NAMES[Math.floor(Math.random() * PARTNER_NAMES.length)],
+            stakePercentage,
+            cashOffer,
+            dealDescription: DEAL_DESCRIPTIONS[Math.floor(Math.random() * DEAL_DESCRIPTIONS.length)],
+        };
+    });
+    return { offers };
 }
 
 export async function runNegotiateTradeRoute(input: NegotiateTradeRouteInput): Promise<NegotiateTradeRouteOutput> {
-    try {
-        const validatedInput = NegotiateTradeRouteInputSchema.parse(input);
-        const result = await negotiateTradeRoute(validatedInput);
-        return result;
-    } catch (error) {
-        console.error('Error running trade route negotiation:', error);
-        if (error instanceof z.ZodError) {
-            throw new Error(`Invalid input for trade route negotiation: ${error.message}`);
-        }
-        throw new Error('Failed to negotiate trade route.');
+    const { negotiationScore } = NegotiateTradeRouteInputSchema.parse(input);
+    const baseCost = 250000;
+    const minCost = 50000;
+    const maxCost = 2500000;
+
+    const cost = Math.round(maxCost - (negotiationScore / 100) * (maxCost - minCost));
+    
+    let narrative = "The deal was struck, but the terms feel... heavy. The establishment cost is significant.";
+    if (negotiationScore > 80) {
+        narrative = "A masterful negotiation! The logistics officials were impressed, offering you a deal with exceptionally favorable terms.";
+    } else if (negotiationScore > 40) {
+        narrative = "After some back and forth, you've settled on a reasonable price. A fair, if unexceptional, outcome.";
     }
+
+    return { cost, narrative };
 }
 
 export async function redeemPromoCode(code: string): Promise<{ tokens: number } | { error: string }> {
     try {
-        const filePath = path.join(process.cwd(), 'src', 'lib', 'promo-codes.json');
-        const fileContents = await fs.readFile(filePath, 'utf8');
-        const promoCodes = JSON.parse(fileContents);
-        
-        const promo = promoCodes[code.toUpperCase()];
+        const promo = promoCodes[code.toUpperCase() as keyof typeof promoCodes];
 
         if (promo) {
             return { tokens: promo.tokens };
@@ -263,7 +148,7 @@ export async function redeemPromoCode(code: string): Promise<{ tokens: number } 
             return { error: 'Invalid promo code.' };
         }
     } catch (error) {
-        console.error("Error reading promo codes:", error);
+        console.error("Error processing promo code:", error);
         return { error: 'Could not validate promo code at this time.' };
     }
 }
