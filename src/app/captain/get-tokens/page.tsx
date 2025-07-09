@@ -11,15 +11,31 @@ import { Gift, CreditCard, Sparkles, AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const tokenPackages = [
-    { price: '£5.00', tokens: 1_000_000_000, popular: false },
-    { price: '£10.00', tokens: 10_000_000_000, popular: true },
-    { price: '£15.00', tokens: 20_000_000_000, popular: false },
+ {
+ price: '£5.00',
+ tokens: 1_000_000_000,
+ popular: false,
+ url: 'https://buy.stripe.com/9B6eVde9e8YAgHz8zL93y03',
+ },
+ {
+ price: '£10.00',
+ tokens: 10_000_000_000,
+ popular: true,
+ url: 'https://buy.stripe.com/aFafZh5CI1w8bnfbLX93y02',
+ },
+ {
+ price: '£15.00',
+ tokens: 20_000_000_000,
+ popular: false,
+ url: 'https://buy.stripe.com/4gM6oH3uAdeQgHz03f93y01',
+ },
 ];
 
 const subscriptionPackage = {
-    price: '£5.00/month',
-    initialTokens: 1_000_000_000,
-    monthlyTokens: 20_000_000_000,
+ price: '£5.00/month',
+ initialTokens: 1_000_000_000,
+ monthlyTokens: 20_000_000_000,
+ url: 'https://buy.stripe.com/4gMdR9ghm0s44YRaHT93y00',
 };
 
 export default function GetTokensPage() {
@@ -58,12 +74,6 @@ export default function GetTokensPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 font-headline text-xl"><CreditCard className="text-primary"/> Buy Tokens</CardTitle>
                     <CardDescription>Support the game and get a massive boost with these token packages.</CardDescription>
-                     <div className="pt-4">
-                        <div className="flex items-center gap-3 bg-yellow-900/20 border border-yellow-700/50 text-yellow-300 p-3 rounded-lg text-sm">
-                            <AlertTriangle className="h-5 w-5"/>
-                            <p>This is a UI demonstration. Stripe is not actually integrated, and these buttons will not process payments.</p>
-                        </div>
-                    </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div>
@@ -78,7 +88,9 @@ export default function GetTokensPage() {
                                         <CardDescription>Tokens</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <Button className="w-full">{pkg.price}</Button>
+ <a href={pkg.url} target="_blank" rel="noopener noreferrer">
+ <Button className="w-full">{pkg.price}</Button>
+ </a>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -98,7 +110,9 @@ export default function GetTokensPage() {
                                 <p className="text-xs text-muted-foreground pt-2">+ {subscriptionPackage.initialTokens.toLocaleString()} initial bonus tokens!</p>
                             </CardHeader>
                              <CardContent>
-                                <Button className="w-full" variant="secondary">{subscriptionPackage.price}</Button>
+ <a href={subscriptionPackage.url} target="_blank" rel="noopener noreferrer">
+ <Button className="w-full" variant="secondary">{subscriptionPackage.price}</Button>
+ </a>
                             </CardContent>
                         </Card>
                     </div>
