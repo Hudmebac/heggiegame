@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import type { PlayerStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Loader2, User, Shuffle, Image as ImageIcon, Check, RefreshCw, Share2, Facebook } from 'lucide-react';
+import { Loader2, User, Shuffle, Image as ImageIcon, Check, RefreshCw, Share2, Facebook, Copy } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +76,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isShareConfirmationOpen, setIsShareConfirmationOpen] = useState(false);
   const { toast } = useToast();
 
   const lastShare = stats.lastFacebookShare || 0;
@@ -104,6 +105,18 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
       toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid image URL.' });
     }
   }
+
+  const shareQuote = `I am playing HEGGIE: Space Game! My Current Net Worth is ${stats.netWorth.toLocaleString()}¢ and my career is ${stats.career}. Come start your own adventure!`;
+
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(shareQuote);
+    toast({ title: "Copied to Clipboard!", description: "You can now paste this message on Facebook." });
+  };
+
+  const handleFacebookShareClick = () => {
+    onShareToFacebook();
+    setIsShareConfirmationOpen(false);
+  };
 
   return (
     <>
@@ -214,10 +227,39 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
                 <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
                     <Share2 className="mr-2" /> Sync & Share
                 </Button>
-                <Button onClick={onShareToFacebook} disabled={isOnCooldown}>
-                    <Facebook className="mr-2" />
-                    {isOnCooldown ? 'On Cooldown' : 'Share for 1M Tokens'}
-                </Button>
+                
+                 <Dialog open={isShareConfirmationOpen} onOpenChange={setIsShareConfirmationOpen}>
+                    <DialogTrigger asChild>
+                        <Button disabled={isOnCooldown}>
+                            <Facebook className="mr-2" />
+                            {isOnCooldown ? 'On Cooldown' : 'Share for 1M Tokens'}
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Share Your Progress</DialogTitle>
+                            <DialogDescription>
+                                Share your journey on Facebook to receive 1,000,000 tokens! The share window will open, but if the message doesn't appear automatically, you can copy it from here.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <Label htmlFor="share-message">Your Share Message</Label>
+                            <Textarea id="share-message" readOnly value={shareQuote} className="h-28" />
+                            <Button onClick={handleCopyToClipboard} variant="outline" className="w-full">
+                                <Copy className="mr-2" /> Copy Message
+                            </Button>
+                        </div>
+                        <DialogFooter>
+                             <DialogClose asChild>
+                                <Button variant="secondary">Cancel</Button>
+                            </DialogClose>
+                            <Button onClick={handleFacebookShareClick}>
+                                <Facebook className="mr-2" /> Continue to Facebook
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
              </div>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
