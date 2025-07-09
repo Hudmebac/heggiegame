@@ -153,6 +153,7 @@ export function useGameState() {
     const { toast } = useToast();
     const [isClient, setIsClient] = useState(false);
     const [isGeneratingNewGame, startNewGameTransition] = useTransition();
+    const [isSaving, setIsSaving] = useState(false);
 
 
     const calculateMarketDataForSystem = useCallback((system: System): MarketItem[] => {
@@ -232,6 +233,17 @@ export function useGameState() {
         });
     }, [calculateMarketDataForSystem, toast]);
 
+    // Load game state on mount
+ useEffect(() => {
+ setIsClient(true);
+ let savedStateJSON;
+ try {
+ savedStateJSON = localStorage.getItem('heggieGameState');
+ } catch (error) {
+ console.error("Failed to access local storage, starting fresh:", error);
+ savedStateJSON = null;
+ }
+
     useEffect(() => {
         setIsClient(true);
         let savedStateJSON;
@@ -243,6 +255,7 @@ export function useGameState() {
         }
 
         if (savedStateJSON) {
+
             try {
                 const savedProgress = JSON.parse(savedStateJSON);
                 if (savedProgress.isGameOver) {
@@ -303,7 +316,25 @@ export function useGameState() {
         } else {
              setGameState(null);
         }
+ }, [calculateMarketDataForSystem, toast]);
+
+    // Save game state whenever it changes (with a slight delay)
+    useEffect(() => {
+        if (!gameState || !isClient || isGeneratingNewGame) return;
+
+        setIsSaving(true);
+        const handler = setTimeout(() => {
+            try {
+                localStorage.setItem('heggieGameState', JSON.stringify(gameState));
+            } catch (error) {
+                console.error("Failed to save game state to local storage:", error);
+            } finally {
+                setIsSaving(false);
+            }
+        }, 500); // Debounce saving
+        return () => clearTimeout(handler);
     }, [calculateMarketDataForSystem, toast]);
+ }, [gameState, isClient, isGeneratingNewGame]);
 
      useEffect(() => {
         const financialInterval = setInterval(() => {

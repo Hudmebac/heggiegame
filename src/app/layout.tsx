@@ -25,10 +25,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/images/favicon/favicon.ico" sizes="any" />
       </head>
-      <body suppressHydrationWarning={true}>
-        <GameProvider>
-          {children}
-        </GameProvider>
+      <body>
+          <GameProvider>
+            {children}
+          </GameProvider>
       </body>
     </html>
   );
