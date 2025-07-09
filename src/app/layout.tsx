@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} dark`}>
+    <html lang="en" className={`${spaceGrotesk.variable} dark`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/images/favicon/favicon.ico" sizes="any" />
       </head>
