@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import Header from '@/app/components/header';
 import { Menu, Loader2 } from 'lucide-react';
@@ -15,6 +15,7 @@ import { FACTIONS_DATA } from '@/lib/factions';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { gameState, isClient, isGeneratingNewGame } = useGame();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && gameState?.playerStats.faction) {
@@ -67,7 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:hidden sticky top-0 z-10">
-          <Sheet>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -83,7 +84,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <SheetTitle>Navigation Menu</SheetTitle>
                 <SheetDescription>Main navigation links and player status.</SheetDescription>
               </SheetHeader>
-              <Header playerStats={gameState!.playerStats} />
+              <Header playerStats={gameState!.playerStats} onLinkClick={() => setIsSheetOpen(false)} />
             </SheetContent>
           </Sheet>
         </header>

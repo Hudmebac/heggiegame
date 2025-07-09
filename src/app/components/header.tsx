@@ -47,7 +47,7 @@ const allNavItems = [
     { href: '/contractor', label: 'Contractor', icon: Clipboard, career: 'Heggie Contractor' },
 ];
 
-const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: { href: string; label: string; icon: React.ElementType; career?: string, playerCareer: string; }) => {
+const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer, onLinkClick }: { href: string; label: string; icon: React.ElementType; career?: string, playerCareer: string; onLinkClick?: () => void }) => {
     const pathname = usePathname();
     const isActive = pathname.startsWith(href);
 
@@ -58,14 +58,14 @@ const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer }: 
             "flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground transition-colors hover:text-foreground hover:bg-muted",
             isActive && "bg-muted text-foreground",
             !isVisible && "hidden"
-        )}>
+        )} onClick={onLinkClick}>
             <Icon className="h-5 w-5" />
             <span>{label}</span>
         </Link>
     );
 };
 
-export default function Header({ playerStats }: {playerStats: PlayerStats | null}) {
+export default function Header({ playerStats, onLinkClick }: {playerStats: PlayerStats | null; onLinkClick?: () => void}) {
   const career = playerStats?.career ?? 'Unselected';
   const netWorth = playerStats?.netWorth ?? 0;
 
@@ -93,7 +93,7 @@ export default function Header({ playerStats }: {playerStats: PlayerStats | null
       </header>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-        {allNavItems.map(item => <NavLink key={item.href + (item.career || '')} {...item} playerCareer={career} />)}
+        {allNavItems.map(item => <NavLink key={item.href + (item.career || '')} {...item} playerCareer={career} onLinkClick={onLinkClick} />)}
       </nav>
     </div>
   );
