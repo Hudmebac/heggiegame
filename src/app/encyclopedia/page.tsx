@@ -9,6 +9,7 @@ import LoreCodex from "@/app/components/encyclopedia/lore-codex";
 import SystemCodex from "@/app/components/encyclopedia/system-codex";
 import BusinessCodex from "@/app/components/encyclopedia/business-codex";
 import GameplayCodex from "@/app/components/encyclopedia/gameplay-codex";
+import CareerCodex from "@/app/components/encyclopedia/career-codex";
 
 export default function EncyclopediaPage() {
     return (
@@ -18,9 +19,10 @@ export default function EncyclopediaPage() {
                 <p className="text-muted-foreground">An archive of all known commodities, ships, and galactic lore.</p>
             </div>
             <Tabs defaultValue="commodities" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-9">
                     <TabsTrigger value="commodities">Commodities</TabsTrigger>
                     <TabsTrigger value="ships">Ships</TabsTrigger>
+                    <TabsTrigger value="careers">Careers</TabsTrigger>
                     <TabsTrigger value="anatomy">Anatomy</TabsTrigger>
                     <TabsTrigger value="upgrades">Upgrades</TabsTrigger>
                     <TabsTrigger value="business">Business</TabsTrigger>
@@ -33,6 +35,9 @@ export default function EncyclopediaPage() {
                 </TabsContent>
                 <TabsContent value="ships">
                     <ShipCodex />
+                </TabsContent>
+                <TabsContent value="careers">
+                    <CareerCodex />
                 </TabsContent>
                 <TabsContent value="anatomy">
                     <AnatomyCodex />
