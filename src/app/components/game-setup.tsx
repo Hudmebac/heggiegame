@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -147,7 +146,7 @@ export default function GameSetup() {
     }
 
     return (
-        <div className="flex h-screen w-full items-center justify-center bg-background p-4">
+        <div className="flex h-screen w-full items-start justify-center overflow-y-auto bg-background p-4 pt-8 md:items-center md:py-4">
             {step === 'difficulty' && <DifficultySelector onSelect={handleDifficultySelect} />}
             {step === 'career' && <CareerSelector onSelect={handleCareerSelect} />}
         </div>
