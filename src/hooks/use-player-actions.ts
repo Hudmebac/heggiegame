@@ -8,7 +8,7 @@ import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
-import { calculateCurrentCargo, calculateShipValue } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
