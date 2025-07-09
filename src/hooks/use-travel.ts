@@ -67,6 +67,21 @@ export function useTravel(
 
     const handleInitiateTravel = (systemName: string) => {
         if (!gameState || systemName === gameState.currentSystem) return;
+
+        const routeExists = gameState.routes.some(
+            r => (r.from === gameState.currentSystem && r.to === systemName) ||
+                 (r.to === gameState.currentSystem && r.from === systemName)
+        );
+
+        if (!routeExists) {
+            toast({
+                variant: "destructive",
+                title: "No Route Available",
+                description: `You must negotiate a trade route to ${systemName} first.`
+            });
+            return;
+        }
+
         const destination = gameState.systems.find(s => s.name === systemName);
         if (destination) {
             setTravelDestination(destination);

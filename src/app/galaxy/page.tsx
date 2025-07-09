@@ -38,28 +38,9 @@ export default function GalaxyPage() {
     
     const currentSecurity = securityConfig[currentSystemInfo.security];
 
-    // --- Find potential new routes ---
-    const directNeighbors = new Set(gameState.routes
-        .filter(r => r.from === currentSystemInfo.name || r.to === currentSystemInfo.name)
-        .map(r => r.from === currentSystemInfo.name ? r.to : r.from)
-    );
-
-    const potentialRoutes = new Set<string>();
-    directNeighbors.forEach(neighborName => {
-        gameState.routes
-            .filter(r => r.from === neighborName || r.to === neighborName)
-            .forEach(r => {
-                const potentialTarget = r.from === neighborName ? r.to : r.from;
-                if (potentialTarget !== currentSystemInfo.name && !directNeighbors.has(potentialTarget)) {
-                    potentialRoutes.add(potentialTarget);
-                }
-            });
-    });
-    
-    const existingRoutes = new Set(gameState.routes.flatMap(r => [`${r.from}-${r.to}`, `${r.to}-${r.from}`]));
-    const finalPotentialRoutes = Array.from(potentialRoutes).filter(target => 
-        !existingRoutes.has(`${currentSystemInfo.name}-${target}`)
-    );
+    const handleInitiateNegotiation = (from: string, to: string) => {
+        setNegotiationRoute({from, to});
+    };
 
     return (
         <>
@@ -69,8 +50,8 @@ export default function GalaxyPage() {
                         systems={gameState.systems}
                         routes={gameState.routes}
                         currentSystem={gameState.currentSystem}
-                        currentPlanet={gameState.currentPlanet}
                         onTravel={handleInitiateTravel}
+                        onNegotiate={handleInitiateNegotiation}
                     />
                 </div>
                 <div className="xl:col-span-2 space-y-6">
@@ -147,26 +128,6 @@ export default function GalaxyPage() {
                             </CardContent>
                         </Card>
                     )}
-                     {finalPotentialRoutes.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="font-headline text-lg flex items-center gap-2"><Route className="text-primary" /> Potential Trade Routes</CardTitle>
-                                <CardDescription>Negotiate with HEGGIE to establish new, permanent trade routes.</CardDescription>
-                            </CardHeader>
-                             <CardContent>
-                                <div className="space-y-3">
-                                    {finalPotentialRoutes.map(targetSystem => (
-                                        <div key={targetSystem} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                            <h4 className="font-semibold">{currentSystemInfo.name} → {targetSystem}</h4>
-                                            <Button variant="outline" size="sm" onClick={() => setNegotiationRoute({ from: currentSystemInfo.name, to: targetSystem })}>
-                                                Negotiate Route
-                                            </Button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                     )}
                 </div>
             </div>
             <OpenRouteDialog
