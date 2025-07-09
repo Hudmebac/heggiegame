@@ -1,7 +1,6 @@
 
 'use server';
 
-import { simulateMarketPrices } from '@/ai/flows/simulate-market-prices';
 import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
 import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
@@ -58,36 +57,24 @@ import {
   type NegotiateTradeRouteInput,
   type NegotiateTradeRouteOutput,
 } from '@/lib/schemas';
+import { simulateMarket } from '@/lib/utils';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
   try {
     const validatedInput = SimulateMarketPricesInputSchema.parse(input);
-    
-    const retries = 3;
-    for (let i = 0; i < retries; i++) {
-      try {
-        const result = await simulateMarketPrices(validatedInput);
-        return result;
-      } catch (error: any) {
-        if (error.message && error.message.includes('503 Service Unavailable') && i < retries - 1) {
-          console.log(`Market simulation attempt ${i + 1} failed. Retrying...`);
-          await new Promise(res => setTimeout(res, 1000 * Math.pow(2, i))); // exponential backoff
-        } else {
-          // Re-throw if it's not a 503 or it's the last retry
-          throw error;
-        }
-      }
-    }
-    // This line is technically unreachable if the loop always throws on the last iteration.
-    // Adding it to satisfy TypeScript and as a fallback.
-    throw new Error('Market simulation failed after multiple retries.');
-
+    // Use the local simulation function instead of an AI flow
+    const result = simulateMarket(
+      validatedInput.items,
+      validatedInput.systemEconomy,
+      validatedInput.systemVolatility,
+      validatedInput.eventDescription
+    );
+    return result;
   } catch (error) {
     console.error('Error running market simulation:', error);
     if (error instanceof z.ZodError) {
       throw new Error(`Invalid input for market simulation: ${error.message}`);
     }
-    // Re-throw the original error to be handled by the caller
     throw error;
   }
 }

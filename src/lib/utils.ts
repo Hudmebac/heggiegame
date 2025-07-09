@@ -2,7 +2,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy } from "./types";
+import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput } from "./types";
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from './upgrades';
@@ -87,3 +87,52 @@ export const PLANET_TYPE_MODIFIERS: Record<PlanetType, number> = {
     'Ice Giant': 0.95,
     'Gas Giant': 0.85,
 };
+
+export function simulateMarket(
+  items: MarketItem[],
+  systemEconomy: SystemEconomy,
+  systemVolatility: number,
+  eventDescription?: string
+): SimulateMarketPricesOutput {
+  return items.map(item => {
+    const staticItem = STATIC_ITEMS.find(si => si.name === item.name);
+    if (!staticItem) return { name: item.name, newSupply: item.supply, newDemand: item.demand, reasoning: "No static data found." };
+
+    let supplyChange = (Math.random() - 0.5) * 0.2 * systemVolatility; // Base volatility
+    let demandChange = (Math.random() - 0.5) * 0.2 * systemVolatility;
+
+    // Event logic
+    if (eventDescription) {
+      if (eventDescription.toLowerCase().includes('shortage') || eventDescription.toLowerCase().includes('blockade')) {
+        supplyChange -= 0.25;
+        demandChange += 0.20;
+      }
+      if (eventDescription.toLowerCase().includes('boom') || eventDescription.toLowerCase().includes('surplus') || eventDescription.toLowerCase().includes('breakthrough')) {
+        supplyChange += 0.30;
+        demandChange -= 0.20;
+      }
+      if (eventDescription.toLowerCase().includes(staticItem.category.toLowerCase())) {
+        supplyChange += 0.1;
+        demandChange += 0.1;
+      }
+    }
+    
+    // Economy influence
+    const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category]?.[systemEconomy] ?? 1.0;
+    if (economyMultiplier < 1) { // System produces this
+        supplyChange += 0.1;
+    } else { // System consumes this
+        demandChange += 0.1;
+    }
+
+    const newSupply = Math.round(Math.max(10, item.supply * (1 + supplyChange)));
+    const newDemand = Math.round(Math.max(10, item.demand * (1 + demandChange)));
+
+    return {
+      name: item.name,
+      newSupply,
+      newDemand,
+      reasoning: `Fluctuation based on ${systemEconomy} economy, volatility, and recent events.`,
+    };
+  });
+}

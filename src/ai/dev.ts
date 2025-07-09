@@ -2,7 +2,6 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/simulate-market-prices.ts';
 import '@/ai/flows/resolve-pirate-encounter.ts';
 import '@/ai/flows/generate-game-event.ts';
 import '@/ai/flows/scan-pirate-vessel.ts';
