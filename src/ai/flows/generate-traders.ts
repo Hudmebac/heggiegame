@@ -1,42 +1,40 @@
 'use server';
 
 /**
- * @fileOverview Generates a list of NPC traders for the leaderboard.
+ * @fileOverview Generates a list of NPC traders for the leaderboard from a static list.
  * 
  * - generateTraders - A function that returns a list of generated traders.
  */
 
-import { ai } from '@/ai/genkit';
-import { GenerateTradersOutput, GenerateTradersOutputSchema } from '@/lib/schemas';
+import { GenerateTradersOutput, GenerateTradersOutputSchema, TraderSchema } from '@/lib/schemas';
+import { traderNames } from '@/lib/traders';
+import { bios } from '@/lib/bios';
+import { z } from 'zod';
 
 export async function generateTraders(): Promise<GenerateTradersOutput> {
-  return generateTradersFlow();
-}
+  const shuffledNames = [...traderNames].sort(() => 0.5 - Math.random());
+  const shuffledBios = [...bios].sort(() => 0.5 - Math.random());
 
-const prompt = ai.definePrompt({
-  name: 'generateTradersPrompt',
-  output: { schema: GenerateTradersOutputSchema },
-  prompt: `You are a game designer for the space trading game HEGGIE. Generate a list of 4 interesting and diverse NPC space traders to populate the leaderboard.
+  const traders = shuffledNames.slice(0, 4).map((name, index) => {
+    const bioTemplate = shuffledBios[index % shuffledBios.length];
+    return {
+      name: name,
+      netWorth: Math.floor(5_000_000 + Math.random() * 15_000_000),
+      fleetSize: Math.floor(5 + Math.random() * 15),
+      bio: bioTemplate.replace(/{Captain}/g, name),
+    };
+  });
   
-  Give them cool, evocative names that fit a sci-fi universe. Examples: "Jax 'The Comet' Williams", "Baron Von 'Blackhole' Hess", "Cmdr. Alex 'Void' Ryder".
-  
-  Assign them a plausible but high net-worth (between 5,000,000 and 20,000,000 credits) and a fleet size (between 5 and 20 ships).
-  
-  For each trader, also write a short, 1-2 sentence, flavourful biography. Make it interesting and fit the sci-fi tone.
-  
-  Ensure one of them is clearly an infamous, almost villainous character.
+  const result = { traders: traders as z.infer<typeof TraderSchema>[] };
 
-  Return the response in the specified JSON format.
-  `,
-});
-
-const generateTradersFlow = ai.defineFlow(
-  {
-    name: 'generateTradersFlow',
-    outputSchema: GenerateTradersOutputSchema,
-  },
-  async () => {
-    const { output } = await prompt();
-    return output!;
+  try {
+      GenerateTradersOutputSchema.parse(result);
+      return result;
+  } catch (error) {
+      console.error("Static trader data failed validation:", error);
+      if (error instanceof z.ZodError) {
+        throw new Error(`Invalid static trader data: ${error.message}`);
+      }
+      throw error;
   }
-);
+}
