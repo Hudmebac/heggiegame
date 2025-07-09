@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -71,7 +72,7 @@ export default function CareerChangeMinigame() {
     }
 
     if (newPlayerInput.length === sequence.length) {
-      if (level >= 3) {
+      if (level >= 8) {
         setCurrentGameState(GameState.Success);
       } else {
         setLevel(prev => prev + 1);
@@ -137,7 +138,7 @@ export default function CareerChangeMinigame() {
       return (
            <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 rounded-lg bg-card/50">
-                    <div className="text-sm">Level: <span className="font-mono text-primary">{level} / 3</span></div>
+                    <div className="text-sm">Level: <span className="font-mono text-primary">{level} / 8</span></div>
                      <div className="text-sm">Sequence Length: <span className="font-mono text-primary">{sequence.length}</span></div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
