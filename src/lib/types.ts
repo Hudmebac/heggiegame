@@ -4,6 +4,7 @@ export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
+export type FactionId = 'Independent' | 'Federation of Sol' | 'Corporate Hegemony' | 'Veritas Concord' | 'Frontier Alliance' | 'Independent Miners Guild';
 
 export interface StaticItem {
   category: ItemCategory;
@@ -201,6 +202,8 @@ export interface PlayerStats {
   netWorth: number;
   avatarUrl: string;
   career: Career;
+  faction: FactionId;
+  factionReputation: Record<FactionId, number>;
   influence: number;
   inspiration: number;
   pirateRisk: number;

@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useEffect } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import Header from '@/app/components/header';
 import { Menu, Loader2 } from 'lucide-react';
@@ -9,9 +11,21 @@ import { Button } from '@/components/ui/button';
 import GameSetup from '@/app/components/game-setup';
 import GameOver from '@/app/components/game-over';
 import { Toaster } from '@/components/ui/toaster';
+import { FACTIONS_DATA } from '@/lib/factions';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { gameState, isClient, isGeneratingNewGame } = useGame();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && gameState?.playerStats.faction) {
+      const factionData = FACTIONS_DATA.find(f => f.id === gameState.playerStats.faction);
+      if (factionData) {
+        document.documentElement.style.setProperty('--primary', factionData.color.primary);
+        document.documentElement.style.setProperty('--accent', factionData.color.accent);
+        document.documentElement.style.setProperty('--ring', factionData.color.primary);
+      }
+    }
+  }, [gameState?.playerStats.faction]);
 
   if (!isClient || isGeneratingNewGame) {
     return (

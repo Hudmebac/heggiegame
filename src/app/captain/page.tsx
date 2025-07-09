@@ -19,6 +19,9 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CAREER_DATA } from '@/lib/careers';
 import ChangeCareerDialog from '../components/change-career-dialog';
+import FactionDialog from '../components/faction-dialog';
+import { FACTIONS_DATA } from '@/lib/factions';
+import { cn } from '@/lib/utils';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -44,6 +47,7 @@ function getReputationTier(score: number) {
 export default function CaptainPage() {
   const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handlePurchaseInsurance } = useGame();
   const [isCareerChangeOpen, setIsCareerChangeOpen] = useState(false);
+  const [isFactionDialogOpen, setIsFactionDialogOpen] = useState(false);
 
   if (!gameState) {
     return null; 
@@ -240,6 +244,41 @@ export default function CaptainPage() {
                 )}
             </div>
             <div className="lg:col-span-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Handshake className="text-primary"/>
+                            Diplomacy
+                        </CardTitle>
+                        <CardDescription>
+                            Your political allegiances and standing with the major galactic powers.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Current Allegiance</span>
+                            <span className={`font-mono font-bold`}>{playerStats.faction}</span>
+                        </div>
+                        <div>
+                            <h4 className="text-xs text-muted-foreground mb-2">Faction Standings</h4>
+                            <div className="space-y-2">
+                                {FACTIONS_DATA.filter(f => f.id !== 'Independent').map(faction => {
+                                    const rep = playerStats.factionReputation[faction.id] || 0;
+                                    const repColor = rep > 0 ? 'text-green-400' : rep < 0 ? 'text-destructive' : 'text-muted-foreground';
+                                    return (
+                                        <div key={faction.id} className="flex justify-between items-center text-xs">
+                                            <span>{faction.name}</span>
+                                            <span className={cn('font-mono', repColor)}>{rep > 0 ? `+${rep}` : rep}</span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                        <Button className="w-full mt-2" variant="outline" onClick={() => setIsFactionDialogOpen(true)}>Manage Allegiance</Button>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="lg:col-span-2">
                  <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -272,7 +311,7 @@ export default function CaptainPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-4">
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -320,6 +359,7 @@ export default function CaptainPage() {
             </div>
         </div>
         <ChangeCareerDialog isOpen={isCareerChangeOpen} onOpenChange={setIsCareerChangeOpen} />
+        <FactionDialog isOpen={isFactionDialogOpen} onOpenChange={setIsFactionDialogOpen} />
     </div>
   );
 }

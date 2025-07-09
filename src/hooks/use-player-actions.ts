@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useCallback, useTransition } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -11,6 +12,7 @@ import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
 import { CAREER_DATA } from '@/lib/careers';
+import { FACTIONS_DATA } from '@/lib/factions';
 
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
@@ -575,6 +577,47 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleJoinFaction = useCallback((factionId: FactionId) => {
+        setGameState(prev => {
+            if (!prev) return null;
+    
+            const cost = factionId === 'Independent' ? 0 : 50000;
+    
+            if (prev.playerStats.netWorth < cost) {
+                toast({ variant: "destructive", title: "Allegiance Failed", description: "Insufficient funds to pay the allegiance fee." });
+                return prev;
+            }
+    
+            const newFactionData = FACTIONS_DATA.find(f => f.id === factionId);
+            if (!newFactionData) return prev;
+    
+            const newFactionReputation = { ...prev.playerStats.factionReputation };
+            
+            // Reset all reputations to 0
+            for (const key in newFactionReputation) {
+                newFactionReputation[key as FactionId] = 0;
+            }
+            // Set self to 100
+            newFactionReputation[factionId] = 100;
+            
+            // Apply new alliance modifiers
+            for (const [alliedFaction, repChange] of Object.entries(newFactionData.alliances)) {
+                newFactionReputation[alliedFaction as FactionId] = (newFactionReputation[alliedFaction as FactionId] || 0) + repChange;
+            }
+    
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+                faction: factionId,
+                factionReputation: newFactionReputation,
+            };
+    
+            toast({ title: "Allegiance Pledged!", description: `You are now aligned with ${newFactionData.name}.` });
+    
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -597,5 +640,6 @@ export function usePlayerActions(
         handleRedeemPromoCode,
         handlePayToChangeCareer,
         handleChangeCareer,
+        handleJoinFaction,
     };
 }

@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, FactionId } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades } from '@/lib/upgrades';
@@ -13,7 +13,7 @@ import { AVAILABLE_CREW } from '@/lib/crew';
 import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo, calculateShipValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
 
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
@@ -96,6 +96,15 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
     netWorth: 10000,
     avatarUrl: '/images/avatars/avatar_01.png',
+    faction: 'Independent',
+    factionReputation: {
+        'Independent': 100,
+        'Federation of Sol': 0,
+        'Corporate Hegemony': 0,
+        'Veritas Concord': 0,
+        'Frontier Alliance': 0,
+        'Independent Miners Guild': 0,
+    },
     pirateRisk: 0, reputation: 0, inspiration: 0,
     fleet: [initialShip],
     barLevel: 1, autoClickerBots: 0, establishmentLevel: 0,
@@ -177,6 +186,8 @@ export function useGameState() {
                 let newPlayerStats = {
                     ...initialGameState.playerStats,
                     career,
+                    faction: 'Independent',
+                    factionReputation: { ...initialGameState.playerStats.factionReputation },
                     fleet: careerData.startingFleet,
                     netWorth: careerData.startingNetWorth,
                     inspiration: 0,
@@ -243,7 +254,16 @@ export function useGameState() {
                 const currentSystem = SYSTEMS.find(s => s.name === savedProgress.currentSystem) || SYSTEMS[0];
                 const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
-                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats, casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) }, insurance: { ...initialInsuranceState, ...(savedProgress.playerStats.insurance || {}) }, usedPromoCodes: savedProgress.playerStats.usedPromoCodes || [], negotiationCooldowns: savedProgress.playerStats.negotiationCooldowns || {} };
+                let mergedPlayerStats = { 
+                    ...initialGameState.playerStats, 
+                    ...savedProgress.playerStats, 
+                    casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) }, 
+                    insurance: { ...initialInsuranceState, ...(savedProgress.playerStats.insurance || {}) }, 
+                    usedPromoCodes: savedProgress.playerStats.usedPromoCodes || [], 
+                    negotiationCooldowns: savedProgress.playerStats.negotiationCooldowns || {},
+                    faction: savedProgress.playerStats.faction || 'Independent',
+                    factionReputation: savedProgress.playerStats.factionReputation || initialGameState.playerStats.factionReputation,
+                };
                 
                 // --- MIGRATION LOGIC ---
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
