@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Map, MapPin, AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, ZoomIn, ZoomOut, ArrowRight, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react';
+import { Map, MapPin, AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, ZoomIn, ZoomOut, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Users, Frown, CheckCircle } from 'lucide-react';
 import type { System, Route } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
@@ -33,13 +33,24 @@ const StarField = () => {
     );
 };
 
-const SystemNode = ({ system, isCurrent, isNeighbor, onClick }: { system: System, isCurrent: boolean, isNeighbor: boolean, onClick: () => void }) => {
-    const nodeColor = isCurrent ? "fill-primary stroke-primary/50" : isNeighbor ? "fill-sky-400 stroke-sky-400/50 group-hover:fill-primary/50" : "fill-muted-foreground/50 stroke-muted-foreground/30 group-hover:fill-primary/50";
-    const textColor = isCurrent ? "fill-primary" : isNeighbor ? "fill-sky-300" : "fill-muted-foreground";
+const factionConfig: Record<string, { color: string; icon: React.ReactNode }> = {
+    'Federation of Sol': { color: 'fill-sky-500', icon: <CheckCircle className="h-4 w-4 text-sky-400"/> },
+    'Corporate Hegemony': { color: 'fill-purple-500', icon: <CheckCircle className="h-4 w-4 text-purple-400"/> },
+    'Veritas Concord': { color: 'fill-green-500', icon: <CheckCircle className="h-4 w-4 text-green-400"/> },
+    'Frontier Alliance': { color: 'fill-orange-500', icon: <ShieldCheck className="h-4 w-4 text-orange-400"/> },
+    'Independent Miners Guild': { color: 'fill-stone-400', icon: <ShieldCheck className="h-4 w-4 text-stone-400"/> },
+    'Unclaimed Systems': { color: 'fill-red-600', icon: <Frown className="h-4 w-4 text-red-500"/> },
+    'Default': { color: 'fill-gray-400', icon: <Users className="h-4 w-4 text-gray-400"/> },
+};
+
+const SystemNode = ({ system, isCurrent, onClick }: { system: System, isCurrent: boolean, onClick: () => void }) => {
+    const factionColor = factionConfig[system.faction]?.color || factionConfig['Default'].color;
+    const nodeColor = isCurrent ? "fill-primary" : factionColor;
+    const textColor = isCurrent ? "fill-primary" : "fill-muted-foreground";
 
     return (
         <g transform={`translate(${system.x} ${system.y})`} className="group" onClick={isCurrent ? undefined : onClick}>
-            <circle r="4" className={cn(nodeColor, "transition-colors cursor-pointer")} strokeWidth="1" />
+            <circle r="4" className={cn(nodeColor, "stroke-border/50 group-hover:stroke-primary transition-colors cursor-pointer")} strokeWidth="1" />
             <text
                 x="8"
                 y="4"
@@ -145,13 +156,19 @@ export default function GalaxyMap({ systems, routes, currentSystem, onTravel, on
                                         <SystemNode
                                             system={system}
                                             isCurrent={system.name === currentSystem}
-                                            isNeighbor={directNeighbors.has(system.name)}
                                             onClick={() => directNeighbors.has(system.name) ? onTravel(system.name) : onNegotiate(currentSystem, system.name)}
                                         />
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-card/90 backdrop-blur-sm border-border/50">
                                         <div className="p-1 space-y-2 text-xs">
                                             <h4 className="font-bold text-primary">{system.name}</h4>
+                                            <div className="flex justify-between items-center gap-4">
+                                                <span className="text-muted-foreground">Faction</span>
+                                                <span className={`font-mono flex items-center gap-1`}>
+                                                    {factionConfig[system.faction]?.icon || factionConfig['Default'].icon}
+                                                    {system.faction}
+                                                </span>
+                                            </div>
                                             <div className="flex justify-between items-center gap-4">
                                                 <span className="text-muted-foreground">Security</span>
                                                 <span className={`font-mono flex items-center gap-1 ${securityConfig[system.security].color}`}>

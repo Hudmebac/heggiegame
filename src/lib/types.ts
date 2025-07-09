@@ -332,6 +332,7 @@ export interface System {
   volatility: number;
   zoneType: ZoneType;
   description: string;
+  faction: string;
   planets: Planet[];
 }
 
