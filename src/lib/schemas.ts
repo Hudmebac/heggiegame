@@ -84,15 +84,27 @@ export const QuestTaskSchema = z.object({
     description: z.string().describe("A player-facing description of the task, e.g., 'Serve Patrons' or 'Fulfil Industry Orders'."),
 });
 
-export const QuestSchema = z.object({
+const BaseQuestSchema = z.object({
     title: z.string().describe("The title of the quest."),
     description: z.string().describe("A brief, engaging description of the quest."),
     reward: z.string().describe("The reward for completing the quest, e.g., '15,000 ¢' or 'Variable'."),
-    type: z.enum(['Bounty', 'Daily', 'Quest', 'Objective']).describe("The type of the quest."),
     difficulty: z.enum(['Low', 'Medium', 'High']).describe("The difficulty of the quest."),
-    tasks: z.array(QuestTaskSchema).optional().describe("For 'Objective' quests, an array of one or more tasks to complete."),
-    timeLimit: z.number().optional().describe("For 'Objective' quests, the time limit in seconds to complete all tasks."),
 });
+
+const NonObjectiveQuestSchema = BaseQuestSchema.extend({
+    type: z.enum(['Bounty', 'Daily', 'Quest']).describe("The type of the quest."),
+});
+
+const ObjectiveQuestSchema = BaseQuestSchema.extend({
+    type: z.literal('Objective').describe("The type of the quest."),
+    tasks: z.array(QuestTaskSchema).min(1).describe("An array of one or more tasks to complete for the objective."),
+    timeLimit: z.number().describe("The time limit in seconds to complete all tasks."),
+});
+
+export const QuestSchema = z.discriminatedUnion("type", [
+    NonObjectiveQuestSchema,
+    ObjectiveQuestSchema,
+]);
 
 export const GenerateQuestsOutputSchema = z.object({
     quests: z.array(QuestSchema).describe("An array of generated quests."),

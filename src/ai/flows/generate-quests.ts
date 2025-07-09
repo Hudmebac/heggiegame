@@ -19,6 +19,14 @@ export async function generateQuests(): Promise<GenerateQuestsOutput> {
 const prompt = ai.definePrompt({
   name: 'generateQuestsPrompt',
   output: { schema: GenerateQuestsOutputSchema },
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+    ],
+  },
   prompt: `You are the Game Master for the space trading game HEGGIE. Generate a list of 5 interesting and varied quests for the player.
 
 Include a mix of quest types:
