@@ -1,3 +1,4 @@
+
 import type { System, Route, Planet } from '@/lib/types';
 
 const solPlanets: Planet[] = [
@@ -5,28 +6,54 @@ const solPlanets: Planet[] = [
     { name: 'Venus', type: 'Volcanic', description: 'A toxic greenhouse world with immense atmospheric pressure.' },
     { name: 'Earth', type: 'Terrestrial', description: 'Humanity\'s homeworld, a vibrant and diverse planet.' },
     { name: 'Mars', type: 'Terrestrial', description: 'The red planet, home to sprawling colonies and terraforming projects.' },
+    { name: 'Ceres', type: 'Barren', description: 'The largest object in the asteroid belt, now a hub for mining and trade.' },
     { name: 'Jupiter', type: 'Gas Giant', description: 'A colossal gas giant with a powerful magnetic field and dozens of moons.' },
+    { name: 'Io', type: 'Volcanic', description: 'A moon of Jupiter, its surface constantly reshaped by hundreds of active volcanoes.' },
+    { name: 'Europa', type: 'Oceanic', description: 'An icy moon of Jupiter with a vast subsurface ocean, believed to harbor life.' },
+    { name: 'Ganymede', type: 'Ice Giant', description: 'Jupiter\'s largest moon, a world of ice and rock with a thin oxygen atmosphere.' },
+    { name: 'Callisto', type: 'Barren', description: 'A heavily cratered moon of Jupiter, its ancient surface holding secrets of the early solar system.' },
     { name: 'Saturn', type: 'Gas Giant', description: 'Famous for its magnificent ring system, a sight to behold.' },
+    { name: 'Titan', type: 'Terrestrial', description: 'A moon of Saturn with a thick, nitrogen-rich atmosphere and rivers of liquid methane.' },
     { name: 'Uranus', type: 'Ice Giant', description: 'An icy giant tilted on its side, with a cold, mysterious atmosphere.' },
     { name: 'Neptune', type: 'Ice Giant', description: 'A dark, cold world with supersonic winds and a turbulent atmosphere.' },
+    { name: 'Pluto', type: 'Ice Giant', description: 'A distant dwarf planet, a world of frozen plains and icy mountains.' },
+    { name: 'Eris', type: 'Ice Giant', description: 'A dwarf planet in the scattered disc, one of the most distant objects in the Sol system.' },
 ];
 
 const keplerPlanets: Planet[] = [
     { name: 'Kepler-186f', type: 'Terrestrial', description: 'The crown jewel of the system, a lush world with sprawling farmlands.' },
     { name: 'Veridia', type: 'Oceanic', description: 'An ocean world with massive floating agricultural platforms.' },
     { name: 'Harbor', type: 'Terrestrial', description: 'A trading outpost planet, bustling with ships and merchants.' },
+    { name: 'Kepler-186b', type: 'Barren', description: 'A barren rock scorched by its proximity to the star.'},
+    { name: 'Kepler-186c', type: 'Barren', description: 'A desolate wasteland, rich in heavy metals.'},
+    { name: 'Kepler-186d', type: 'Terrestrial', description: 'A desert world with a thin, breathable atmosphere.'},
+    { name: 'Kepler-186e', type: 'Oceanic', description: 'A world of shallow seas and volcanic islands.'},
+    { name: 'Kepler-186g', type: 'Gas Giant', description: 'A swirling gas giant with violent atmospheric storms.'},
+    { name: 'Kepler-186h', type: 'Ice Giant', description: 'A frozen world at the edge of the system, rich in frozen volatiles.'},
 ];
 
 const siriusPlanets: Planet[] = [
     { name: 'Sirius Prime', type: 'Terrestrial', description: 'A city-planet, covered in glittering skyscrapers and advanced tech labs.' },
     { name: 'Innovate', type: 'Barren', description: 'A desert world used for large-scale technology testing and manufacturing.' },
     { name: 'The Archive', type: 'Ice Giant', description: 'A frozen planet housing colossal data centers for the galaxy\'s information.' },
+    { name: 'Sirius Secundus', type: 'Terrestrial', description: 'A corporate retreat world with curated biomes and exclusive resorts.' },
+    { name: 'The Citadel', type: 'Terrestrial', description: 'An orbital station of immense size, functioning as a planetoid-sized fortress and trade hub.' },
+    { name: 'Aethel', type: 'Gas Giant', description: 'A majestic gas giant with shimmering rings of rare elements, harvested by automated drones.' },
+    { name: 'Volcryn', type: 'Volcanic', description: 'A tidally locked volcanic world, its dark side covered in obsidian glass from cooled lava flows.' },
+    { name: 'The Mirror', type: 'Ice Giant', description: 'A perfectly smooth ice giant that reflects the light of Sirius in dazzling displays.' },
+    { name: 'The Core', type: 'Barren', description: 'A planet stripped of its crust, now a high-tech waste disposal site and salvage yard.' },
 ];
 
 const proximaPlanets: Planet[] = [
     { name: 'Proxima b', type: 'Barren', description: 'A heavily mined world, its surface scarred by massive excavation sites.' },
     { name: 'The Quarry', type: 'Volcanic', description: 'A volcanic moon where rare earth minerals are extracted.' },
     { name: 'Dustbowl', type: 'Barren', description: 'An arid world known for its lawless mining camps and frequent dust storms.' },
+    { name: 'Proxima c', type: 'Ice Giant', description: 'A massive ice giant with a turbulent atmosphere, rumored to hide abandoned mining operations.' },
+    { name: 'Proxima d', type: 'Gas Giant', description: 'A small gas giant with faint rings, a common refueling stop for local haulers.' },
+    { name: 'Argent', type: 'Barren', description: 'A world rich in silver and other precious metals, fought over by rival mining corps.' },
+    { name: 'Cinder', type: 'Volcanic', description: 'A world of perpetual twilight and simmering lava flows, home to extremophile miners.' },
+    { name: 'Haven', type: 'Terrestrial', description: 'A small, terraformed moon with a single, heavily fortified dome city.' },
+    { name: 'Last-Stand', type: 'Barren', description: 'A fortified asteroid outpost, the last bastion of a failed corporate venture.' },
 ];
 
 const trappistPlanets: Planet[] = [
@@ -34,45 +61,83 @@ const trappistPlanets: Planet[] = [
     { name: 'The Shadow', type: 'Ice Giant', description: 'A dark, icy planet that never sees the light of its parent star.' },
     { name: 'The Echo', type: 'Gas Giant', description: 'A gas giant that emits strange, rhythmic radio signals.' },
     { name: 'The Relic', type: 'Barren', description: 'A barren rock covered in the remnants of an ancient, unknown civilization.' },
+    { name: 'TRAPPIST-1b', type: 'Volcanic', description: 'A scorched world with seas of molten rock, too close to its star for comfort.'},
+    { name: 'TRAPPIST-1c', type: 'Volcanic', description: 'A greenhouse planet with a toxic atmosphere and violent volcanic activity.'},
+    { name: 'TRAPPIST-1d', type: 'Oceanic', description: 'A water world with a single, massive ocean and deep, unexplored trenches.'},
+    { name: 'TRAPPIST-1f', type: 'Terrestrial', description: 'A temperate world with continents of red-hued vegetation.'},
+    { name: 'TRAPPIST-1g', type: 'Terrestrial', description: 'A tidally-locked world with a permanent terminator line between ice and desert.'},
+    { name: 'TRAPPIST-1h', type: 'Ice Giant', description: 'A frozen wasteland at the system\'s edge, hiding vast reserves of frozen methane.'},
+    { name: 'The Murmur', type: 'Gas Giant', description: 'A gas giant with strange atmospheric phenomena that whisper on comm channels.'},
+    { name: 'The Labyrinth', type: 'Barren', description: 'A moon with a maze of deep canyons, a haven for smugglers and fugitives.'},
 ];
 
 const alphaCentauriPlanets: Planet[] = [
     { name: 'Centauri Prime', type: 'Terrestrial', description: 'A corporate headquarters world, gleaming with chrome and ambition.' },
     { name: 'Proxima b', type: 'Barren', description: 'A tidally-locked world with one side perpetually scorched and the other frozen.' },
+    { name: 'Toliman', type: 'Terrestrial', description: 'A planet orbiting Alpha Centauri B, known for its rigid corporate culture and high-end manufacturing.' },
+    { name: 'Ceto', type: 'Oceanic', description: 'A vast water world with floating cities and advanced aquaculture.' },
+    { name: 'Erebus', type: 'Ice Giant', description: 'A dark, cold gas giant on the system\'s fringe, used for secret corporate research.' },
+    { name: 'Aion', type: 'Barren', description: 'An ancient, weathered planet with colossal, naturally-formed crystal structures.' },
 ];
 
 const tauCetiPlanets: Planet[] = [
     { name: 'New Eden', type: 'Terrestrial', description: 'Vast, genetically-engineered plains that feed a dozen systems.' },
     { name: 'Greenhouse', type: 'Oceanic', description: 'A humid ocean world covered in floating hydroponic farms.' },
+    { name: 'Harvest Moon', type: 'Terrestrial', description: 'A small moon dedicated entirely to cultivating luxury organic goods.' },
+    { name: 'The Paddock', type: 'Terrestrial', description: 'A world where genetically engineered livestock are raised on continent-sized ranches.' },
+    { name: 'Granary', type: 'Barren', description: 'A planetoid hollowed out to serve as a massive, long-term food storage facility.' },
+    { name: 'Verdant', type: 'Terrestrial', description: 'A newly terraformed world, its ecosystems still wild and untamed.' },
 ];
 
 const luytensStarPlanets: Planet[] = [
     { name: 'Luyten\'s Rock', type: 'Barren', description: 'A planet-wide factory floor, shrouded in industrial smog.' },
     { name: 'The Forge', type: 'Volcanic', description: 'A moon dedicated entirely to refining rare and volatile ores.' },
+    { name: 'Slag', type: 'Barren', description: 'A world covered in the industrial waste of a dozen systems, a paradise for salvagers.' },
+    { name: 'The Chimney', type: 'Gas Giant', description: 'A gas giant with orbital platforms that vent refined gases into space.' },
+    { name: 'Crucible', type: 'Volcanic', description: 'A super-heated planetoid used for experimental alloy smelting.' },
+    { name: 'The Grid', type: 'Terrestrial', description: 'An old orbital station, now a maze of workshops and black-market deals.' },
 ];
 
 const wolf359Planets: Planet[] = [
     { name: 'The Den', type: 'Barren', description: 'A notorious pirate haven carved into a massive asteroid.' },
     { name: 'The Graveyard', type: 'Ice Giant', description: 'A frigid gas giant whose rings are a maze of derelict ships.' },
+    { name: 'The Maw', type: 'Barren', description: 'An asteroid field so dense it resembles an accretion disk around a black hole.' },
+    { name: 'Styx', type: 'Ice Giant', description: 'A frozen world with a river of frozen nitrogen carving through its surface.' },
+    { name: 'Lethe', type: 'Gas Giant', description: 'A gas giant whose magnetic field is rumored to cause short-term memory loss.' },
+    { name: 'Tartarus', type: 'Volcanic', description: 'A volcanic moon used as a high-security penal colony.' },
 ];
 
 const epsilonEridaniPlanets: Planet[] = [
     { name: 'Epsilon Eridani b', type: 'Terrestrial', description: 'A planet-sized factory floor, shrouded in industrial smog and corporate ambition.' },
     { name: 'Eridani Prime', type: 'Terrestrial', description: 'The glittering corporate headquarters moon, a testament to wealth and power.' },
+    { name: 'Epsilon Eridani c', type: 'Gas Giant', description: 'A gas giant rich in helium-3, fueling the system\'s industrial might.' },
+    { name: 'Epsilon Eridani d', type: 'Barren', description: 'A world used for testing experimental corporate hardware.' },
+    { name: 'The Assembly', type: 'Terrestrial', description: 'A moon dedicated to the final assembly of massive starships and stations.' },
+    { name: 'The Boardroom', type: 'Terrestrial', description: 'A tiny, luxurious worldlet reserved for the system\'s corporate elite.' },
 ];
 
 const gliese581Planets: Planet[] = [
     { name: 'Gliese 581g', type: 'Barren', description: 'A barely habitable rock, its surface pockmarked by relentless mining operations.' },
     { name: 'The Belt', type: 'Barren', description: 'A series of interconnected asteroid mining stations, known for its rough inhabitants and valuable ores.' },
+    { name: 'Gliese 581c', type: 'Volcanic', description: 'A tidally locked world with one side a molten sea, the other a frozen waste.' },
+    { name: 'Gliese 581d', type: 'Oceanic', description: 'A cold ocean world with deep, methane-rich seas.' },
+    { name: 'Gliese 581e', type: 'Barren', description: 'A small, barren rock, too close to its star for any meaningful development.' },
+    { name: 'The Claim', type: 'Barren', description: 'A recently discovered moon with a massive, untapped deposit of rare minerals.' },
 ];
 
 const vegaPlanets: Planet[] = [
     { name: 'Vega Prime', type: 'Terrestrial', description: 'A dazzling city-planet, where technology and luxury converge in a radiant display.' },
     { name: 'The Lyre', type: 'Terrestrial', description: 'A moon transformed into a massive research and trade station, famed for its beautiful, harp-like design.' },
+    { name: 'Vega Minor', type: 'Terrestrial', description: 'A smaller, but equally advanced world dedicated to theoretical sciences.' },
+    { name: 'The Spire', type: 'Gas Giant', description: 'An orbital city built on a colossal spire rising from the clouds of a gas giant.' },
+    { name: 'Lyra\'s Tear', type: 'Oceanic', description: 'A world of crystalline seas and floating research labs.' },
+    { name: 'The Observatory', type: 'Barren', description: 'A moon housing the largest deep-space telescope array in the known galaxy.' },
 ];
 
 const barnardsStarPlanets: Planet[] = [
     { name: 'Barnard\'s Star b', type: 'Terrestrial', description: 'A cold but surprisingly fertile world, home to vast, domed hydroponic farms producing organic delicacies.' },
+    { name: 'Barnard\'s Star c', type: 'Ice Giant', description: 'A frigid ice giant, its surface scoured by winds of frozen ammonia.' },
+    { name: 'Barnard\'s Star d', type: 'Barren', description: 'A small, barren world used as a quiet retreat by reclusive artists.' },
 ];
 
 export const SYSTEMS: System[] = [
