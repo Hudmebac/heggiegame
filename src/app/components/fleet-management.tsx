@@ -111,9 +111,9 @@ export default function FleetManagement() {
                 </CardHeader>
                 <CardContent className='space-y-4'>
                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2" title={cargoInfo?.name}><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: Lvl {ship.cargoLevel}</span></div>
-                        <div className="flex items-center gap-2" title={hullInfo?.name}><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Hull: Lvl {ship.hullLevel}</span></div>
-                        <div className="flex items-center gap-2" title={fuelInfo?.name}><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: Lvl {ship.fuelLevel}</span></div>
+                        <div className="flex items-center gap-2" title={cargoInfo?.name}><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: Lvl {ship.cargoLevel} ({cargoInfo?.capacity}t)</span></div>
+                        <div className="flex items-center gap-2" title={hullInfo?.name}><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Hull: Lvl {ship.hullLevel} ({hullInfo?.health}HP)</span></div>
+                        <div className="flex items-center gap-2" title={fuelInfo?.name}><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: Lvl {ship.fuelLevel} ({fuelInfo?.capacity} SU)</span></div>
                         <div className="flex items-center gap-2" title={shieldInfo?.name}><ShieldCheck className="h-4 w-4 text-primary/70" /> <span>Shields: Lvl {ship.shieldLevel}</span></div>
                         <div className="flex items-center gap-2" title={weaponInfo?.name}><Crosshair className="h-4 w-4 text-primary/70" /> <span>Weapons: Lvl {ship.weaponLevel}</span></div>
                         <div className="flex items-center gap-2" title={sensorInfo?.name}><Sparkles className="h-4 w-4 text-primary/70" /> <span>Sensors: Lvl {ship.sensorLevel}</span></div>
