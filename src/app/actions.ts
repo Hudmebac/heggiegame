@@ -4,8 +4,8 @@
 import { resolvePirateEncounter } from '@/ai/flows/resolve-pirate-encounter';
 import { generateGameEvent } from '@/ai/flows/generate-game-event';
 import { scanPirateVessel } from '@/ai/flows/scan-pirate-vessel';
-import { generateQuests } from '@/ai/flows/generate-quests';
-import { generateTraders } from '@/ai/flows/generate-traders';
+import { generateQuests } from '@/lib/generation/quests';
+import { generateTraders } from '@/lib/generation/traders';
 import { generatePartnershipOffers } from '@/ai/flows/generate-partnership-offers';
 import { generateResidencePartnershipOffers } from '@/ai/flows/generate-residence-partnership-offers';
 import { generateCommercePartnershipOffers } from '@/ai/flows/generate-commerce-partnership-offers';
