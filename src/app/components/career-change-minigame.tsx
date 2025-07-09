@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -16,8 +15,7 @@ enum GameState {
   Idle,
   ShowingSequence,
   PlayerTurn,
-  Success,
-  Failed,
+  Finished,
 }
 
 const SEQUENCE_DELAY = 700;
@@ -66,14 +64,17 @@ export default function CareerChangeMinigame() {
     const newPlayerInput = [...playerInput, index];
     setPlayerInput(newPlayerInput);
 
-    if (newPlayerInput[newPlayerInput.length - 1] !== sequence[newPlayerInput.length - 1]) {
-      setCurrentGameState(GameState.Failed);
+    if (index !== sequence[newPlayerInput.length - 1]) {
+      // Wrong sequence
+      setCurrentGameState(GameState.Finished);
       return;
     }
 
     if (newPlayerInput.length === sequence.length) {
+      // Correct sequence
       if (level >= 8) {
-        setCurrentGameState(GameState.Success);
+        setLevel(prev => prev + 1); // Final level is 9, indicating 8 completed rounds.
+        setCurrentGameState(GameState.Finished);
       } else {
         setLevel(prev => prev + 1);
         setTimeout(() => startNewRound(), 500);
@@ -93,6 +94,7 @@ export default function CareerChangeMinigame() {
     setSequence([]);
     setPlayerInput([]);
     setLevel(1);
+    setSelectedNewCareer(null);
   }
 
   const handleConfirmCareerChange = () => {
@@ -103,34 +105,43 @@ export default function CareerChangeMinigame() {
   }
   
   const renderGameContent = () => {
-      if (currentGameState === GameState.Success) {
+      if (currentGameState === GameState.Finished) {
+          const completedRounds = Math.max(0, level - 1);
+          // Use the master CAREER_DATA list for tiered unlocks, based on the original order
+          const careersToOffer = CAREER_DATA.slice(0, completedRounds);
+          // Filter out the player's current career from the unlocked list
+          const unlockedCareers = careersToOffer.filter(c => c.id !== gameState?.playerStats.career);
+          
           return (
               <div className="text-center space-y-4">
                   <Check className="h-16 w-16 mx-auto text-green-500"/>
-                  <h3 className="text-xl font-bold">Aptitude Test Passed!</h3>
-                  <p className="text-muted-foreground">You have demonstrated the mental flexibility required for a new path. Please select your new career.</p>
-                  <div className="flex justify-center gap-4">
-                      <Select onValueChange={(value) => setSelectedNewCareer(value as Career)}>
-                          <SelectTrigger className="w-[280px]">
-                              <SelectValue placeholder="Select a new career" />
-                          </SelectTrigger>
-                          <SelectContent>
-                              {availableCareers.map(career => (
-                                  <SelectItem key={career.id} value={career.id}>{career.name}</SelectItem>
-                              ))}
-                          </SelectContent>
-                      </Select>
-                      <Button onClick={handleConfirmCareerChange} disabled={!selectedNewCareer}>Confirm <ArrowRight className="ml-2"/></Button>
-                  </div>
-              </div>
-          )
-      }
-       if (currentGameState === GameState.Failed) {
-          return (
-              <div className="text-center space-y-4">
-                  <h3 className="text-xl font-bold text-destructive">Sequence Incorrect</h3>
-                  <p className="text-muted-foreground">Your focus wavered. Please try again to prove your aptitude.</p>
-                  <Button onClick={handleRetry}>Retry Test</Button>
+                  <h3 className="text-xl font-bold">Aptitude Test Finished!</h3>
+                  <p className="text-muted-foreground">
+                      You successfully completed {completedRounds} round(s). 
+                      {unlockedCareers.length > 0 
+                          ? " Please select a new career from the ones you have unlocked." 
+                          : " Please try again to unlock a new career path."
+                      }
+                  </p>
+                  {unlockedCareers.length > 0 ? (
+                      <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+                          <Select onValueChange={(value) => setSelectedNewCareer(value as Career)}>
+                              <SelectTrigger className="w-full sm:w-[280px]">
+                                  <SelectValue placeholder="Select an unlocked career" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {unlockedCareers.map(career => (
+                                      <SelectItem key={career.id} value={career.id}>{career.name}</SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                          <Button onClick={handleConfirmCareerChange} disabled={!selectedNewCareer} className="w-full sm:w-auto">
+                              Confirm <ArrowRight className="ml-2"/>
+                          </Button>
+                      </div>
+                  ) : (
+                      <Button onClick={handleRetry}>Retry Test</Button>
+                  )}
               </div>
           )
       }
@@ -156,7 +167,7 @@ export default function CareerChangeMinigame() {
                             disabled={currentGameState !== GameState.PlayerTurn}
                         >
                             <Icon className="h-8 w-8 text-muted-foreground group-hover:text-primary" />
-                            <span className="text-xs">{career.name}</span>
+                            <span className="text-xs text-center">{career.name}</span>
                         </Button>
                     );
                   })}
