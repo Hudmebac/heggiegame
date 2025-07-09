@@ -2,10 +2,10 @@
 'use client';
 import { useState } from 'react';
 import GalaxyMap from "@/app/components/galaxy-map";
+import PlanetMap from "@/app/components/planet-map";
 import { useGame } from "@/app/components/game-provider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon, Send, Route } from "lucide-react";
+import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon } from "lucide-react";
 import { PLANET_TYPE_MODIFIERS } from "@/lib/utils";
 import OpenRouteDialog from '@/app/components/open-route-dialog';
 
@@ -87,27 +87,15 @@ export default function GalaxyPage() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline text-lg flex items-center gap-2"><PlanetIcon className="text-primary" /> Planetary Bodies</CardTitle>
-                            <CardDescription>Planets and significant moons in the {currentSystemInfo.name} system.</CardDescription>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2"><PlanetIcon className="text-primary" /> System Map: {currentSystemInfo.name}</CardTitle>
+                            <CardDescription>Click on a planet to travel within the system.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-3">
-                                {currentSystemInfo.planets.map(planet => (
-                                    <div key={planet.name} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                        <div>
-                                            <h4 className="font-semibold">{planet.name}</h4>
-                                            <p className="text-xs text-muted-foreground">{planet.type}</p>
-                                        </div>
-                                        {gameState.currentPlanet === planet.name ? (
-                                            <Button variant="outline" disabled>Current Location</Button>
-                                        ) : (
-                                            <Button variant="ghost" size="sm" onClick={() => handlePlanetTravel(planet.name)}>
-                                                <Send className="mr-2 h-4 w-4" /> Travel
-                                            </Button>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                            <PlanetMap 
+                                planets={currentSystemInfo.planets}
+                                currentPlanet={gameState.currentPlanet}
+                                onPlanetTravel={handlePlanetTravel}
+                            />
                         </CardContent>
                     </Card>
                     {currentPlanetInfo && (
