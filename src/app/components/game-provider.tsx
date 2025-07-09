@@ -142,16 +142,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...officialLogic,
     };
     
-    const showLoader = !isClient;
-    const showSetup = isClient && !gameState;
+    const showLoader = !isClient || isGeneratingNewGame;
+    const showSetup = isClient && !isGeneratingNewGame && !gameState;
     const showGameOver = isClient && gameState && gameState.isGameOver;
     const showGame = isClient && gameState && !gameState.isGameOver;
 
     return (
         <GameContext.Provider value={contextValue}>
             <div style={{ display: showLoader ? 'block' : 'none' }}>
-                <div className="flex h-screen w-full items-center justify-center bg-background">
+                <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center space-y-4">
                     <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                    {isGeneratingNewGame && (
+                        <>
+                            <h2 className="text-2xl font-headline text-primary">Generating Your Galaxy...</h2>
+                            <p className="text-muted-foreground">Calibrating star charts and preparing your new career.</p>
+                        </>
+                    )}
                 </div>
             </div>
             <div style={{ display: showSetup ? 'block' : 'none' }}>
@@ -161,7 +167,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                 <GameOver />
             </div>
             <div style={{ display: showGame ? 'block' : 'none' }}>
-                <AppLayout>{children}</AppLayout>
+                {gameState && <AppLayout>{children}</AppLayout>}
             </div>
             <Toaster />
         </GameContext.Provider>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -11,18 +10,14 @@ import { Button } from '@/components/ui/button';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { gameState } = useGame();
 
-  // The parent component (GameProvider) now ensures gameState is valid here.
-  // This component's only job is to lay out the active game.
-  if (!gameState || gameState.isGameOver) {
-    // This should not be reached if the provider is structured correctly,
-    // but it's a good safeguard.
-    return null; 
-  }
-
+  // The parent GameProvider is responsible for only rendering AppLayout when gameState is valid.
+  // We can therefore safely assume gameState is not null here.
+  // This removes the conditional return that was causing the hook rendering error.
+  
   return (
     <div className="grid lg:grid-cols-[280px_1fr] h-screen bg-background text-foreground font-body antialiased">
       <aside className="hidden lg:block border-r bg-card/50">
-        <Header playerStats={gameState.playerStats} />
+        <Header playerStats={gameState!.playerStats} />
       </aside>
       
       <div className="flex flex-col">
@@ -43,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <SheetTitle>Navigation Menu</SheetTitle>
                 <SheetDescription>Main navigation links and player status.</SheetDescription>
               </SheetHeader>
-              <Header playerStats={gameState.playerStats} />
+              <Header playerStats={gameState!.playerStats} />
             </SheetContent>
           </Sheet>
         </header>
