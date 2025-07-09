@@ -62,8 +62,26 @@ import {
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
   try {
     const validatedInput = SimulateMarketPricesInputSchema.parse(input);
-    const result = await simulateMarketPrices(validatedInput);
-    return result;
+    
+    const retries = 3;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const result = await simulateMarketPrices(validatedInput);
+        return result;
+      } catch (error: any) {
+        if (error.message && error.message.includes('503 Service Unavailable') && i < retries - 1) {
+          console.log(`Market simulation attempt ${i + 1} failed. Retrying...`);
+          await new Promise(res => setTimeout(res, 1000 * Math.pow(2, i))); // exponential backoff
+        } else {
+          // Re-throw if it's not a 503 or it's the last retry
+          throw error;
+        }
+      }
+    }
+    // This line is technically unreachable if the loop always throws on the last iteration.
+    // Adding it to satisfy TypeScript and as a fallback.
+    throw new Error('Market simulation failed after multiple retries.');
+
   } catch (error) {
     console.error('Error running market simulation:', error);
     if (error instanceof z.ZodError) {
