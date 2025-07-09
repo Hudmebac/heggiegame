@@ -56,6 +56,24 @@ const wolf359Planets: Planet[] = [
     { name: 'The Graveyard', type: 'Ice Giant', description: 'A frigid gas giant whose rings are a maze of derelict ships.' },
 ];
 
+const epsilonEridaniPlanets: Planet[] = [
+    { name: 'Epsilon Eridani b', type: 'Terrestrial', description: 'A planet-sized factory floor, shrouded in industrial smog and corporate ambition.' },
+    { name: 'Eridani Prime', type: 'Terrestrial', description: 'The glittering corporate headquarters moon, a testament to wealth and power.' },
+];
+
+const gliese581Planets: Planet[] = [
+    { name: 'Gliese 581g', type: 'Barren', description: 'A barely habitable rock, its surface pockmarked by relentless mining operations.' },
+    { name: 'The Belt', type: 'Barren', description: 'A series of interconnected asteroid mining stations, known for its rough inhabitants and valuable ores.' },
+];
+
+const vegaPlanets: Planet[] = [
+    { name: 'Vega Prime', type: 'Terrestrial', description: 'A dazzling city-planet, where technology and luxury converge in a radiant display.' },
+    { name: 'The Lyre', type: 'Terrestrial', description: 'A moon transformed into a massive research and trade station, famed for its beautiful, harp-like design.' },
+];
+
+const barnardsStarPlanets: Planet[] = [
+    { name: 'Barnard\'s Star b', type: 'Terrestrial', description: 'A cold but surprisingly fertile world, home to vast, domed hydroponic farms producing organic delicacies.' },
+];
 
 export const SYSTEMS: System[] = [
     { name: 'Sol', x: 100, y: 100, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World', description: 'The cradle of humanity, a bustling hub of industry and political power. Heavily patrolled and regulated, Sol is the safest but most expensive system to operate in.', planets: solPlanets },
@@ -67,6 +85,10 @@ export const SYSTEMS: System[] = [
     { name: 'Tau Ceti', x: 110, y: 190, security: 'Medium', economy: 'Agricultural', volatility: 0.4, zoneType: 'Frontier Outpost', description: 'A breadbasket system known for its independent spirit and robust organic exports.', planets: tauCetiPlanets },
     { name: 'Luyten\'s Star', x: 60, y: 75, security: 'Low', economy: 'Refinery', volatility: 0.6, zoneType: 'Industrial', description: 'A gritty, hard-working system that refines the raw materials for the core worlds.', planets: luytensStarPlanets },
     { name: 'Wolf 359', x: 190, y: 195, security: 'Anarchy', economy: 'Extraction', volatility: 0.9, zoneType: 'Ancient Ruins', description: 'A notorious pirate stronghold. Enter at your own peril.', planets: wolf359Planets },
+    { name: 'Epsilon Eridani', x: 40, y: 50, security: 'Medium', economy: 'Industrial', volatility: 0.4, zoneType: 'Corporate Zone', description: 'A system dominated by corporate-run shipyards and manufacturing plants, where efficiency is king.', planets: epsilonEridaniPlanets },
+    { name: 'Gliese 581', x: 210, y: 180, security: 'Low', economy: 'Extraction', volatility: 0.7, zoneType: 'Mining Colony', description: 'A wild frontier system known for its rich asteroid belts and the lawless outposts that cling to them.', planets: gliese581Planets },
+    { name: 'Vega', x: 200, y: 20, security: 'High', economy: 'High-Tech', volatility: 0.1, zoneType: 'Trade Hub', description: 'A bright, vibrant system famous for its advanced research facilities and luxurious trade stations.', planets: vegaPlanets },
+    { name: 'Barnard\'s Star', x: 80, y: 120, security: 'Medium', economy: 'Agricultural', volatility: 0.3, zoneType: 'Frontier Outpost', description: 'An old, quiet system with a reputation for producing the finest organic foodstuffs in the sector.', planets: barnardsStarPlanets },
 ];
 
 export const ROUTES: Route[] = [
@@ -78,4 +100,11 @@ export const ROUTES: Route[] = [
     { from: 'Kepler-186f', to: 'Tau Ceti' },
     { from: 'Proxima Centauri', to: 'Wolf 359' },
     { from: 'Tau Ceti', to: 'TRAPPIST-1' },
+    { from: 'Epsilon Eridani', to: 'Luyten\'s Star' },
+    { from: 'Sol', to: 'Barnard\'s Star' },
+    { from: 'Barnard\'s Star', to: 'Kepler-186f' },
+    { from: 'Vega', to: 'Alpha Centauri' },
+    { from: 'Vega', to: 'Sirius' },
+    { from: 'Gliese 581', to: 'Wolf 359' },
+    { from: 'Gliese 581', to: 'Proxima Centauri' },
 ];
