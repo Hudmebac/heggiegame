@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -129,9 +130,9 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
                   </CardTitle>
                   <CardDescription>Buy and sell goods from across the galaxy. Prices fluctuate based on supply and demand.</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Select value={categoryFilter} onValueChange={handleCategoryChange}>
-                      <SelectTrigger className="w-[180px] bg-background">
+                      <SelectTrigger className="w-full sm:w-[180px] bg-background">
                         <SelectValue placeholder="Filter by category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -145,7 +146,7 @@ export default function TradingInterface({ marketItems, inventory, onInitiateTra
                       <Input
                           type="search"
                           placeholder="Search commodities..."
-                          className="pl-8 sm:w-[200px] md:w-[250px] bg-background"
+                          className="pl-8 w-full sm:w-[200px] md:w-[250px] bg-background"
                           value={searchTerm}
                           onChange={handleSearchChange}
                       />

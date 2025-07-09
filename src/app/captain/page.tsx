@@ -265,35 +265,37 @@ export default function CaptainPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Asset</TableHead>
-                                <TableHead className="text-right">Level</TableHead>
-                                <TableHead className="text-right">Bots</TableHead>
-                                <TableHead className="text-right">Income/sec</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {portfolio.map(asset => (
-                                <TableRow key={asset.name}>
-                                    <TableCell className="font-medium flex items-center gap-2">
-                                        <asset.icon className="h-4 w-4 text-muted-foreground" />
-                                        {asset.name}
-                                    </TableCell>
-                                    <TableCell className="text-right font-mono">{asset.level}</TableCell>
-                                    <TableCell className="text-right font-mono">{asset.bots}</TableCell>
-                                    <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Asset</TableHead>
+                                    <TableHead className="text-right">Level</TableHead>
+                                    <TableHead className="text-right">Bots</TableHead>
+                                    <TableHead className="text-right">Income/sec</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                        <TableFooter>
-                            <TableRow>
-                                <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
-                                <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
-                            </TableRow>
-                        </TableFooter>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {portfolio.map(asset => (
+                                    <TableRow key={asset.name}>
+                                        <TableCell className="font-medium flex items-center gap-2">
+                                            <asset.icon className="h-4 w-4 text-muted-foreground" />
+                                            {asset.name}
+                                        </TableCell>
+                                        <TableCell className="text-right font-mono">{asset.level}</TableCell>
+                                        <TableCell className="text-right font-mono">{asset.bots}</TableCell>
+                                        <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
+                                    <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

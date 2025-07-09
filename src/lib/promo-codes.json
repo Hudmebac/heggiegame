@@ -1,11 +1,41 @@
 {
-  "HEGGIEBANK": {
-    "tokens": 1000000000
+  "HEGGIEBANKMEGA": {
+    "tokens": 1000000000000
   },
   "GALAXYRICHES": {
-      "tokens": 500000000
+    "tokens": 500000000
   },
   "STARTERBOOST": {
-      "tokens": 10000000
+    "tokens": 100000000
+  },
+  "COSMICCREDIT": {
+    "tokens": 750000000
+  },
+  "ULTRABANKROLL": {
+    "tokens": 100000000000
+  },
+  "TOKENSTORM": {
+    "tokens": 1500000000
+  },
+  "HEGGIEHERO": {
+    "tokens": 123456789000000
+  },
+  "INFINITEVAULT": {
+    "tokens": 99999999999999999999999999999999999999
+  },
+  "BOOSTMODE": {
+    "tokens": 250000000
+  },
+  "LEGENDARYDROP": {
+    "tokens": 100000000000
+  },
+  "FIRSTMILLION": {
+    "tokens": 1000000
+  },
+  "RESTARTREWARD": {
+    "tokens": 5000000000
+  },
+  "NEBULABONUS": {
+    "tokens": 8888888888888
   }
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -71,9 +72,9 @@ export default function ItemCodex() {
                   <CardTitle className="font-headline text-lg">Commodities Database</CardTitle>
                   <CardDescription>A comprehensive list of all known goods in the galaxy.</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                    <Select value={gradeFilter} onValueChange={handleFilterChange(setGradeFilter)}>
-                      <SelectTrigger className="w-[150px] bg-background">
+                      <SelectTrigger className="w-full sm:w-[150px] bg-background">
                         <SelectValue placeholder="Filter by grade" />
                       </SelectTrigger>
                       <SelectContent>
@@ -83,7 +84,7 @@ export default function ItemCodex() {
                       </SelectContent>
                   </Select>
                   <Select value={categoryFilter} onValueChange={handleFilterChange(setCategoryFilter)}>
-                      <SelectTrigger className="w-[180px] bg-background">
+                      <SelectTrigger className="w-full sm:w-[180px] bg-background">
                         <SelectValue placeholder="Filter by category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -97,7 +98,7 @@ export default function ItemCodex() {
                       <Input
                           type="search"
                           placeholder="Search commodities..."
-                          className="pl-8 sm:w-[200px] md:w-[250px] bg-background"
+                          className="pl-8 w-full sm:w-[200px] md:w-[250px] bg-background"
                           value={searchTerm}
                           onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
                       />
