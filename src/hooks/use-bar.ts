@@ -230,7 +230,7 @@ export function useBar(
 
         const totalPartnerShare = (prev.playerStats.barContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.barLevel;
-        const incomePerSecond = (prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
+        const incomePerSecond = Math.round((prev.playerStats.autoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('bar', { ...prev, playerStats: playerStatsWithIncome });

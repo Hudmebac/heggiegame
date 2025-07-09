@@ -120,10 +120,14 @@ export function useBank(
     setGameState(prev => {
         if (!prev) return null;
         const { playerStats } = prev;
-        const zoneType = prev.systems.find(s => s.name === prev.currentSystem)?.zoneType;
+        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
+        const zoneType = currentSystem?.zoneType;
         const theme = (zoneType && bankThemes[zoneType]) ? bankThemes[zoneType] : bankThemes['Default'];
+        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
+
         const totalPartnerShare = (playerStats.bankContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
-        const income = Math.round((theme.baseIncome * playerStats.bankLevel) * (1 - totalPartnerShare));
+        const income = Math.round((theme.baseIncome * playerStats.bankLevel) * (1 - totalPartnerShare) * planetModifier);
 
         return {
             ...prev,
@@ -386,16 +390,20 @@ export function useBank(
         setGameState(prev => {
             if (!prev || (prev.playerStats.bankAutoClickerBots || 0) === 0) return prev;
             const { playerStats } = prev;
-            const zoneType = prev.systems.find(s => s.name === prev.currentSystem)?.zoneType;
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
+            const zoneType = currentSystem?.zoneType;
             const theme = (zoneType && bankThemes[zoneType]) ? bankThemes[zoneType] : bankThemes['Default'];
+            const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
             const totalPartnerShare = (playerStats.bankContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
-            const incomePerSecond = (playerStats.bankAutoClickerBots || 0) * (theme.baseIncome * playerStats.bankLevel) * (1 - totalPartnerShare);
+            const incomePerClick = theme.baseIncome * playerStats.bankLevel;
+            const incomePerSecond = Math.round((playerStats.bankAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
 
             return { ...prev, playerStats: { ...playerStats, netWorth: playerStats.netWorth + incomePerSecond }};
         });
     }, 1000);
     return () => clearInterval(interval);
-  }, [gameState?.playerStats.bankAutoClickerBots, setGameState]);
+  }, [gameState?.playerStats.bankAutoClickerBots, gameState?.currentSystem, gameState?.currentPlanet, setGameState]);
 
 
   return {

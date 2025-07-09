@@ -228,7 +228,7 @@ export function useConstruction(
 
         const totalPartnerShare = (prev.playerStats.constructionContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.constructionLevel;
-        const incomePerSecond = (prev.playerStats.constructionAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
+        const incomePerSecond = Math.round((prev.playerStats.constructionAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('construction', { ...prev, playerStats: playerStatsWithIncome });

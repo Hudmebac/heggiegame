@@ -202,7 +202,7 @@ export function useTravel(
                     const newCargoValue = calculateCargoValue(prev.inventory, newMarketItems);
                     newPlayerStats.cargoValueHistory = [...(prev.playerStats.cargoValueHistory || [0]), newCargoValue].slice(-20);
                     
-                    const contractKeys: Array<keyof PlayerStats> = ['barContract', 'residenceContract', 'commerceContract', 'industryContract', 'constructionContract', 'recreationContract'];
+                    const contractKeys: Array<keyof PlayerStats> = ['barContract', 'residenceContract', 'commerceContract', 'industryContract', 'constructionContract', 'recreationContract', 'bankContract'];
                     
                     contractKeys.forEach(key => {
                         const contract = newPlayerStats[key] as BarContract | undefined;

@@ -1,13 +1,13 @@
 
 'use client';
 import { useState } from 'react';
-import GalaxyMap from "@/app/components/galaxy-map";
+import GalaxyMap from "@/components/galaxy-map";
 import { useGame } from "@/app/components/game-provider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon, Send, Route } from "lucide-react";
 import { PLANET_TYPE_MODIFIERS } from "@/lib/utils";
-import OpenRouteDialog from '@/app/components/open-route-dialog';
+import OpenRouteDialog from '@/components/open-route-dialog';
 
 export default function GalaxyPage() {
     const { gameState, handleInitiateTravel, handlePlanetTravel } = useGame();

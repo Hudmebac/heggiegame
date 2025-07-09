@@ -228,7 +228,7 @@ export function useIndustry(
 
         const totalPartnerShare = (prev.playerStats.industryContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.industryLevel;
-        const incomePerSecond = (prev.playerStats.industryAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
+        const incomePerSecond = Math.round((prev.playerStats.industryAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('industry', { ...prev, playerStats: playerStatsWithIncome });

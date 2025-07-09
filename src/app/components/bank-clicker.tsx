@@ -63,7 +63,7 @@ export default function BankClicker() {
                 <CardHeader>
                     <CardTitle className="font-headline text-2xl text-primary flex items-center gap-2">
                         <Landmark className="h-8 w-8" />
-                        {theme.name(gameState.currentPlanet)}
+                        {theme.name(gameState.currentPlanet || '')}
                     </CardTitle>
                     <CardDescription className="text-muted-foreground">
                         {theme.description}

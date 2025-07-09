@@ -228,7 +228,7 @@ export function useRecreation(
 
         const totalPartnerShare = (prev.playerStats.recreationContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
-        const incomePerSecond = (prev.playerStats.recreationAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
+        const incomePerSecond = Math.round((prev.playerStats.recreationAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('recreation', { ...prev, playerStats: playerStatsWithIncome });

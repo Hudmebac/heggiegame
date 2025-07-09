@@ -232,7 +232,7 @@ export function useResidence(
 
         const totalPartnerShare = (prev.playerStats.residenceContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const incomePerClick = theme.baseIncome * prev.playerStats.residenceLevel;
-        const incomePerSecond = (prev.playerStats.residenceAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier;
+        const incomePerSecond = Math.round((prev.playerStats.residenceAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
 
         const playerStatsWithIncome = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + incomePerSecond };
         const [newState] = updateObjectiveProgress('residence', { ...prev, playerStats: playerStatsWithIncome });

@@ -103,7 +103,7 @@ export default function BarClicker() {
                 <CardHeader>
                     <CardTitle className="font-headline text-2xl text-primary flex items-center gap-2">
                         <Martini className="h-8 w-8" />
-                        {theme.name(gameState.currentPlanet)}
+                        {theme.name(gameState.currentPlanet || '')}
                     </CardTitle>
                     <CardDescription className="text-muted-foreground">
                         {theme.description}
@@ -115,14 +115,14 @@ export default function BarClicker() {
                             onClick={handleClick}
                             className="w-full h-24 text-xl font-bold bg-black border-2 border-primary text-primary hover:bg-primary/10 hover:shadow-[0_0_25px] hover:shadow-primary/70 transition-all duration-300 relative overflow-hidden animate-pulse-glow"
                         >
-                            {theme.buttonText} (+{incomePerClick}¢)
+                            {theme.buttonText} (+{incomePerClick.toLocaleString()}¢)
                             {feedbackMessages.map(msg => (
                                 <span 
                                     key={msg.id}
                                     className="absolute font-mono text-lg text-amber-300 animate-ping-up"
                                     style={{ left: `${msg.x}px`, top: `${msg.y}px`, pointerEvents: 'none' }}
                                 >
-                                    +{msg.amount}¢
+                                    +{msg.amount.toLocaleString()}¢
                                 </span>
                             ))}
                         </Button>
@@ -154,7 +154,7 @@ export default function BarClicker() {
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
-                            <span className="font-mono text-amber-300">{incomePerClick}¢</span>
+                            <span className="font-mono text-amber-300">{incomePerClick.toLocaleString()}¢</span>
                         </div>
                         <Button className="w-full" onClick={handleUpgradeBar} disabled={!canAffordUpgrade}>
                             {isBarLevelMaxed ? 'Max Bar Level' : `Upgrade Bar (${upgradeCost.toLocaleString()}¢)`}
