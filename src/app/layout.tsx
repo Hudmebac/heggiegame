@@ -21,11 +21,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} dark`} suppressHydrationWarning>
+    <html lang="en" className={`${spaceGrotesk.variable} dark`}>
       <head>
         <link rel="icon" href="/images/favicon/favicon.ico" sizes="any" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
           <GameProvider>
             {children}
           </GameProvider>
