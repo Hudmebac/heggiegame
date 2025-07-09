@@ -52,6 +52,8 @@ type GameContextType = {
     isGeneratingNewGame: boolean;
     startNewGame: (difficulty: Difficulty, career: Career) => void;
     handleRedeemPromoCode: (code: string) => Promise<void>;
+    loadGameStateFromKey: (key: string) => boolean;
+    generateShareKey: () => string | null;
 } & ReturnType<typeof useQuestsType> &
   ReturnType<typeof usePlayerActionsType> &
   ReturnType<typeof useEncountersType> &
@@ -84,7 +86,7 @@ export const useGame = () => {
 };
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-    const { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame } = useGameState();
+    const { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey } = useGameState();
     
     // Core Logic Hooks
     const { updateObjectiveProgress, ...questLogic } = useQuests(gameState, setGameState);
@@ -116,6 +118,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         isClient,
         isGeneratingNewGame,
         startNewGame,
+        loadGameStateFromKey,
+        generateShareKey,
         updateObjectiveProgress,
         ...questLogic,
         ...playerActions,

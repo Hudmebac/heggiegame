@@ -13,6 +13,7 @@ import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
+import pako from 'pako';
 
 
 function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
@@ -232,9 +233,57 @@ export function useGameState() {
         });
     }, [calculateMarketDataForSystem, toast]);
 
+    const loadGameStateFromKey = useCallback((key: string): boolean => {
+        try {
+            const binaryString = atob(key);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const decodedString = pako.inflate(bytes, { to: 'string' });
+            const newState = JSON.parse(decodedString);
+            
+            // Basic validation
+            if (newState && newState.playerStats && newState.currentSystem) {
+                localStorage.setItem('heggieGameState', decodedString);
+                setGameState(newState);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Failed to load state from key", error);
+            return false;
+        }
+    }, [setGameState]);
+
+    const generateShareKey = useCallback((): string | null => {
+        if (!gameState) return null;
+        try {
+            const jsonString = JSON.stringify(gameState);
+            const compressed = pako.deflate(jsonString);
+            
+            let binaryString = '';
+            const len = compressed.byteLength;
+            for (let i = 0; i < len; i++) {
+                binaryString += String.fromCharCode(compressed[i]);
+            }
+            const key = btoa(binaryString);
+            return key;
+        } catch (error) {
+            console.error("Failed to generate share key", error);
+            return null;
+        }
+    }, [gameState]);
+
+
     // Load game state on mount
     useEffect(() => {
         setIsClient(true);
+        // Only run loading logic if we are not on the special /load page
+        if (window.location.pathname.startsWith('/load/')) {
+            return;
+        }
+
         let savedStateJSON;
         try {
             savedStateJSON = localStorage.getItem('heggieGameState');
@@ -376,5 +425,5 @@ export function useGameState() {
         return () => clearInterval(financialInterval);
     }, [setGameState, toast]);
     
-    return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame };
+    return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey };
 }
