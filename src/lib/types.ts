@@ -212,6 +212,7 @@ export interface PlayerStats {
   warehouses: Warehouse[];
   usedPromoCodes: string[];
   negotiationCooldowns: Record<string, number>;
+  lastFacebookShare?: number;
   cargoValueHistory?: number[];
 
   fleet: PlayerShip[];

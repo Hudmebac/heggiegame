@@ -618,6 +618,46 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleShareToFacebook = useCallback(() => {
+        setGameState(prev => {
+            if (!prev) return null;
+
+            const now = Date.now();
+            const lastShare = prev.playerStats.lastFacebookShare || 0;
+            const cooldown = 5 * 60 * 1000; // 5 minutes
+
+            if (now - lastShare < cooldown) {
+                const remaining = Math.ceil((cooldown - (now - lastShare)) / 1000);
+                setTimeout(() => toast({
+                    variant: "destructive",
+                    title: "Share Cooldown",
+                    description: `You can share again in ${Math.floor(remaining / 60)}m ${remaining % 60}s.`
+                }), 0);
+                return prev;
+            }
+
+            const reward = 1000000;
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + reward,
+                lastFacebookShare: now,
+            };
+
+            const appUrl = 'https://heggiegame.netlify.app/';
+            const quote = `I am playing HEGGIE: Space Game! My Current Net Worth is ${newPlayerStats.netWorth.toLocaleString()}¢ and my career is ${newPlayerStats.career}. Come start your own adventure!`;
+            const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent(quote)}`;
+            
+            window.open(facebookShareUrl, '_blank', 'noopener,noreferrer');
+
+            setTimeout(() => toast({
+                title: "Thanks for sharing!",
+                description: `You've received ${reward.toLocaleString()} tokens!`
+            }), 0);
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -641,5 +681,6 @@ export function usePlayerActions(
         handlePayToChangeCareer,
         handleChangeCareer,
         handleJoinFaction,
+        handleShareToFacebook,
     };
 }

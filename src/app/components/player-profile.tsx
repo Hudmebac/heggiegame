@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
 import type { PlayerStats } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Loader2, User, Shuffle, Image as ImageIcon, Check, RefreshCw, Share2 } from 'lucide-react';
+import { Loader2, User, Shuffle, Image as ImageIcon, Check, RefreshCw, Share2, Facebook } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ interface PlayerProfileProps {
   isGeneratingBio: boolean;
   onNameChange: (name: string) => void;
   onResetGame: () => void;
+  onShareToFacebook: () => void;
 }
 
 // These paths point to files in the `public` directory.
@@ -68,13 +70,17 @@ const predefinedAvatars = [
     '/images/avatars/avatar_40.png',
    ];
 
-export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange, onResetGame }: PlayerProfileProps) {
+export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGeneratingBio, onNameChange, onResetGame, onShareToFacebook }: PlayerProfileProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(stats.name);
   const [customAvatarUrl, setCustomAvatarUrl] = useState('');
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const lastShare = stats.lastFacebookShare || 0;
+  const cooldown = 5 * 60 * 1000; // 5 minutes in ms
+  const isOnCooldown = (Date.now() - lastShare) < cooldown;
   
   const handleNameSave = () => {
       onNameChange(name);
@@ -203,13 +209,19 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
               </Button>
           </div>
         </CardContent>
-        <CardFooter className="p-6 mt-auto border-t border-border/50 grid grid-cols-2 gap-4">
-            <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
-                <Share2 className="mr-2" /> Sync &amp; Share
-            </Button>
+        <CardFooter className="p-6 mt-auto border-t border-border/50 grid grid-cols-1 gap-2">
+             <div className="grid grid-cols-2 gap-2">
+                <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
+                    <Share2 className="mr-2" /> Sync & Share
+                </Button>
+                <Button onClick={onShareToFacebook} disabled={isOnCooldown}>
+                    <Facebook className="mr-2" />
+                    {isOnCooldown ? 'On Cooldown' : 'Share for 1M Tokens'}
+                </Button>
+             </div>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
+                    <Button variant="destructive" className="w-full">
                         <RefreshCw className="mr-2 h-4 w-4" /> Start Over
                     </Button>
                 </AlertDialogTrigger>

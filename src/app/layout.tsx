@@ -13,6 +13,21 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'HEGGIE: Hegg Interstellar Exchange',
   description: 'A space trading game.',
+  openGraph: {
+    title: 'HEGGIE: Hegg Interstellar Exchange',
+    description: 'A space trading game where you build and manage your own intergalactic enterprise.',
+    url: 'https://heggiegame.netlify.app/',
+    siteName: 'HEGGIE',
+    images: [
+      {
+        url: 'https://heggiegame.netlify.app/images/blueprints/sclassBlueprint.png',
+        width: 956,
+        height: 669,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({

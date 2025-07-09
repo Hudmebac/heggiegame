@@ -45,7 +45,7 @@ function getReputationTier(score: number) {
 
 
 export default function CaptainPage() {
-  const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handlePurchaseInsurance } = useGame();
+  const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handlePurchaseInsurance, handleShareToFacebook } = useGame();
   const [isCareerChangeOpen, setIsCareerChangeOpen] = useState(false);
   const [isFactionDialogOpen, setIsFactionDialogOpen] = useState(false);
 
@@ -142,6 +142,7 @@ export default function CaptainPage() {
                     isGeneratingBio={isGeneratingBio}
                     onNameChange={setPlayerName}
                     onResetGame={handleResetGame}
+                    onShareToFacebook={handleShareToFacebook}
                 />
             </div>
             <div className="lg:col-span-2 space-y-6">
