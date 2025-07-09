@@ -205,6 +205,16 @@ const aldebaranPlanets: Planet[] = [
     { name: 'The Eye', type: 'Volcanic', description: 'A volcanic moon that glows a brilliant red in the sky of Aldebaran Prime.' },
 ];
 
+const skyPlanets: Planet[] = [
+    { name: 'Broadband', type: 'Terrestrial', description: 'A planet-wide network hub, where data flows faster than light.'},
+    { name: 'TV', type: 'Terrestrial', description: 'The entertainment capital of the sector, broadcasting content to a thousand worlds.' },
+    { name: 'Mobile', type: 'Terrestrial', description: 'A world of constant communication, where everyone is connected.' },
+    { name: 'Protect', type: 'Terrestrial', description: 'A fortress world dedicated to cybersecurity and network defense.' },
+    { name: 'Glass', type: 'Barren', description: 'A world covered in silicon plains, harvested to create fiber-optic cables and starship canopies.' },
+    { name: 'Stream', type: 'Oceanic', description: 'A liquid data-coolant world, its oceans shimmering with discarded information.' },
+    { name: 'Air', type: 'Gas Giant', description: 'A massive gas giant used for atmospheric data processing and signal boosting.' },
+];
+
 
 export const SYSTEMS: System[] = [
     { name: 'Sol', x: 100, y: 100, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World', faction: 'Federation of Sol', description: 'The cradle of humanity, a bustling hub of industry and political power. Heavily patrolled and regulated, Sol is the safest but most expensive system to operate in.', planets: solPlanets },
@@ -233,6 +243,7 @@ export const SYSTEMS: System[] = [
     { name: 'Pollux', x: 280, y: 20, security: 'Low', economy: 'Refinery', volatility: 0.6, zoneType: 'Industrial', faction: 'Independent Miners Guild', description: 'A system basking in the orange glow of its giant star, specializing in the refining of rare gases and stellar materials.', planets: polluxPlanets },
     { name: 'Arcturus', x: 220, y: -10, security: 'High', economy: 'Trade Hub', volatility: 0.2, zoneType: 'Diplomatic Station', faction: 'Veritas Concord', description: 'A major navigational waypoint and diplomatic hub, Arcturus is a crossroads for the entire galactic arm.', planets: arcturusPlanets },
     { name: 'Aldebaran', x: 180, y: -20, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World', faction: 'Veritas Concord', description: 'The "Eye of the Bull," a massive orange giant and a cornerstone of core world industry and finance.', planets: aldebaranPlanets },
+    { name: 'Sky', x: 5, y: 5, security: 'High', economy: 'High-Tech', volatility: 0.1, zoneType: 'Corporate Zone', faction: 'Corporate Hegemony', description: 'The Sky system is a technological marvel, a corporate-controlled network where data flows as freely as credits. Each planet is a specialized hub in a vast communications and entertainment empire.', planets: skyPlanets },
 ];
 
 export const ROUTES: Route[] = [
@@ -265,4 +276,5 @@ export const ROUTES: Route[] = [
     { from: 'Pollux', to: 'Arcturus' },
     { from: 'Arcturus', to: 'Aldebaran' },
     { from: 'Aldebaran', to: 'Vega' },
+    { from: 'Sol', to: 'Sky' },
 ];
