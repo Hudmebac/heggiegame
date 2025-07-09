@@ -1,13 +1,14 @@
 
+
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
-import type { GameState, System, MarketItem, Pirate, ItemCategory, SystemEconomy, PlayerStats, BarContract } from '@/lib/types';
+import type { GameState, System, MarketItem, Pirate, ItemCategory, SystemEconomy, PlayerStats, BarContract, ItemRarity } from '@/lib/types';
 import { runMarketSimulation, runPirateScan, runEventGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
-import { calculateCargoValue } from '@/lib/utils';
+import { calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
 
 function generateRandomPirate(hasNavigator: boolean): Pirate {
     const weightedThreats: Pirate['threatLevel'][] = hasNavigator
@@ -21,25 +22,15 @@ function generateRandomPirate(hasNavigator: boolean): Pirate {
     };
 }
 
-const ECONOMY_MULTIPLIERS: Record<ItemCategory, Record<SystemEconomy, number>> = {
-    'Biological': { 'Agricultural': 0.7, 'High-Tech': 1.2, 'Industrial': 1.3, 'Extraction': 1.1, 'Refinery': 1.2 },
-    'Industrial': { 'Agricultural': 1.3, 'High-Tech': 1.1, 'Industrial': 0.7, 'Extraction': 1.2, 'Refinery': 0.8 },
-    'Pleasure': { 'Agricultural': 1.1, 'High-Tech': 1.2, 'Industrial': 1.1, 'Extraction': 1.0, 'Refinery': 1.0 },
-    'Food': { 'Agricultural': 0.6, 'High-Tech': 1.2, 'Industrial': 1.3, 'Extraction': 1.4, 'Refinery': 1.2 },
-    'Military': { 'Agricultural': 1.4, 'High-Tech': 1.1, 'Industrial': 1.2, 'Extraction': 1.0, 'Refinery': 1.0 },
-    'Technology': { 'Agricultural': 1.3, 'High-Tech': 0.7, 'Industrial': 1.1, 'Extraction': 1.2, 'Refinery': 1.2 },
-    'Minerals': { 'Agricultural': 1.2, 'High-Tech': 1.1, 'Industrial': 0.9, 'Extraction': 0.7, 'Refinery': 0.8 },
-    'Illegal': { 'Agricultural': 1.1, 'High-Tech': 1.2, 'Industrial': 1.0, 'Extraction': 1.3, 'Refinery': 1.4 },
-    'Marketing':    { 'Agricultural': 1.0, 'High-Tech': 1.0, 'Industrial': 1.0, 'Extraction': 1.0, 'Refinery': 1.0 },
-    'Scientific':   { 'Agricultural': 1.2, 'High-Tech': 0.8, 'Industrial': 1.1, 'Extraction': 1.1, 'Refinery': 1.0 },
-    'Robotic':      { 'Agricultural': 1.3, 'High-Tech': 0.9, 'Industrial': 0.8, 'Extraction': 1.2, 'Refinery': 1.1 },
+const RARITY_SUPPLY_RANGES: Record<ItemRarity, { base: number; range: number }> = {
+    'Plentiful': { base: 5000, range: 5000 },
+    'Common': { base: 1000, range: 4000 },
+    'Accessible': { base: 500, range: 500 },
+    'Uncommon': { base: 100, range: 400 },
+    'Rare': { base: 20, range: 80 },
+    'Ultra Rare': { base: 5, range: 15 },
+    'Mythic': { base: 1, range: 4 },
 };
-
-function calculatePrice(basePrice: number, supply: number, demand: number, economyMultiplier: number): number {
-    const demandFactor = demand / supply;
-    const price = basePrice * economyMultiplier * Math.pow(demandFactor, 0.5);
-    return Math.round(price);
-}
 
 export function useTravel(
     gameState: GameState | null,
@@ -53,16 +44,21 @@ export function useTravel(
         const availableItems: MarketItem[] = [];
         STATIC_ITEMS.forEach(staticItem => {
             const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category]?.[system.economy] ?? 1.0;
+            
             let availabilityChance = 0.6;
-            if (economyMultiplier < 1.0) availabilityChance = 1.0;
+            if (economyMultiplier < 1.0) availabilityChance = 1.0; 
             else if (economyMultiplier > 1.0) availabilityChance = 0.8;
+
             if (Math.random() < availabilityChance) {
-                const supply = Math.round(50 + Math.random() * 100 / economyMultiplier);
-                const demand = Math.round(50 + Math.random() * 100 * economyMultiplier);
+                const rarityRange = RARITY_SUPPLY_RANGES[staticItem.rarity];
+                const supply = Math.round((rarityRange.base + Math.random() * rarityRange.range) / economyMultiplier);
+                const demand = Math.round((rarityRange.base + Math.random() * rarityRange.range) * economyMultiplier * (Math.random() * 0.4 + 0.8));
+
                 availableItems.push({
                     name: staticItem.name,
                     currentPrice: calculatePrice(staticItem.basePrice, supply, demand, economyMultiplier),
-                    supply, demand,
+                    supply: Math.max(1, supply),
+                    demand: Math.max(1, demand),
                 });
             }
         });

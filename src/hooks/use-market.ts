@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { useState, useCallback } from 'react';
 import type { GameState, MarketItem, InventoryItem } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo, calculateCargoValue } from '@/lib/utils';
+import { calculateCurrentCargo, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
 
 
 export function useMarket(
@@ -20,9 +21,11 @@ export function useMarket(
         setGameState(prev => {
             if (!prev) return null;
 
-            const marketItem = prev.marketItems.find(i => i.name === itemName);
+            const marketItemIndex = prev.marketItems.findIndex(i => i.name === itemName);
             const staticItemData = STATIC_ITEMS.find(i => i.name === itemName);
-            if (!marketItem || !staticItemData) return prev;
+            if (marketItemIndex === -1 || !staticItemData) return prev;
+            
+            const marketItem = prev.marketItems[marketItemIndex];
 
             const newPlayerStats = { ...prev.playerStats };
             const newInventory = [...prev.inventory];
@@ -34,9 +37,16 @@ export function useMarket(
             const totalCost = price * amount;
             const totalCargo = staticItemData.cargoSpace * amount;
 
+            const newMarketItems = [...prev.marketItems];
+            let newMarketItem = { ...marketItem };
+
             if (type === 'buy') {
                 if (newPlayerStats.netWorth < totalCost) {
                     setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough credits." }), 0);
+                    return prev;
+                }
+                if (marketItem.supply < amount) {
+                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: `Not enough supply at this station. Available: ${marketItem.supply}.` }), 0);
                     return prev;
                 }
                 const currentCargo = calculateCurrentCargo(prev.inventory);
@@ -51,23 +61,38 @@ export function useMarket(
                 } else {
                     newInventory.push({ name: itemName, owned: amount });
                 }
+                
+                // Update market
+                newMarketItem.supply -= amount;
+                newMarketItem.demand += Math.round(amount * 0.1);
+
             } else { // sell
                 if (!inventoryItem || inventoryItem.owned < amount) {
                     setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough items to sell." }), 0);
                     return prev;
                 }
-                // Sell price is the market price, no discount/premium for trader for now.
                 newPlayerStats.netWorth += marketItem.currentPrice * amount;
                 newInventory[inventoryItemIndex] = { ...inventoryItem, owned: inventoryItem.owned - amount };
+
+                // Update market
+                newMarketItem.supply += amount;
+                newMarketItem.demand = Math.max(1, newMarketItem.demand - Math.round(amount * 0.1));
             }
 
             const updatedInventory = newInventory.filter(item => item.owned > 0);
             newPlayerStats.cargo = calculateCurrentCargo(updatedInventory);
 
-            const newCargoValue = calculateCargoValue(updatedInventory, prev.marketItems);
+            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
+            if (currentSystem) {
+                 const economyMultiplier = ECONOMY_MULTIPLIERS[staticItemData.category]?.[currentSystem.economy] ?? 1.0;
+                 newMarketItem.currentPrice = calculatePrice(staticItemData.basePrice, newMarketItem.supply, newMarketItem.demand, economyMultiplier);
+                 newMarketItems[marketItemIndex] = newMarketItem;
+            }
+
+            const newCargoValue = calculateCargoValue(updatedInventory, newMarketItems);
             newPlayerStats.cargoValueHistory = [...(prev.playerStats.cargoValueHistory || [0]), newCargoValue].slice(-20);
 
-            return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory };
+            return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory, marketItems: newMarketItems };
         });
     }, [setGameState, toast]);
 
