@@ -124,6 +124,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     escortMissions: [],
     militaryMissions: [],
     usedPromoCodes: [],
+    negotiationCooldowns: {},
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -185,6 +186,7 @@ export function useGameState() {
                     warehouses: [],
                     militaryMissions: [],
                     usedPromoCodes: [],
+                    negotiationCooldowns: {},
                 }
 
                 let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
@@ -241,7 +243,7 @@ export function useGameState() {
                 const currentSystem = SYSTEMS.find(s => s.name === savedProgress.currentSystem) || SYSTEMS[0];
                 const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
-                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats, casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) }, insurance: { ...initialInsuranceState, ...(savedProgress.playerStats.insurance || {}) }, usedPromoCodes: savedProgress.playerStats.usedPromoCodes || [] };
+                let mergedPlayerStats = { ...initialGameState.playerStats, ...savedProgress.playerStats, casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) }, insurance: { ...initialInsuranceState, ...(savedProgress.playerStats.insurance || {}) }, usedPromoCodes: savedProgress.playerStats.usedPromoCodes || [], negotiationCooldowns: savedProgress.playerStats.negotiationCooldowns || {} };
                 
                 // --- MIGRATION LOGIC ---
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {

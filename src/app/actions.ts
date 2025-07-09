@@ -14,6 +14,7 @@ import { generateIndustryPartnershipOffers } from '@/ai/flows/generate-industry-
 import { generateConstructionPartnershipOffers } from '@/ai/flows/generate-construction-partnership-offers';
 import { generateRecreationPartnershipOffers } from '@/ai/flows/generate-recreation-partnership-offers';
 import { generateBankPartnershipOffers } from '@/ai/flows/generate-bank-partnership-offers';
+import { negotiateTradeRoute } from '@/ai/flows/negotiate-trade-route';
 import { z } from 'zod';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -53,6 +54,9 @@ import {
   GenerateBankPartnershipOffersInputSchema,
   type GenerateBankPartnershipOffersInput,
   type GenerateBankPartnershipOffersOutput,
+  NegotiateTradeRouteInputSchema,
+  type NegotiateTradeRouteInput,
+  type NegotiateTradeRouteOutput,
 } from '@/lib/schemas';
 
 export async function runMarketSimulation(input: SimulateMarketPricesInput): Promise<SimulateMarketPricesOutput> {
@@ -113,7 +117,7 @@ export async function runQuestGeneration(): Promise<GenerateQuestsOutput> {
         const result = await generateQuests();
         return result;
     } catch (error) {
-        console.error('Error running quest generation:', error);
+        console.error("Error running quest generation:", error);
         throw new Error('Failed to generate quests.');
     }
 }
@@ -223,6 +227,20 @@ export async function runBankPartnershipOfferGeneration(input: GenerateBankPartn
             throw new Error(`Invalid input for bank partnership offer generation: ${error.message}`);
         }
         throw new Error('Failed to generate bank partnership offers.');
+    }
+}
+
+export async function runNegotiateTradeRoute(input: NegotiateTradeRouteInput): Promise<NegotiateTradeRouteOutput> {
+    try {
+        const validatedInput = NegotiateTradeRouteInputSchema.parse(input);
+        const result = await negotiateTradeRoute(validatedInput);
+        return result;
+    } catch (error) {
+        console.error('Error running trade route negotiation:', error);
+        if (error instanceof z.ZodError) {
+            throw new Error(`Invalid input for trade route negotiation: ${error.message}`);
+        }
+        throw new Error('Failed to negotiate trade route.');
     }
 }
 

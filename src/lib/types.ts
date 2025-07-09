@@ -208,6 +208,7 @@ export interface PlayerStats {
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
   usedPromoCodes: string[];
+  negotiationCooldowns: Record<string, number>;
   cargoValueHistory?: number[];
 
   fleet: PlayerShip[];
@@ -470,4 +471,9 @@ export interface PartnershipOffer {
   stakePercentage: number;
   cashOffer: number;
   dealDescription: string;
+}
+
+export interface NegotiateTradeRouteOutput {
+    cost: number;
+    narrative: string;
 }

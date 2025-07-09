@@ -343,3 +343,17 @@ export const DiplomaticMissionSchema = z.object({
   status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
 });
 export type DiplomaticMission = z.infer<typeof DiplomaticMissionSchema>;
+
+// Schemas for negotiate-trade-route
+export const NegotiateTradeRouteInputSchema = z.object({
+  fromSystem: z.string().describe("The starting system of the new trade route."),
+  toSystem: z.string().describe("The destination system of the new trade route."),
+  negotiationScore: z.number().min(0).max(100).describe("A score from 0 to 100 representing the player's performance in a negotiation minigame. 100 is a perfect score."),
+});
+export type NegotiateTradeRouteInput = z.infer<typeof NegotiateTradeRouteInputSchema>;
+
+export const NegotiateTradeRouteOutputSchema = z.object({
+  cost: z.number().describe("The final cost in credits to establish the trade route, determined by the negotiation score."),
+  narrative: z.string().describe("A short, flavourful narrative describing the outcome of the negotiation."),
+});
+export type NegotiateTradeRouteOutput = z.infer<typeof NegotiateTradeRouteOutputSchema>;

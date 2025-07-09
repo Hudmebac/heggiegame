@@ -140,7 +140,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     
     return (
         <GameContext.Provider value={contextValue}>
-            <AppLayout>{children}</AppLayout>
+            <AppLayout>
+              {children}
+            </AppLayout>
         </GameContext.Provider>
     );
 }

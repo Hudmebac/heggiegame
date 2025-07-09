@@ -1,14 +1,17 @@
 
 'use client';
+import { useState } from 'react';
 import GalaxyMap from "@/app/components/galaxy-map";
 import { useGame } from "@/app/components/game-provider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon, Send } from "lucide-react";
+import { AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle, Globe, Orbit as PlanetIcon, Send, Route } from "lucide-react";
 import { PLANET_TYPE_MODIFIERS } from "@/lib/utils";
+import OpenRouteDialog from '@/app/components/open-route-dialog';
 
 export default function GalaxyPage() {
     const { gameState, handleInitiateTravel, handlePlanetTravel } = useGame();
+    const [negotiationRoute, setNegotiationRoute] = useState<{from: string, to: string} | null>(null);
 
     if (!gameState) return null;
 
@@ -35,92 +38,142 @@ export default function GalaxyPage() {
     
     const currentSecurity = securityConfig[currentSystemInfo.security];
 
+    // --- Find potential new routes ---
+    const directNeighbors = new Set(gameState.routes
+        .filter(r => r.from === currentSystemInfo.name || r.to === currentSystemInfo.name)
+        .map(r => r.from === currentSystemInfo.name ? r.to : r.from)
+    );
+
+    const potentialRoutes = new Set<string>();
+    directNeighbors.forEach(neighborName => {
+        gameState.routes
+            .filter(r => r.from === neighborName || r.to === neighborName)
+            .forEach(r => {
+                const potentialTarget = r.from === neighborName ? r.to : r.from;
+                if (potentialTarget !== currentSystemInfo.name && !directNeighbors.has(potentialTarget)) {
+                    potentialRoutes.add(potentialTarget);
+                }
+            });
+    });
+    
+    const existingRoutes = new Set(gameState.routes.flatMap(r => [`${r.from}-${r.to}`, `${r.to}-${r.from}`]));
+    const finalPotentialRoutes = Array.from(potentialRoutes).filter(target => 
+        !existingRoutes.has(`${currentSystemInfo.name}-${target}`)
+    );
+
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-            <div className="xl:col-span-3">
-                <GalaxyMap
-                    systems={gameState.systems}
-                    routes={gameState.routes}
-                    currentSystem={gameState.currentSystem}
-                    currentPlanet={gameState.currentPlanet}
-                    onTravel={handleInitiateTravel}
-                />
-            </div>
-            <div className="xl:col-span-2 space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg flex items-center gap-2"><Globe className="text-primary" /> System Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4 text-sm">
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">System Name</span>
-                            <span className="font-mono text-primary">{currentSystemInfo.name}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Security Status</span>
-                            <span className={`font-mono flex items-center gap-2 ${currentSecurity.color}`}>
-                                {currentSecurity.icon}
-                                {currentSystemInfo.security}
-                            </span>
-                        </div>
-                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Primary Economy</span>
-                             <span className="font-mono flex items-center gap-2 text-primary">
-                                {economyIcons[currentSystemInfo.economy]}
-                                {currentSystemInfo.economy}
-                             </span>
-                        </div>
-                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Pirate Activity</span>
-                             <span className={`font-mono ${currentSecurity.color}`}>{currentSecurity.activity}</span>
-                        </div>
-                         <CardDescription className="pt-2 border-t mt-2">{currentSystemInfo.description}</CardDescription>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg flex items-center gap-2"><PlanetIcon className="text-primary" /> Planetary Bodies</CardTitle>
-                        <CardDescription>Planets and significant moons in the {currentSystemInfo.name} system.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {currentSystemInfo.planets.map(planet => (
-                                <div key={planet.name} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
-                                    <div>
-                                        <h4 className="font-semibold">{planet.name}</h4>
-                                        <p className="text-xs text-muted-foreground">{planet.type}</p>
-                                    </div>
-                                    {gameState.currentPlanet === planet.name ? (
-                                        <Button variant="outline" disabled>Current Location</Button>
-                                    ) : (
-                                        <Button variant="ghost" size="sm" onClick={() => handlePlanetTravel(planet.name)}>
-                                            <Send className="mr-2 h-4 w-4" /> Travel
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                 {currentPlanetInfo && (
+        <>
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                <div className="xl:col-span-3">
+                    <GalaxyMap
+                        systems={gameState.systems}
+                        routes={gameState.routes}
+                        currentSystem={gameState.currentSystem}
+                        currentPlanet={gameState.currentPlanet}
+                        onTravel={handleInitiateTravel}
+                    />
+                </div>
+                <div className="xl:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="font-headline text-lg flex items-center gap-2"><PlanetIcon className="text-primary" /> Planet Details: {currentPlanetInfo.name}</CardTitle>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2"><Globe className="text-primary" /> System Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4 text-sm">
                             <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Planet Type</span>
-                                <span className="font-mono text-primary">{currentPlanetInfo.type}</span>
+                                <span className="text-muted-foreground">System Name</span>
+                                <span className="font-mono text-primary">{currentSystemInfo.name}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Business Income Modifier</span>
-                                <span className="font-mono text-primary">{Math.round(PLANET_TYPE_MODIFIERS[currentPlanetInfo.type] * 100)}%</span>
+                                <span className="text-muted-foreground">Security Status</span>
+                                <span className={`font-mono flex items-center gap-2 ${currentSecurity.color}`}>
+                                    {currentSecurity.icon}
+                                    {currentSystemInfo.security}
+                                </span>
                             </div>
-                            <p className="text-muted-foreground pt-2 border-t mt-2">{currentPlanetInfo.description}</p>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Primary Economy</span>
+                                <span className="font-mono flex items-center gap-2 text-primary">
+                                    {economyIcons[currentSystemInfo.economy]}
+                                    {currentSystemInfo.economy}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Pirate Activity</span>
+                                <span className={`font-mono ${currentSecurity.color}`}>{currentSecurity.activity}</span>
+                            </div>
+                            <CardDescription className="pt-2 border-t mt-2">{currentSystemInfo.description}</CardDescription>
                         </CardContent>
                     </Card>
-                 )}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2"><PlanetIcon className="text-primary" /> Planetary Bodies</CardTitle>
+                            <CardDescription>Planets and significant moons in the {currentSystemInfo.name} system.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {currentSystemInfo.planets.map(planet => (
+                                    <div key={planet.name} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
+                                        <div>
+                                            <h4 className="font-semibold">{planet.name}</h4>
+                                            <p className="text-xs text-muted-foreground">{planet.type}</p>
+                                        </div>
+                                        {gameState.currentPlanet === planet.name ? (
+                                            <Button variant="outline" disabled>Current Location</Button>
+                                        ) : (
+                                            <Button variant="ghost" size="sm" onClick={() => handlePlanetTravel(planet.name)}>
+                                                <Send className="mr-2 h-4 w-4" /> Travel
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                    {currentPlanetInfo && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline text-lg flex items-center gap-2"><PlanetIcon className="text-primary" /> Planet Details: {currentPlanetInfo.name}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4 text-sm">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">Planet Type</span>
+                                    <span className="font-mono text-primary">{currentPlanetInfo.type}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">Business Income Modifier</span>
+                                    <span className="font-mono text-primary">{Math.round(PLANET_TYPE_MODIFIERS[currentPlanetInfo.type] * 100)}%</span>
+                                </div>
+                                <p className="text-muted-foreground pt-2 border-t mt-2">{currentPlanetInfo.description}</p>
+                            </CardContent>
+                        </Card>
+                    )}
+                     {finalPotentialRoutes.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline text-lg flex items-center gap-2"><Route className="text-primary" /> Potential Trade Routes</CardTitle>
+                                <CardDescription>Negotiate with HEGGIE to establish new, permanent trade routes.</CardDescription>
+                            </CardHeader>
+                             <CardContent>
+                                <div className="space-y-3">
+                                    {finalPotentialRoutes.map(targetSystem => (
+                                        <div key={targetSystem} className="flex justify-between items-center p-2 rounded-md hover:bg-muted/50 transition-colors">
+                                            <h4 className="font-semibold">{currentSystemInfo.name} → {targetSystem}</h4>
+                                            <Button variant="outline" size="sm" onClick={() => setNegotiationRoute({ from: currentSystemInfo.name, to: targetSystem })}>
+                                                Negotiate Route
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                     )}
+                </div>
             </div>
-        </div>
+            <OpenRouteDialog
+                isOpen={!!negotiationRoute}
+                onOpenChange={(open) => !open && setNegotiationRoute(null)}
+                route={negotiationRoute}
+            />
+        </>
     )
 }

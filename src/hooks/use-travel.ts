@@ -227,6 +227,53 @@ export function useTravel(
         });
     };
 
+    const handleOpenRoute = useCallback((fromSystem: string, toSystem: string, cost: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (prev.playerStats.netWorth < cost) {
+                setTimeout(() => toast({ variant: "destructive", title: "Route Failed", description: "Insufficient funds to establish route." }), 0);
+                return prev;
+            }
+
+            const newRoute = { from: fromSystem, to: toSystem };
+            const newRoutes = [...prev.routes, newRoute];
+
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+            };
+
+            const routeKey = [fromSystem, toSystem].sort().join('-');
+            const newCooldowns = { ...prev.playerStats.negotiationCooldowns };
+            delete newCooldowns[routeKey];
+            newPlayerStats.negotiationCooldowns = newCooldowns;
+
+            setTimeout(() => toast({ title: "Trade Route Established!", description: `A new route between ${fromSystem} and ${toSystem} is now open.` }), 0);
+            return {
+                ...prev,
+                playerStats: newPlayerStats,
+                routes: newRoutes
+            };
+        });
+      }, [setGameState, toast]);
+
+    const handleSetNegotiationCooldown = useCallback((routeKey: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const newCooldowns = {
+                ...prev.playerStats.negotiationCooldowns,
+                [routeKey]: Date.now() + 30 * 60 * 1000 // 30 minutes
+            };
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    negotiationCooldowns: newCooldowns,
+                }
+            };
+        });
+    }, [setGameState]);
+
     const travelFuelCost = gameState && travelDestination ? Math.round(Math.hypot(travelDestination.x - (gameState.systems.find(s => s.name === gameState.currentSystem)?.x || 0), travelDestination.y - (gameState.systems.find(s => s.name === gameState.currentSystem)?.y || 0)) / 5) : 0;
     
     return {
@@ -235,6 +282,8 @@ export function useTravel(
         handleInitiateTravel,
         handlePlanetTravel,
         handleConfirmTravel,
+        handleOpenRoute,
+        handleSetNegotiationCooldown,
         travelFuelCost,
         isSimulating,
     };
