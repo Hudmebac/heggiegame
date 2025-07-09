@@ -73,7 +73,7 @@ const trappistPlanets: Planet[] = [
 
 const alphaCentauriPlanets: Planet[] = [
     { name: 'Centauri Prime', type: 'Terrestrial', description: 'A corporate headquarters world, gleaming with chrome and ambition.' },
-    { name: 'Proxima b', type: 'Barren', description: 'A tidally-locked world with one side perpetually scorched and the other frozen.' },
+    { name: 'Rigil Kent', type: 'Barren', description: 'A tidally-locked world with one side perpetually scorched and the other frozen.' },
     { name: 'Toliman', type: 'Terrestrial', description: 'A planet orbiting Alpha Centauri B, known for its rigid corporate culture and high-end manufacturing.' },
     { name: 'Ceto', type: 'Oceanic', description: 'A vast water world with floating cities and advanced aquaculture.' },
     { name: 'Erebus', type: 'Ice Giant', description: 'A dark, cold gas giant on the system\'s fringe, used for secret corporate research.' },
@@ -140,6 +140,72 @@ const barnardsStarPlanets: Planet[] = [
     { name: 'Barnard\'s Star d', type: 'Barren', description: 'A small, barren world used as a quiet retreat by reclusive artists.' },
 ];
 
+const zetaReticuliPlanets: Planet[] = [
+    { name: 'Zeta Reticuli I', type: 'Barren', description: 'A world of shifting sands and whispered legends.' },
+    { name: 'The Glitch', type: 'Terrestrial', description: 'A terraformed moon where physics occasionally... flickers.' },
+];
+
+const groombridge1618Planets: Planet[] = [
+    { name: 'Groombridge Prime', type: 'Terrestrial', description: 'A rugged world of mesas and canyons, home to hardy settlers.' },
+    { name: 'The Ledge', type: 'Barren', description: 'A massive asteroid converted into a vertical city.' },
+];
+
+const ross128Planets: Planet[] = [
+    { name: 'Ross 128 b', type: 'Terrestrial', description: 'A temperate world known for its strange, bioluminescent flora.' },
+    { name: 'Veridian', type: 'Oceanic', description: 'An ocean world with floating cities made of woven coral.' },
+];
+
+const epsilonIndiPlanets: Planet[] = [
+    { name: 'Epsilon Indi A', type: 'Gas Giant', description: 'A brown dwarf whose faint light supports a strange ecosystem on its moons.' },
+    { name: 'Indi\'s Rock', type: 'Barren', description: 'A resource-rich moon orbiting the brown dwarf.' },
+];
+
+const deltaPavonisPlanets: Planet[] = [
+    { name: 'Pavonis Prime', type: 'Terrestrial', description: 'A golden-hued world, one of the oldest and most stable core worlds.' },
+    { name: 'The Senate', type: 'Terrestrial', description: 'A moon dedicated entirely to galactic politics and diplomacy.' },
+];
+
+const cygni61Planets: Planet[] = [
+    { name: '61 Cygni A', type: 'Terrestrial', description: 'A bustling planet in a binary star system, known for its 24/7 markets.' },
+    { name: '61 Cygni B', type: 'Terrestrial', description: 'The "shadow" planet, a mirror of its twin but with a more... discreet economy.' },
+];
+
+const hd40307Planets: Planet[] = [
+    { name: 'HD 40307 g', type: 'Terrestrial', description: 'A "Super-Earth" with high gravity, home to advanced research outposts.' },
+    { name: 'The Lab', type: 'Barren', description: 'A moon dedicated to zero-gravity experiments.' },
+];
+
+const kapteynsStarPlanets: Planet[] = [
+    { name: 'Kapteyn b', type: 'Terrestrial', description: 'Believed to be one of the oldest terrestrial planets, littered with ruins.' },
+    { name: 'The Ghost', type: 'Gas Giant', description: 'A faint gas giant that seems to absorb light.' },
+];
+
+const fomalhautPlanets: Planet[] = [
+    { name: 'Fomalhaut b', type: 'Barren', description: 'A young, hot world still forming within a massive debris disk.' },
+    { name: 'The Dust Ring', type: 'Barren', description: 'A series of orbital stations built within the debris disk itself.' },
+];
+
+const altairPlanets: Planet[] = [
+    { name: 'Altair IV', type: 'Terrestrial', description: 'A world with a rapid rotation, leading to extreme weather and a culture of speed.' },
+    { name: 'The Blur', type: 'Gas Giant', description: 'A gas giant whose rapid spin causes its clouds to form hypersonic bands.' },
+];
+
+const polluxPlanets: Planet[] = [
+    { name: 'Pollux Prime', type: 'Terrestrial', description: 'A world basking in the orange glow of its giant star, known for its grand architecture.' },
+    { name: 'Castor\'s Twin', type: 'Barren', description: 'A barren moon, named in myth after its star\'s lost twin.' },
+];
+
+const arcturusPlanets: Planet[] = [
+    { name: 'Arcturus Station', type: 'Terrestrial', description: 'A massive orbital station that serves as a gateway to the outer systems.' },
+    { name: 'The Shepherd', type: 'Gas Giant', description: 'A gas giant whose gravity "shepherds" a massive flock of asteroids.' },
+];
+
+const aldebaranPlanets: Planet[] = [
+    { name: 'Aldebaran Prime', type: 'Terrestrial', description: 'A major core world, known for its wealth, power, and the bull-like obstinacy of its inhabitants.' },
+    { name: 'The Eye', type: 'Volcanic', description: 'A volcanic moon that glows a brilliant red in the sky of Aldebaran Prime.' },
+];
+
+
 export const SYSTEMS: System[] = [
     { name: 'Sol', x: 100, y: 100, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World', description: 'The cradle of humanity, a bustling hub of industry and political power. Heavily patrolled and regulated, Sol is the safest but most expensive system to operate in.', planets: solPlanets },
     { name: 'Kepler-186f', x: 130, y: 150, security: 'Medium', economy: 'Agricultural', volatility: 0.3, zoneType: 'Frontier Outpost', description: 'A lush, terraformed world known as the "Galactic Breadbasket." Its fertile lands produce vast quantities of foodstuffs, but its position on the frontier makes it a target for opportunistic raids.', planets: keplerPlanets },
@@ -154,6 +220,19 @@ export const SYSTEMS: System[] = [
     { name: 'Gliese 581', x: 210, y: 180, security: 'Low', economy: 'Extraction', volatility: 0.7, zoneType: 'Mining Colony', description: 'A wild frontier system known for its rich asteroid belts and the lawless outposts that cling to them.', planets: gliese581Planets },
     { name: 'Vega', x: 200, y: 20, security: 'High', economy: 'High-Tech', volatility: 0.1, zoneType: 'Trade Hub', description: 'A bright, vibrant system famous for its advanced research facilities and luxurious trade stations.', planets: vegaPlanets },
     { name: 'Barnard\'s Star', x: 80, y: 120, security: 'Medium', economy: 'Agricultural', volatility: 0.3, zoneType: 'Frontier Outpost', description: 'An old, quiet system with a reputation for producing the finest organic foodstuffs in the sector.', planets: barnardsStarPlanets },
+    { name: 'Zeta Reticuli', x: 230, y: 150, security: 'Anarchy', economy: 'Refinery', volatility: 1.0, zoneType: 'Ancient Ruins', description: 'A system steeped in unsettling myths and strange gravitational phenomena. Standard nav-computers are known to fail here.', planets: zetaReticuliPlanets },
+    { name: 'Groombridge 1618', x: 180, y: 220, security: 'Low', economy: 'Extraction', volatility: 0.6, zoneType: 'Frontier Outpost', description: 'A remote system at the edge of explored space, where pioneers carve out a living from the unforgiving worlds.', planets: groombridge1618Planets },
+    { name: 'Ross 128', x: 100, y: 220, security: 'Medium', economy: 'Agricultural', volatility: 0.3, zoneType: 'Frontier Outpost', description: 'A quiet, isolationist system focused on cultivating exotic and rare bioluminescent crops.', planets: ross128Planets },
+    { name: 'Epsilon Indi', x: 50, y: 150, security: 'Low', economy: 'Extraction', volatility: 0.5, zoneType: 'Mining Colony', description: 'A dim system orbiting a brown dwarf, its economy fueled by the continuous mining of its resource-rich but cold moons.', planets: epsilonIndiPlanets },
+    { name: 'Delta Pavonis', x: 20, y: 100, security: 'High', economy: 'Industrial', volatility: 0.2, zoneType: 'Core World', description: 'An old, prosperous system with a reputation for quality manufacturing and powerful trade guilds.', planets: deltaPavonisPlanets },
+    { name: '61 Cygni', x: 140, y: 10, security: 'High', economy: 'Trade Hub', volatility: 0.2, zoneType: 'Trade Hub', description: 'A binary star system with twin hub worlds, creating a dynamic, 24/7 marketplace of immense volume.', planets: cygni61Planets },
+    { name: 'HD 40307', x: 240, y: 60, security: 'Medium', economy: 'High-Tech', volatility: 0.4, zoneType: 'Corporate Zone', description: 'Home to a "Super-Earth," this system is a hotbed of gravitational research and experimental technology.', planets: hd40307Planets },
+    { name: 'Kapteyn\'s Star', x: 250, y: 120, security: 'Anarchy', economy: 'Refinery', volatility: 0.9, zoneType: 'Ancient Ruins', description: 'One of the oldest known systems, filled with drifting, silent ruins and scavengers picking over the bones of forgotten empires.', planets: kapteynsStarPlanets },
+    { name: 'Fomalhaut', x: 260, y: 190, security: 'Low', economy: 'Industrial', volatility: 0.7, zoneType: 'Industrial', description: 'A young, chaotic system surrounded by a massive debris disk, where mobile foundries forge materials from captured asteroids.', planets: fomalhautPlanets },
+    { name: 'Altair', x: 280, y: 80, security: 'Medium', economy: 'High-Tech', volatility: 0.5, zoneType: 'Corporate Zone', description: 'Known for its rapidly rotating star, Altair is a hub for high-speed computing and advanced propulsion research.', planets: altairPlanets },
+    { name: 'Pollux', x: 280, y: 20, security: 'Low', economy: 'Refinery', volatility: 0.6, zoneType: 'Industrial', description: 'A system basking in the orange glow of its giant star, specializing in the refining of rare gases and stellar materials.', planets: polluxPlanets },
+    { name: 'Arcturus', x: 220, y: -10, security: 'High', economy: 'Trade Hub', volatility: 0.2, zoneType: 'Diplomatic Station', description: 'A major navigational waypoint and diplomatic hub, Arcturus is a crossroads for the entire galactic arm.', planets: arcturusPlanets },
+    { name: 'Aldebaran', x: 180, y: -20, security: 'High', economy: 'Industrial', volatility: 0.1, zoneType: 'Core World', description: 'The "Eye of the Bull," a massive orange giant and a cornerstone of core world industry and finance.', planets: aldebaranPlanets },
 ];
 
 export const ROUTES: Route[] = [
@@ -172,4 +251,19 @@ export const ROUTES: Route[] = [
     { from: 'Vega', to: 'Sirius' },
     { from: 'Gliese 581', to: 'Wolf 359' },
     { from: 'Gliese 581', to: 'Proxima Centauri' },
+    { from: 'Wolf 359', to: 'Groombridge 1618' },
+    { from: 'Tau Ceti', to: 'Ross 128' },
+    { from: 'Luyten\'s Star', to: 'Epsilon Indi' },
+    { from: 'Epsilon Eridani', to: 'Delta Pavonis' },
+    { from: 'Vega', to: '61 Cygni' },
+    { from: 'Alpha Centauri', to: 'HD 40307' },
+    { from: 'Sirius', to: 'Zeta Reticuli' },
+    { from: 'Zeta Reticuli', to: 'Kapteyn\'s Star' },
+    { from: 'Gliese 581', to: 'Fomalhaut' },
+    { from: 'HD 40307', to: 'Altair' },
+    { from: '61 Cygni', to: 'Pollux' },
+    { from: 'Pollux', to: 'Arcturus' },
+    { from: 'Arcturus', to: 'Aldebaran' },
+    { from: 'Aldebaran', to: 'Vega' },
 ];
+
