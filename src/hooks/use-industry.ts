@@ -47,23 +47,28 @@ export function useIndustry(
   const handleUpgradeIndustry = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.industryLevel >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.industryLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." }), 0);
         return prev;
       }
+      
+      const starterPrice = 350;
+      const upgradeCost = Math.round(starterPrice * Math.pow(1.40, playerStats.industryLevel - 1) * costModifier * difficultyModifier);
 
-      const upgradeCost = Math.round(350 * Math.pow(1.40, prev.playerStats.industryLevel - 1) * costModifier);
-
-      if (prev.playerStats.netWorth < upgradeCost) {
+      if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, industryLevel: prev.playerStats.industryLevel + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, industryLevel: playerStats.industryLevel + 1 };
       setTimeout(() => toast({ title: "Facility Upgraded!", description: `Your industrial facility is now at Level ${newPlayerStats.industryLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -72,23 +77,28 @@ export function useIndustry(
   const handleUpgradeIndustryAutoClicker = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.industryAutoClickerBots >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.industryAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
+      
+      const starterPrice = 200;
+      const botCost = Math.round(starterPrice * Math.pow(1.50, playerStats.industryAutoClickerBots) * costModifier * difficultyModifier);
 
-      const botCost = Math.round(200 * Math.pow(1.50, prev.playerStats.industryAutoClickerBots) * costModifier);
-
-      if (prev.playerStats.netWorth < botCost) {
+      if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, industryAutoClickerBots: prev.playerStats.industryAutoClickerBots + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - botCost, industryAutoClickerBots: playerStats.industryAutoClickerBots + 1 };
       setTimeout(() => toast({ title: "Bot Deployed!", description: "A new assembly bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -102,7 +112,9 @@ export function useIndustry(
              return prev;
         }
 
-        const cost = 1200000;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[prev.difficulty];
+        const cost = 1200000 * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -125,20 +137,24 @@ export function useIndustry(
   const handleExpandIndustry = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
-        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-        const contract = prev.playerStats.industryContract;
+        const { playerStats, currentSystem: systemName, difficulty } = prev;
+        const currentSystem = prev.systems.find(s => s.name === systemName);
 
-        if (!contract || prev.playerStats.industryEstablishmentLevel < 1 || prev.playerStats.industryEstablishmentLevel > 4) {
+        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[difficulty];
+        const contract = playerStats.industryContract;
+
+        if (!contract || playerStats.industryEstablishmentLevel < 1 || playerStats.industryEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." }), 0);
              return prev;
         }
         
-        const expansionTiers = [3300000, 33000000, 330000000, 3300000000]; // 175% increase
-        const cost = Math.round(expansionTiers[prev.playerStats.industryEstablishmentLevel - 1] * costModifier);
+        const expansionBaseCost = 1200000 * Math.pow(2.75, playerStats.industryEstablishmentLevel); // +175%
+        const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
-        if (prev.playerStats.netWorth < cost) {
+        if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
@@ -147,9 +163,9 @@ export function useIndustry(
         const newMarketValue = Math.round(contract.currentMarketValue + investmentValue);
 
         const newPlayerStats: PlayerStats = { 
-            ...prev.playerStats, 
-            netWorth: prev.playerStats.netWorth - cost,
-            industryEstablishmentLevel: prev.playerStats.industryEstablishmentLevel + 1,
+            ...playerStats, 
+            netWorth: playerStats.netWorth - cost,
+            industryEstablishmentLevel: playerStats.industryEstablishmentLevel + 1,
             industryContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         

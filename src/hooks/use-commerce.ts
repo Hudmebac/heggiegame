@@ -47,23 +47,28 @@ export function useCommerce(
   const handleUpgradeCommerce = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.commerceLevel >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.commerceLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Commerce Hub level is already at maximum." }), 0);
         return prev;
       }
+      
+      const starterPrice = 300;
+      const upgradeCost = Math.round(starterPrice * Math.pow(1.35, playerStats.commerceLevel - 1) * costModifier * difficultyModifier);
 
-      const upgradeCost = Math.round(300 * Math.pow(1.35, prev.playerStats.commerceLevel - 1) * costModifier);
-
-      if (prev.playerStats.netWorth < upgradeCost) {
+      if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, commerceLevel: prev.playerStats.commerceLevel + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, commerceLevel: playerStats.commerceLevel + 1 };
       setTimeout(() => toast({ title: "Commerce Hub Upgraded!", description: `Your hub is now Level ${newPlayerStats.commerceLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -72,23 +77,28 @@ export function useCommerce(
   const handleUpgradeCommerceAutoClicker = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.commerceAutoClickerBots >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.commerceAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
 
-      const botCost = Math.round(400 * Math.pow(1.35, prev.playerStats.commerceAutoClickerBots) * costModifier);
+      const starterPrice = 400;
+      const botCost = Math.round(starterPrice * Math.pow(1.35, playerStats.commerceAutoClickerBots) * costModifier * difficultyModifier);
 
-      if (prev.playerStats.netWorth < botCost) {
+      if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, commerceAutoClickerBots: prev.playerStats.commerceAutoClickerBots + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - botCost, commerceAutoClickerBots: playerStats.commerceAutoClickerBots + 1 };
       setTimeout(() => toast({ title: "Bot Deployed!", description: "A new trading bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -101,8 +111,10 @@ export function useCommerce(
              setTimeout(() => toast({ variant: "destructive", title: "Already Owned", description: `You already own a commerce hub.` }), 0);
              return prev;
         }
-
-        const cost = 800000;
+        
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[prev.difficulty];
+        const cost = 800000 * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -125,20 +137,24 @@ export function useCommerce(
   const handleExpandCommerce = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
-        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-        const contract = prev.playerStats.commerceContract;
+        const { playerStats, currentSystem: systemName, difficulty } = prev;
+        const currentSystem = prev.systems.find(s => s.name === systemName);
 
-        if (!contract || prev.playerStats.commerceEstablishmentLevel < 1 || prev.playerStats.commerceEstablishmentLevel > 4) {
+        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[difficulty];
+        const contract = playerStats.commerceContract;
+
+        if (!contract || playerStats.commerceEstablishmentLevel < 1 || playerStats.commerceEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or hub not owned." }), 0);
              return prev;
         }
         
-        const expansionTiers = [2000000, 20000000, 200000000, 2000000000]; // 150% increase
-        const cost = Math.round(expansionTiers[prev.playerStats.commerceEstablishmentLevel - 1] * costModifier);
+        const expansionBaseCost = 800000 * Math.pow(2.5, playerStats.commerceEstablishmentLevel); // +150%
+        const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
-        if (prev.playerStats.netWorth < cost) {
+        if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
@@ -147,9 +163,9 @@ export function useCommerce(
         const newMarketValue = Math.round(contract.currentMarketValue + investmentValue);
 
         const newPlayerStats: PlayerStats = { 
-            ...prev.playerStats, 
-            netWorth: prev.playerStats.netWorth - cost,
-            commerceEstablishmentLevel: prev.playerStats.commerceEstablishmentLevel + 1,
+            ...playerStats, 
+            netWorth: playerStats.netWorth - cost,
+            commerceEstablishmentLevel: playerStats.commerceEstablishmentLevel + 1,
             commerceContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         

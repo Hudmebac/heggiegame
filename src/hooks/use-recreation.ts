@@ -47,23 +47,28 @@ export function useRecreation(
   const handleUpgradeRecreation = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
+      
       const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
 
-      if (prev.playerStats.recreationLevel >= 25) {
+      if (playerStats.recreationLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." }), 0);
         return prev;
       }
+      
+      const starterPrice = 500;
+      const upgradeCost = Math.round(starterPrice * Math.pow(1.80, playerStats.recreationLevel - 1) * costModifier * difficultyModifier);
 
-      const upgradeCost = Math.round(500 * Math.pow(1.80, prev.playerStats.recreationLevel - 1) * costModifier);
-
-      if (prev.playerStats.netWorth < upgradeCost) {
+      if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, recreationLevel: prev.playerStats.recreationLevel + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, recreationLevel: playerStats.recreationLevel + 1 };
       setTimeout(() => toast({ title: "Facility Upgraded!", description: `Your recreation facility is now at Level ${newPlayerStats.recreationLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -72,23 +77,28 @@ export function useRecreation(
   const handleUpgradeRecreationAutoClicker = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.recreationAutoClickerBots >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.recreationAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 drones." }), 0);
         return prev;
       }
+      
+      const starterPrice = 1000;
+      const botCost = Math.round(starterPrice * Math.pow(1.90, playerStats.recreationAutoClickerBots) * costModifier * difficultyModifier);
 
-      const botCost = Math.round(1000 * Math.pow(1.90, prev.playerStats.recreationAutoClickerBots) * costModifier);
-
-      if (prev.playerStats.netWorth < botCost) {
+      if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, recreationAutoClickerBots: prev.playerStats.recreationAutoClickerBots + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - botCost, recreationAutoClickerBots: playerStats.recreationAutoClickerBots + 1 };
       setTimeout(() => toast({ title: "Drone Deployed!", description: "A new entertainment drone has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -102,7 +112,9 @@ export function useRecreation(
              return prev;
         }
 
-        const cost = 3000000;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[prev.difficulty];
+        const cost = 3000000 * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -125,20 +137,24 @@ export function useRecreation(
   const handleExpandRecreation = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
-        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-        const contract = prev.playerStats.recreationContract;
+        const { playerStats, currentSystem: systemName, difficulty } = prev;
+        const currentSystem = prev.systems.find(s => s.name === systemName);
 
-        if (!contract || prev.playerStats.recreationEstablishmentLevel < 1 || prev.playerStats.recreationEstablishmentLevel > 4) {
+        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[difficulty];
+        const contract = playerStats.recreationContract;
+
+        if (!contract || playerStats.recreationEstablishmentLevel < 1 || playerStats.recreationEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." }), 0);
              return prev;
         }
         
-        const expansionTiers = [9000000, 90000000, 900000000, 9000000000]; // 300% increase
-        const cost = Math.round(expansionTiers[prev.playerStats.recreationEstablishmentLevel - 1] * costModifier);
+        const expansionBaseCost = 3000000 * Math.pow(4.0, playerStats.recreationEstablishmentLevel); // +300%
+        const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
-        if (prev.playerStats.netWorth < cost) {
+        if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
@@ -147,9 +163,9 @@ export function useRecreation(
         const newMarketValue = Math.round(contract.currentMarketValue + investmentValue);
 
         const newPlayerStats: PlayerStats = { 
-            ...prev.playerStats, 
-            netWorth: prev.playerStats.netWorth - cost,
-            recreationEstablishmentLevel: prev.playerStats.recreationEstablishmentLevel + 1,
+            ...playerStats, 
+            netWorth: playerStats.netWorth - cost,
+            recreationEstablishmentLevel: playerStats.recreationEstablishmentLevel + 1,
             recreationContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         

@@ -47,24 +47,30 @@ export function useResidence(
   const handleUpgradeResidence = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-      const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.residenceLevel >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+      
+      const landlordDiscount = playerStats.career === 'Landlord' ? 0.8 : 1.0;
+
+      if (playerStats.residenceLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." }), 0);
         return prev;
       }
+      
+      const starterPrice = 250;
+      const upgradeCost = Math.round(starterPrice * Math.pow(1.30, playerStats.residenceLevel - 1) * costModifier * landlordDiscount * difficultyModifier);
 
-      const upgradeCost = Math.round(250 * Math.pow(1.30, prev.playerStats.residenceLevel - 1) * costModifier * landlordDiscount);
-
-      if (prev.playerStats.netWorth < upgradeCost) {
+      if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, residenceLevel: prev.playerStats.residenceLevel + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, residenceLevel: playerStats.residenceLevel + 1 };
       setTimeout(() => toast({ title: "Residence Upgraded!", description: `Your residence is now Level ${newPlayerStats.residenceLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -73,24 +79,30 @@ export function useResidence(
   const handleUpgradeResidenceAutoClicker = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
+      
       const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-      const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+      
+      const landlordDiscount = playerStats.career === 'Landlord' ? 0.8 : 1.0;
 
-      if (prev.playerStats.residenceAutoClickerBots >= 25) {
+      if (playerStats.residenceAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 bots." }), 0);
         return prev;
       }
+      
+      const starterPrice = 300;
+      const botCost = Math.round(starterPrice * Math.pow(1.30, playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount * difficultyModifier);
 
-      const botCost = Math.round(300 * Math.pow(1.30, prev.playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount);
-
-      if (prev.playerStats.netWorth < botCost) {
+      if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, residenceAutoClickerBots: prev.playerStats.residenceAutoClickerBots + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - botCost, residenceAutoClickerBots: playerStats.residenceAutoClickerBots + 1 };
       setTimeout(() => toast({ title: "Bot Hired!", description: "A new service bot has been hired." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -104,8 +116,10 @@ export function useResidence(
              return prev;
         }
 
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[prev.difficulty];
         const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
-        const cost = 400000 * landlordDiscount;
+        const cost = 400000 * landlordDiscount * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -128,21 +142,25 @@ export function useResidence(
   const handleExpandResidence = useCallback(() => {
     setGameState(prev => {
         if (!prev) return null;
-        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
-        const contract = prev.playerStats.residenceContract;
-        const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
+        const { playerStats, currentSystem: systemName, difficulty } = prev;
+        const currentSystem = prev.systems.find(s => s.name === systemName);
 
-        if (!contract || prev.playerStats.residenceEstablishmentLevel < 1 || prev.playerStats.residenceEstablishmentLevel > 4) {
+        const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+        const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[difficulty];
+        const contract = playerStats.residenceContract;
+        const landlordDiscount = playerStats.career === 'Landlord' ? 0.8 : 1.0;
+
+        if (!contract || playerStats.residenceEstablishmentLevel < 1 || playerStats.residenceEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or property not owned." }), 0);
              return prev;
         }
         
-        const expansionTiers = [800000, 8000000, 80000000, 800000000]; // 100% increase
-        const cost = Math.round(expansionTiers[prev.playerStats.residenceEstablishmentLevel - 1] * costModifier * landlordDiscount);
+        const expansionBaseCost = 400000 * Math.pow(2.0, playerStats.residenceEstablishmentLevel); // +100%
+        const cost = Math.round(expansionBaseCost * costModifier * landlordDiscount * difficultyModifier);
 
-        if (prev.playerStats.netWorth < cost) {
+        if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
             return prev;
         }
@@ -151,9 +169,9 @@ export function useResidence(
         const newMarketValue = Math.round(contract.currentMarketValue + investmentValue);
 
         const newPlayerStats: PlayerStats = { 
-            ...prev.playerStats, 
-            netWorth: prev.playerStats.netWorth - cost,
-            residenceEstablishmentLevel: prev.playerStats.residenceEstablishmentLevel + 1,
+            ...playerStats, 
+            netWorth: playerStats.netWorth - cost,
+            residenceEstablishmentLevel: playerStats.residenceEstablishmentLevel + 1,
             residenceContract: { ...contract, currentMarketValue: newMarketValue, valueHistory: [...contract.valueHistory, newMarketValue].slice(-20) }
         };
         

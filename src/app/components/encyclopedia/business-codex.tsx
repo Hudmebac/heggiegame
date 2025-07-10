@@ -2,48 +2,80 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Martini, Home, Briefcase, Factory, Building2, Ticket, Landmark, Spade } from 'lucide-react';
+import { Martini, Home, Briefcase, Factory, Building2, Ticket, Landmark, Spade, Coins, ChevronsUp, Bot } from 'lucide-react';
 
 const businessData = [
     {
         icon: Martini,
         title: "Bar",
-        description: "The social and economic cornerstone of any starport. Serve drinks, gather intel, and build a reputation. Upgrades increase income per patron, while bots automate service for passive revenue. A well-run bar can be expanded into a galactic franchise, influencing trade and culture across systems."
+        description: "The social and economic cornerstone of any starport. Serve drinks, gather intel, and build a reputation. Upgrades increase income per patron, while bots automate service for passive revenue. A well-run bar can be expanded into a galactic franchise, influencing trade and culture across systems.",
+        costs: [
+            { label: "Upgrade Cost", value: "200¢+", icon: ChevronsUp },
+            { label: "Bot Cost", value: "400¢+", icon: Bot },
+            { label: "Establishment", value: "100,000¢", icon: Coins },
+        ]
     },
     {
         icon: Home,
         title: "Residence",
-        description: "A stable, long-term investment. Collect rent from tenants across the galaxy. Upgrades improve property value and rental income, while service bots handle automated collection. Successful property management can lead to the development of a vast galactic estate."
+        description: "A stable, long-term investment. Collect rent from tenants across the galaxy. Upgrades improve property value and rental income, while service bots handle automated collection. Successful property management can lead to the development of a vast galactic estate.",
+        costs: [
+            { label: "Upgrade Cost", value: "250¢+", icon: ChevronsUp },
+            { label: "Bot Cost", value: "300¢+", icon: Bot },
+            { label: "Deed Issuance", value: "400,000¢", icon: Coins },
+        ]
     },
     {
         icon: Briefcase,
         title: "Commerce Hub",
-        description: "The heart of interstellar trade. Broker deals between factions, manage complex logistics, and profit from every transaction. Hub upgrades increase deal value, while trading bots automate transactions. A powerful hub can be developed into a galaxy-spanning commercial conglomerate."
+        description: "The heart of interstellar trade. Broker deals between factions, manage complex logistics, and profit from every transaction. Hub upgrades increase deal value, while trading bots automate transactions. A powerful hub can be developed into a galaxy-spanning commercial conglomerate.",
+        costs: [
+            { label: "Upgrade Cost", value: "300¢+", icon: ChevronsUp },
+            { label: "Bot Cost", value: "400¢+", icon: Bot },
+            { label: "Expansion", value: "800,000¢", icon: Coins },
+        ]
     },
     {
         icon: Factory,
         title: "Industrial Facility",
-        description: "The engine of production. Manufacture goods from raw materials, fulfilling large-scale orders for factions and markets. Upgrades boost production speed and efficiency, while assembly bots ensure the facility runs 24/7. Can be expanded into a massive industrial complex, dominating the supply chain."
+        description: "The engine of production. Manufacture goods from raw materials, fulfilling large-scale orders for factions and markets. Upgrades boost production speed and efficiency, while assembly bots ensure the facility runs 24/7. Can be expanded into a massive industrial complex, dominating the supply chain.",
+        costs: [
+            { label: "Upgrade Cost", value: "350¢+", icon: ChevronsUp },
+            { label: "Bot Cost", value: "200¢+", icon: Bot },
+            { label: "Permit", value: "1,200,000¢", icon: Coins },
+        ]
     },
     {
         icon: Building2,
         title: "Construction Project",
-        description: "Shape the galaxy itself. Undertake massive building projects, from planetary habitats to orbital megastructures. A high-capital venture where each upgrade increases project scope and payout. Can be developed into a legendary megastructure project."
+        description: "Shape the galaxy itself. Undertake massive building projects, from planetary habitats to orbital megastructures. A high-capital venture where each upgrade increases project scope and payout. Can be developed into a legendary megastructure project.",
+        costs: [
+            { label: "Upgrade Cost", value: "400¢+", icon: ChevronsUp },
+            { label: "Bot Cost", value: "750¢+", icon: Bot },
+            { label: "Deed Licensing", value: "2,400,000¢", icon: Coins },
+        ]
     },
     {
         icon: Ticket,
         title: "Recreation Facility",
-        description: "The galaxy's escape from the void. Operate entertainment venues, from vibrant arcades to luxurious holo-theaters. Upgrades enhance the quality of attractions, drawing more patrons. Can be expanded into a premier galactic resort, a destination for the wealthy and influential."
+        description: "The galaxy's escape from the void. Operate entertainment venues, from vibrant arcades to luxurious holo-theaters. Upgrades enhance the quality of attractions, drawing more patrons. Can be expanded into a premier galactic resort, a destination for the wealthy and influential.",
+        costs: [
+            { label: "Upgrade Cost", value: "500¢+", icon: ChevronsUp },
+            { label: "Bot Cost", value: "1,000¢+", icon: Bot },
+            { label: "Facility Expansion", value: "3,000,000¢", icon: Coins },
+        ]
     },
     {
         icon: Landmark,
         title: "Galactic Bank",
-        description: "The ultimate seat of financial power. After acquiring majority ownership, you can take control of the Galactic Bank itself. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio."
+        description: "The ultimate seat of financial power. After acquiring majority ownership, you can take control of the Galactic Bank itself. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio.",
+        costs: []
     },
     {
         icon: Spade,
         title: "Casino",
-        description: "Engage in games of chance, from slots to high-stakes poker, at casinos across the galaxy. While not a business you can own, it's a high-risk, high-reward venue to directly leverage your credits. Success depends on luck, reputation, and nerve."
+        description: "Engage in games of chance, from slots to high-stakes poker, at casinos across the galaxy. While not a business you can own, it's a high-risk, high-reward venue to directly leverage your credits. Success depends on luck, reputation, and nerve.",
+        costs: []
     }
 ]
 
@@ -61,7 +93,17 @@ export default function BusinessCodex() {
                             <business.icon className="h-5 w-5" />
                             {business.title}
                         </h4>
-                        <p className="text-sm text-muted-foreground">{business.description}</p>
+                        <p className="text-sm text-muted-foreground flex-grow">{business.description}</p>
+                        {business.costs.length > 0 && (
+                             <div className="pt-2 mt-2 border-t border-border/50 space-y-2 text-xs">
+                                {business.costs.map(cost => (
+                                     <div key={cost.label} className="flex justify-between items-center">
+                                        <span className="text-muted-foreground flex items-center gap-1"><cost.icon className="h-3 w-3" />{cost.label}</span>
+                                        <span className="font-mono text-amber-300">{cost.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 ))}
             </CardContent>

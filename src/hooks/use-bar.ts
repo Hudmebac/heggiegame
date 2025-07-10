@@ -49,23 +49,28 @@ export function useBar(
   const handleUpgradeBar = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.barLevel >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.barLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Bar level is already at maximum." }), 0);
         return prev;
       }
+      
+      const starterPrice = 200;
+      const upgradeCost = Math.round(starterPrice * Math.pow(1.15, playerStats.barLevel - 1) * costModifier * difficultyModifier);
 
-      const upgradeCost = Math.round(200 * Math.pow(1.15, prev.playerStats.barLevel -1) * costModifier);
-
-      if (prev.playerStats.netWorth < upgradeCost) {
+      if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - upgradeCost, barLevel: prev.playerStats.barLevel + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, barLevel: playerStats.barLevel + 1 };
       setTimeout(() => toast({ title: "Bar Upgraded!", description: `Your bar is now Level ${newPlayerStats.barLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -74,23 +79,28 @@ export function useBar(
   const handleUpgradeBarAutoClicker = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
-      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
-      const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const { playerStats, currentSystem: systemName, difficulty } = prev;
+      const currentSystem = prev.systems.find(s => s.name === systemName);
 
-      if (prev.playerStats.autoClickerBots >= 25) {
+      const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
+      const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+      const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+      const difficultyModifier = difficultyModifiers[difficulty];
+
+      if (playerStats.autoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more than 25 bots." }), 0);
         return prev;
       }
 
-      const botCost = Math.round(400 * Math.pow(1.25, prev.playerStats.autoClickerBots) * costModifier);
+      const starterPrice = 400;
+      const botCost = Math.round(starterPrice * Math.pow(1.25, playerStats.autoClickerBots) * costModifier * difficultyModifier);
 
-      if (prev.playerStats.netWorth < botCost) {
+      if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
         return prev;
       }
 
-      const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - botCost, autoClickerBots: prev.playerStats.autoClickerBots + 1 };
+      const newPlayerStats = { ...playerStats, netWorth: playerStats.netWorth - botCost, autoClickerBots: playerStats.autoClickerBots + 1 };
       setTimeout(() => toast({ title: "Bot Purchased!", description: "A new bot has been added to your staff." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
@@ -104,7 +114,9 @@ export function useBar(
              return prev;
         }
 
-        const cost = 100000;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[prev.difficulty];
+        const cost = 100000 * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -130,15 +142,17 @@ export function useBar(
         const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
         const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
         const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+        const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+        const difficultyModifier = difficultyModifiers[prev.difficulty];
         const contract = prev.playerStats.barContract;
 
-        if (!contract || prev.playerStats.establishmentLevel < 1 || prev.playerStats.establishmentLevel > 4) {
+        if (!contract || prev.playerStats.establishmentLevel < 1 || prev.playerStats.establishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or establishment not owned." }), 0);
              return prev;
         }
         
-        const expansionTiers = [150000, 1500000, 15000000, 150000000]; // 50% increase from original values
-        const cost = Math.round(expansionTiers[prev.playerStats.establishmentLevel - 1] * 1.50 * costModifier);
+        const expansionBaseCost = 100000 * Math.pow(1.50, prev.playerStats.establishmentLevel);
+        const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
