@@ -180,14 +180,15 @@ export default function HowToPlayCodex() {
                      <Section
                         title="The Galactic Bank"
                         icon={Landmark}
-                        summary="Secure your funds, take out loans, and eventually acquire the bank itself for ultimate financial power."
+                        summary="Secure your funds, play the market, and eventually acquire the bank itself for ultimate financial power."
                         link="/bank"
                     >
-                        <p>The Galactic Bank is your financial hub. Initially, you are just a client, but with enough investment, you can become its owner.</p>
+                        <p>The Galactic Bank is your financial hub. Initially, you are a client, but with enough investment, you can become its owner.</p>
                         <ul>
-                            <li><strong>Client Services:</strong> As a client, you can deposit and withdraw funds, and apply for loans or credit cards to get a quick capital boost. Be careful with debt; if it grows too large, you will be declared bankrupt and the game will end.</li>
-                            <li><strong>Acquiring Ownership:</strong> You can purchase shares in the bank. Once you own 100 shares, you can pay a final fee to acquire the bank.</li>
-                            <li><strong>Bank Ownership:</strong> Once you own the bank, it becomes your most powerful business venture. You can upgrade its infrastructure and hire financial bots to generate a massive passive income stream.</li>
+                            <li><strong>Client Services:</strong> As a client, you can deposit and withdraw your funds. Your deposits will accrue interest over time. The bank's share price fluctuates every five minutes, simulating a real market.</li>
+                            <li><strong>Path to Ownership:</strong> You can purchase shares in the bank. Owning more than 5,000 of the 10,000 total shares gives you a majority stake, allowing you to control the bank's interest rate. Be careful: higher interest rates are good for your deposits but may lower shareholder confidence and decrease the share price, while lower rates can boost the share price.</li>
+                            <li><strong>Full Acquisition:</strong> Once you own all 10,000 shares, you can pay a final, large fee to nationalize the bank, converting it into your own private business venture.</li>
+                            <li><strong>Bank Ownership:</strong> After acquisition, the bank becomes your most powerful business, allowing you to upgrade its infrastructure and hire financial bots for massive passive income. You will still retain your personal bank account for deposits and withdrawals.</li>
                         </ul>
                     </Section>
                      <Section
