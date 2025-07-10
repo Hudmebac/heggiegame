@@ -133,7 +133,7 @@ export function useEncounters(
                 // Determine which ship was in the encounter
                 let shipInstanceId = activeShip.instanceId;
                 if (pirate.missionId && pirate.missionType && pirate.missionType !== 'trade') {
-                    const missionsKey = `${pirate.missionType}Missions` as keyof PlayerStats;
+                    const missionsKey = `${pirate.missionType}s` as 'escortMissions' | 'tradeContracts' | 'taxiMissions' | 'militaryMissions';
                     const mission = (prev.playerStats as any)[missionsKey]?.find((m: any) => m.id === pirate.missionId);
                     if(mission?.assignedShipInstanceId) {
                         shipInstanceId = mission.assignedShipInstanceId;
