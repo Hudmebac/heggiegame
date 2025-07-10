@@ -8,12 +8,25 @@ import type { LucideIcon } from 'lucide-react';
 import { Briefcase, Zap, AlertTriangle, Video, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import type { Career } from '@/lib/types';
+
+const careerAvatars: Record<Career, string> = {
+    'Heggie Contractor': '/images/avatars/avatar_09.png',
+    'Hauler': '/images/avatars/avatar_03.png',
+    'Taxi Pilot': '/images/avatars/avatar_17.png',
+    'Landlord': '/images/avatars/avatar_05.png',
+    'Trader': '/images/avatars/avatar_23.png',
+    'Defender': '/images/avatars/avatar_21.png',
+    'Fighter': '/images/avatars/avatar_11.png',
+    'Galactic Official': '/images/avatars/avatar_10.png',
+    'Unselected': '/images/avatars/avatar_01.png', // Fallback
+};
 
 export default function CareerCodex() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
     return (
-        <Dialog>
+        <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedVideo(null)}>
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -27,7 +40,7 @@ export default function CareerCodex() {
                     {CAREER_DATA.map(career => {
                         const CareerIcon = career.icon as LucideIcon;
                         const videoSrc = `/videos/${career.id.toLowerCase().replace(/ /g, '_')}.mp4`;
-                        const posterSrc = `https://placehold.co/1280x720.png`;
+                        const posterSrc = careerAvatars[career.id] || '/images/avatars/avatar_01.png';
 
                         return (
                             <Card key={career.id} className="bg-card/50 border-border/50">
@@ -69,7 +82,6 @@ export default function CareerCodex() {
                                                     layout="fill"
                                                     objectFit="cover"
                                                     className="group-hover:opacity-70 transition-opacity"
-                                                    data-ai-hint="space ship"
                                                 />
                                                 <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                                                     <PlayCircle className="h-16 w-16 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
@@ -83,8 +95,8 @@ export default function CareerCodex() {
                     })}
                 </CardContent>
             </Card>
-            <DialogContent className="max-w-4xl p-0 border-0">
-                {selectedVideo && (
+            {selectedVideo && (
+                <DialogContent className="max-w-4xl p-0 border-0">
                      <video
                         key={selectedVideo}
                         src={selectedVideo}
@@ -92,8 +104,9 @@ export default function CareerCodex() {
                         autoPlay
                         className="w-full h-full aspect-video rounded-lg"
                     />
-                )}
-            </DialogContent>
+                </DialogContent>
+            )}
         </Dialog>
     );
 }
+
