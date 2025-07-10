@@ -357,7 +357,7 @@ export function usePlayerActions(
             
             shipToUpgrade[moduleId] = true;
             fleet[shipIndex] = shipToUpgrade;
-            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - moduleData.cost, fleet };
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - cost, fleet };
             
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
 
@@ -671,6 +671,22 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleMarketFrenzyMinigameScore = useCallback((points: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (points > 0) {
+                toast({ title: "Trade Session Ended", description: `You made a profit of ${points.toLocaleString()}¢.`});
+            }
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + points,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -699,5 +715,6 @@ export function usePlayerActions(
         handleVaultBreachMinigameScore,
         handleBlueprintScrambleScore,
         handleMixAndMatchMinigameScore,
+        handleMarketFrenzyMinigameScore,
     };
 }
