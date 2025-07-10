@@ -17,7 +17,7 @@ const changelogData = [
             "Economic difficulty settings now influence cost scaling and risk multipliers, aligning financial strategy with player autonomy and system status.",
             "Planetary modifiers expanded—market behavior now reflects planetary status tiers and primary trade archetypes (Agrarian, Industrial, Digital).",
             "Faction-influenced trade perks and stability bonuses introduced to deepen strategic interstellar investment planning.",
-            "Enhanced the starting networth for Captains, based on career path"
+            "Enhanced the starting networth for Captains, based on career path."
         ]
     },
     {

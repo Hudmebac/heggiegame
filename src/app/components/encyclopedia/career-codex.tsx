@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CAREER_DATA } from "@/lib/careers";
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, Zap, AlertTriangle } from 'lucide-react';
+import { Briefcase, Zap, AlertTriangle, Video } from 'lucide-react';
 
 const careerTips: Record<string, string[]> = {
     'Hauler': [
@@ -64,6 +64,7 @@ export default function CareerCodex() {
                 {CAREER_DATA.map(career => {
                     const CareerIcon = career.icon as LucideIcon;
                     const tips = careerTips[career.name] || [];
+                    const videoSrc = `/videos/${career.id.toLowerCase().replace(/ /g, '_')}.mp4`;
                     return (
                         <Card key={career.id} className="bg-card/50 border-border/50">
                             <CardHeader>
@@ -92,23 +93,22 @@ export default function CareerCodex() {
                                         {career.risks.map((risk, i) => <li key={i}>{risk}</li>)}
                                     </ul>
                                 </div>
-                                <div className="space-y-2">
-                                     <h4 className="font-semibold flex items-center gap-2 text-sky-400">
-                                        <Briefcase className="h-4 w-4"/> Gameplay Tips
+                                 <div className="space-y-2 lg:col-span-2">
+                                    <h4 className="font-semibold flex items-center gap-2 text-sky-400">
+                                        <Video className="h-4 w-4"/> Gameplay Preview
                                     </h4>
-                                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                                        {tips.map((tip, i) => <li key={i}>{tip}</li>)}
-                                    </ul>
+                                    <div className="aspect-video bg-black rounded-md overflow-hidden border">
+                                        <video
+                                            key={videoSrc}
+                                            src={videoSrc}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <h4 className="font-semibold flex items-center gap-2 text-yellow-400">
-                                        <Briefcase className="h-4 w-4"/> Starting Net Worth
-                                    </h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        💸 {career.startingNetWorth.toLocaleString()}: {career.rationale}
-                                    </p>
-                                </div>
-
                             </CardContent>
                         </Card>
                     )
