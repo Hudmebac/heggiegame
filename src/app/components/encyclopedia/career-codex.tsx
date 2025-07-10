@@ -9,54 +9,11 @@ import { Briefcase, Zap, AlertTriangle, Video, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
-const careerTips: Record<string, string[]> = {
-    'Hauler': [
-        "Focus on upgrading your cargo hold and fuel capacity first.",
-        "Always check market prices before accepting a long-distance contract.",
-        "A Navigator crew member can help you avoid the most dangerous pirate routes.",
-    ],
-    'Taxi Pilot': [
-        "Speed is everything. Upgrade your engines to maximize bonus fares.",
-        "Reputation matters. Completing fares quickly and safely leads to better-paying clients.",
-        "Keep an eye out for VIPs; they offer the best payouts but often attract unwanted attention.",
-    ],
-    'Landlord': [
-        "Diversify your properties across different systems to mitigate risk from economic downturns.",
-        "Re-invest rental income into property upgrades to create a powerful compounding growth engine.",
-        "Higher-tier planets offer better income modifiers, but property costs are also higher.",
-    ],
-    'Trader': [
-        "Pay close attention to system economies. Buy goods that are cheap in the local economy and sell where they are in high demand.",
-        "Use warehouses to stockpile goods when prices are low, and sell when an economic event creates a price spike.",
-        "A good sensor suite can help you identify profitable trade routes by revealing market shortages or surpluses.",
-    ],
-    'Defender': [
-        "A balanced fleet is key. Have smaller, faster ships for quick escorts and tougher ships for high-risk convoys.",
-        "Invest in shield and hull upgrades for all your fleet ships, not just your active one.",
-        "The Planetary Defense minigame is a great way to earn steady income between escort missions.",
-    ],
-    'Fighter': [
-        "Specialize your active ship for combat with top-tier weapons and shields.",
-        "Mission risk levels directly correlate to the strength of enemy forces. Be prepared for a real fight on 'High' or 'Critical' risk missions.",
-        "A Gunner crew member provides a significant combat advantage.",
-    ],
-    'Galactic Official': [
-        "Focus on completing missions that offer the highest influence payout to rank up faster.",
-        "Your reputation score directly impacts the quality of mandates you receive.",
-        "Balancing the needs of different factions is key. Sometimes, a lower-payout mission can prevent a reputation drop with a powerful stakeholder.",
-    ],
-    'Heggie Contractor': [
-        "Experiment with everything! Your Inspiration Meter fills by engaging in activities from all other careers.",
-        "Don't be afraid to be a jack-of-all-trades. Buy a small property, run a few trade contracts, and try the minigames.",
-        "Your path is your own. Once your Inspiration Meter is full, you may be presented with a unique opportunity to define your legacy.",
-    ]
-};
-
 export default function CareerCodex() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
     return (
-        <>
+        <Dialog>
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -69,7 +26,6 @@ export default function CareerCodex() {
                 <CardContent className="space-y-6">
                     {CAREER_DATA.map(career => {
                         const CareerIcon = career.icon as LucideIcon;
-                        const tips = careerTips[career.name] || [];
                         const videoSrc = `/videos/${career.id.toLowerCase().replace(/ /g, '_')}.mp4`;
                         const posterSrc = `https://placehold.co/1280x720.png`;
 
@@ -127,19 +83,17 @@ export default function CareerCodex() {
                     })}
                 </CardContent>
             </Card>
-            <Dialog open={!!selectedVideo} onOpenChange={(isOpen) => !isOpen && setSelectedVideo(null)}>
-                <DialogContent className="max-w-4xl p-0 border-0">
-                    {selectedVideo && (
-                         <video
-                            key={selectedVideo}
-                            src={selectedVideo}
-                            controls
-                            autoPlay
-                            className="w-full h-full aspect-video rounded-lg"
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
-        </>
+            <DialogContent className="max-w-4xl p-0 border-0">
+                {selectedVideo && (
+                     <video
+                        key={selectedVideo}
+                        src={selectedVideo}
+                        controls
+                        autoPlay
+                        className="w-full h-full aspect-video rounded-lg"
+                    />
+                )}
+            </DialogContent>
+        </Dialog>
     );
 }
