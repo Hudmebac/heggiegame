@@ -58,7 +58,7 @@ export function useBar(
         return prev;
       }
 
-      const upgradeCost = Math.round(675 * 1.25 * Math.pow(prev.playerStats.barLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(200 * 1.15 * Math.pow(prev.playerStats.barLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -83,7 +83,7 @@ export function useBar(
         return prev;
       }
 
-      const botCost = Math.round(9000 * 1.25 * Math.pow(2.25, prev.playerStats.autoClickerBots) * costModifier);
+      const botCost = Math.round(400 * 1.25 * Math.pow(2.25, prev.playerStats.autoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -104,7 +104,7 @@ export function useBar(
              return prev;
         }
 
-        const cost = 6000 * 1.5;
+        const cost = 100000 * 1.5;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
