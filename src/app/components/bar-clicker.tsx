@@ -5,11 +5,12 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Martini, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
+import { Martini, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import BarContracts from './bar-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export default function BarClicker() {
     const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeBarAutoClicker, handlePurchaseBar, handleExpandBar, handleSellBar } = useGame();
@@ -19,8 +20,8 @@ export default function BarClicker() {
         return null;
     }
 
-    const { playerStats } = gameState;
-    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const { playerStats, currentSystem: systemName, difficulty } = gameState;
+    const currentSystem = gameState.systems.find(s => s.name === systemName);
     const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && barThemes[zoneType]) ? barThemes[zoneType] : barThemes['Default'];
@@ -31,20 +32,29 @@ export default function BarClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.barLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
-    const economyCostModifiers: Record<SystemEconomy, number> = {
-        'High-Tech': 1.15,
-        'Industrial': 0.90,
-        'Extraction': 1.00,
-        'Refinery': 0.95,
-        'Agricultural': 1.10
-    };
+    const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+    const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+    const difficultyModifier = difficultyModifiers[difficulty];
 
-    const upgradeCost = Math.round(675 * Math.pow(playerStats.barLevel, 2.5) * costModifier);
+    const barData = businessData.find(b => b.id === 'bar');
+    if (!barData) return null;
+
+    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
+        let cost = config.starterPrice;
+        for (let i = 1; i < level; i++) {
+            cost *= (1 + config.growth);
+        }
+        return Math.round(cost * difficultyModifier * costModifier);
+    };
+    
+    const upgradeConfig = barData.costs[0];
+    const upgradeCost = calculateCost(playerStats.barLevel + 1, upgradeConfig);
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
-    const botCost = Math.round(9000 * Math.pow(2.25, playerStats.autoClickerBots) * costModifier);
+    const botConfig = barData.costs[1];
+    const botCost = calculateCost(playerStats.autoClickerBots + 1, botConfig);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;
@@ -52,12 +62,13 @@ export default function BarClicker() {
     const isBotLimitReached = playerStats.autoClickerBots >= 25;
 
     // Establishment upgrade logic
+    const establishmentConfig = barData.costs[2];
     const expansionTiers = [
-        { level: 1, costMultiplier: 3000, label: "Purchase Establishment" },
-        { level: 2, costMultiplier: 30000, label: "Expand Establishment (Level 1)" },
-        { level: 3, costMultiplier: 300000, label: "Expand Establishment (Level 2)" },
-        { level: 4, costMultiplier: 3000000, label: "Expand Establishment (Level 3)" },
-        { level: 5, costMultiplier: 30000000, label: "Expand to Galactic Franchise" },
+        { level: 1, costMultiplier: 1, label: "Purchase Establishment" },
+        { level: 2, costMultiplier: 1.5, label: "Expand Establishment (Level 1)" },
+        { level: 3, costMultiplier: 2.25, label: "Expand Establishment (Level 2)" },
+        { level: 4, costMultiplier: 3.375, label: "Expand Establishment (Level 3)" },
+        { level: 5, costMultiplier: 5.0625, label: "Expand to Galactic Franchise" },
     ];
     
     const currentEstablishmentLevel = playerStats.establishmentLevel;
@@ -69,7 +80,8 @@ export default function BarClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
+        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
+        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseBar : handleExpandBar;
@@ -154,7 +166,7 @@ export default function BarClicker() {
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Serve</span>
-                            <span className="font-mono text-amber-300">{incomePerClick.toLocaleString()}¢</span>
+                            <span key={incomePerClick} className="font-mono text-amber-300">{incomePerClick.toLocaleString()}¢</span>
                         </div>
                         <Button className="w-full" onClick={handleUpgradeBar} disabled={!canAffordUpgrade}>
                             {isBarLevelMaxed ? 'Max Bar Level' : `Upgrade Bar (${upgradeCost.toLocaleString()}¢)`}

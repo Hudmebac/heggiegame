@@ -10,6 +10,7 @@ import { industryThemes } from '@/lib/industry-themes';
 import IndustryContracts from './industry-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export default function IndustryClicker() {
     const { gameState, handleIndustryClick, handleUpgradeIndustry, handleUpgradeIndustryAutoClicker, handlePurchaseIndustry, handleExpandIndustry, handleSellIndustry } = useGame();
@@ -19,8 +20,8 @@ export default function IndustryClicker() {
         return null;
     }
 
-    const { playerStats } = gameState;
-    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const { playerStats, currentSystem: systemName, difficulty } = gameState;
+    const currentSystem = gameState.systems.find(s => s.name === systemName);
     const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && industryThemes[zoneType]) ? industryThemes[zoneType] : industryThemes['Default'];
@@ -31,20 +32,29 @@ export default function IndustryClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.industryLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
-    const economyCostModifiers: Record<SystemEconomy, number> = {
-        'High-Tech': 1.15,
-        'Industrial': 0.90,
-        'Extraction': 1.00,
-        'Refinery': 0.95,
-        'Agricultural': 1.10
-    };
+    const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+    const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+    const difficultyModifier = difficultyModifiers[difficulty];
 
-    const upgradeCost = Math.round(1800 * Math.pow(playerStats.industryLevel, 2.5) * costModifier);
+    const industryData = businessData.find(b => b.id === 'industry');
+    if (!industryData) return null;
+
+    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
+        let cost = config.starterPrice;
+        for (let i = 1; i < level; i++) {
+            cost *= (1 + config.growth);
+        }
+        return Math.round(cost * difficultyModifier * costModifier);
+    };
+
+    const upgradeConfig = industryData.costs[0];
+    const upgradeCost = calculateCost(playerStats.industryLevel + 1, upgradeConfig);
     const isIndustryLevelMaxed = playerStats.industryLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isIndustryLevelMaxed;
 
-    const botCost = Math.round(40500 * Math.pow(2.25, playerStats.industryAutoClickerBots) * costModifier);
+    const botConfig = industryData.costs[1];
+    const botCost = calculateCost(playerStats.industryAutoClickerBots + 1, botConfig);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.industryAutoClickerBots * rawIncomePerClick;
@@ -52,16 +62,9 @@ export default function IndustryClicker() {
     const isBotLimitReached = playerStats.industryAutoClickerBots >= 25;
 
     // Establishment upgrade logic
-    const expansionTiers = [
-        { level: 1, costMultiplier: 4000, label: "Acquire Industrial Permit" },
-        { level: 2, costMultiplier: 40000, label: "Expand Factory (Tier 1)" },
-        { level: 3, costMultiplier: 400000, label: "Expand Factory (Tier 2)" },
-        { level: 4, costMultiplier: 4000000, label: "Expand Factory (Tier 3)" },
-        { level: 5, costMultiplier: 40000000, label: "Develop into Galactic Conglomerate" },
-    ];
-    
+    const establishmentConfig = industryData.costs[2];
     const currentEstablishmentLevel = playerStats.industryEstablishmentLevel;
-    const nextExpansionTier = currentEstablishmentLevel < expansionTiers.length ? expansionTiers[currentEstablishmentLevel] : null;
+    const nextExpansionTier = currentEstablishmentLevel < 5;
 
     let expansionCost = 0;
     let canAffordExpansion = false;
@@ -69,9 +72,11 @@ export default function IndustryClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
+        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
+        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
-        expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
+        const tierLabel = currentEstablishmentLevel === 0 ? "Acquire Industrial Permit" : `Expand Factory (Tier ${currentEstablishmentLevel})`;
+        expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseIndustry : handleExpandIndustry;
     }
 
@@ -194,7 +199,7 @@ export default function IndustryClicker() {
                         onExpand={expansionHandler}
                         canAffordExpansion={canAffordExpansion}
                         expansionButtonLabel={expansionButtonLabel}
-                        nextExpansionTier={!!nextExpansionTier}
+                        nextExpansionTier={nextExpansionTier}
                     />
                 )}
             </div>

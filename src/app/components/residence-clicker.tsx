@@ -5,11 +5,12 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Home, Coins, ChevronsUp, DollarSign, Bot, Building2 } from 'lucide-react';
+import { Home, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { residenceThemes } from '@/lib/residence-themes';
 import ResidenceContracts from './residence-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export default function ResidenceClicker() {
     const { gameState, handleResidenceClick, handleUpgradeResidence, handleUpgradeResidenceAutoClicker, handlePurchaseResidence, handleExpandResidence, handleSellResidence } = useGame();
@@ -19,8 +20,8 @@ export default function ResidenceClicker() {
         return null;
     }
 
-    const { playerStats } = gameState;
-    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const { playerStats, currentSystem: systemName, difficulty } = gameState;
+    const currentSystem = gameState.systems.find(s => s.name === systemName);
     const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && residenceThemes[zoneType]) ? residenceThemes[zoneType] : residenceThemes['Default'];
@@ -30,21 +31,30 @@ export default function ResidenceClicker() {
 
     const rawIncomePerClick = theme.baseIncome * playerStats.residenceLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
-
-    const economyCostModifiers: Record<SystemEconomy, number> = {
-        'High-Tech': 1.15,
-        'Industrial': 0.90,
-        'Extraction': 1.00,
-        'Refinery': 0.95,
-        'Agricultural': 1.10
-    };
+    
+    const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+    const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+    const difficultyModifier = difficultyModifiers[difficulty];
 
-    const upgradeCost = Math.round(188 * Math.pow(playerStats.residenceLevel, 2.5) * costModifier);
+    const residenceData = businessData.find(b => b.id === 'residence');
+    if (!residenceData) return null;
+
+    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
+        let cost = config.starterPrice;
+        for (let i = 1; i < level; i++) {
+            cost *= (1 + config.growth);
+        }
+        return Math.round(cost * difficultyModifier * costModifier);
+    };
+
+    const upgradeConfig = residenceData.costs[0];
+    const upgradeCost = calculateCost(playerStats.residenceLevel + 1, upgradeConfig);
     const isResidenceLevelMaxed = playerStats.residenceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isResidenceLevelMaxed;
-
-    const botCost = Math.round(4250 * Math.pow(2.25, playerStats.residenceAutoClickerBots) * costModifier);
+    
+    const botConfig = residenceData.costs[1];
+    const botCost = calculateCost(playerStats.residenceAutoClickerBots + 1, botConfig);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.residenceAutoClickerBots * rawIncomePerClick;
@@ -52,16 +62,9 @@ export default function ResidenceClicker() {
     const isBotLimitReached = playerStats.residenceAutoClickerBots >= 25;
 
     // Establishment upgrade logic
-    const expansionTiers = [
-        { level: 1, costMultiplier: 5000, label: "Purchase Property Deed" },
-        { level: 2, costMultiplier: 50000, label: "Expand Property (Level 1)" },
-        { level: 3, costMultiplier: 500000, label: "Expand Property (Level 2)" },
-        { level: 4, costMultiplier: 5000000, label: "Expand Property (Level 3)" },
-        { level: 5, costMultiplier: 50000000, label: "Develop into Galactic Estate" },
-    ];
-    
+    const establishmentConfig = residenceData.costs[2];
     const currentEstablishmentLevel = playerStats.residenceEstablishmentLevel;
-    const nextExpansionTier = currentEstablishmentLevel < expansionTiers.length ? expansionTiers[currentEstablishmentLevel] : null;
+    const nextExpansionTier = currentEstablishmentLevel < 5;
 
     let expansionCost = 0;
     let canAffordExpansion = false;
@@ -69,9 +72,11 @@ export default function ResidenceClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
+        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
+        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
-        expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
+        const tierLabel = currentEstablishmentLevel === 0 ? "Purchase Property Deed" : `Expand Property (Level ${currentEstablishmentLevel})`;
+        expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseResidence : handleExpandResidence;
     }
 
@@ -194,7 +199,7 @@ export default function ResidenceClicker() {
                         onExpand={expansionHandler}
                         canAffordExpansion={canAffordExpansion}
                         expansionButtonLabel={expansionButtonLabel}
-                        nextExpansionTier={!!nextExpansionTier}
+                        nextExpansionTier={nextExpansionTier}
                     />
                 )}
             </div>

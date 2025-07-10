@@ -10,6 +10,7 @@ import { recreationThemes } from '@/lib/recreation-themes';
 import RecreationContracts from './recreation-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export default function RecreationClicker() {
     const { gameState, handleRecreationClick, handleUpgradeRecreation, handleUpgradeRecreationAutoClicker, handlePurchaseRecreation, handleExpandRecreation, handleSellRecreation } = useGame();
@@ -19,8 +20,8 @@ export default function RecreationClicker() {
         return null;
     }
 
-    const { playerStats } = gameState;
-    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const { playerStats, currentSystem: systemName, difficulty } = gameState;
+    const currentSystem = gameState.systems.find(s => s.name === systemName);
     const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && recreationThemes[zoneType]) ? recreationThemes[zoneType] : recreationThemes['Default'];
@@ -31,20 +32,29 @@ export default function RecreationClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.recreationLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
-    const economyCostModifiers: Record<SystemEconomy, number> = {
-        'High-Tech': 1.15,
-        'Industrial': 0.90,
-        'Extraction': 1.00,
-        'Refinery': 0.95,
-        'Agricultural': 1.10
-    };
+    const economyCostModifiers: Record<SystemEconomy, number> = { 'High-Tech': 1.15, 'Industrial': 0.90, 'Extraction': 1.00, 'Refinery': 0.95, 'Agricultural': 1.10 };
     const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
+    const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+    const difficultyModifier = difficultyModifiers[difficulty];
 
-    const upgradeCost = Math.round(422 * Math.pow(playerStats.recreationLevel, 2.5) * costModifier);
+    const recreationData = businessData.find(b => b.id === 'recreation');
+    if (!recreationData) return null;
+
+    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
+        let cost = config.starterPrice;
+        for (let i = 1; i < level; i++) {
+            cost *= (1 + config.growth);
+        }
+        return Math.round(cost * difficultyModifier * costModifier);
+    };
+
+    const upgradeConfig = recreationData.costs[0];
+    const upgradeCost = calculateCost(playerStats.recreationLevel + 1, upgradeConfig);
     const isRecreationLevelMaxed = playerStats.recreationLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isRecreationLevelMaxed;
 
-    const botCost = Math.round(5625 * Math.pow(2.25, playerStats.recreationAutoClickerBots) * costModifier);
+    const botConfig = recreationData.costs[1];
+    const botCost = calculateCost(playerStats.recreationAutoClickerBots + 1, botConfig);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.recreationAutoClickerBots * rawIncomePerClick;
@@ -52,16 +62,9 @@ export default function RecreationClicker() {
     const isBotLimitReached = playerStats.recreationAutoClickerBots >= 25;
 
     // Establishment upgrade logic
-    const expansionTiers = [
-        { level: 1, costMultiplier: 3000, label: "Acquire Entertainment License" },
-        { level: 2, costMultiplier: 30000, label: "Expand Facility (Tier 1)" },
-        { level: 3, costMultiplier: 300000, label: "Expand Facility (Tier 2)" },
-        { level: 4, costMultiplier: 3000000, label: "Expand Facility (Tier 3)" },
-        { level: 5, costMultiplier: 30000000, label: "Develop into Galactic Resort" },
-    ];
-    
+    const establishmentConfig = recreationData.costs[2];
     const currentEstablishmentLevel = playerStats.recreationEstablishmentLevel;
-    const nextExpansionTier = currentEstablishmentLevel < expansionTiers.length ? expansionTiers[currentEstablishmentLevel] : null;
+    const nextExpansionTier = currentEstablishmentLevel < 5;
 
     let expansionCost = 0;
     let canAffordExpansion = false;
@@ -69,9 +72,11 @@ export default function RecreationClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        expansionCost = Math.round(incomePerSecond * nextExpansionTier.costMultiplier * costModifier);
+        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
+        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
-        expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
+        const tierLabel = currentEstablishmentLevel === 0 ? "Acquire Entertainment License" : `Expand Facility (Tier ${currentEstablishmentLevel})`;
+        expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseRecreation : handleExpandRecreation;
     }
 
@@ -194,7 +199,7 @@ export default function RecreationClicker() {
                         onExpand={expansionHandler}
                         canAffordExpansion={canAffordExpansion}
                         expansionButtonLabel={expansionButtonLabel}
-                        nextExpansionTier={!!nextExpansionTier}
+                        nextExpansionTier={nextExpansionTier}
                     />
                 )}
             </div>
