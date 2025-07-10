@@ -22,12 +22,23 @@ import {
   type NegotiateTradeRouteInput,
   type NegotiateTradeRouteOutput,
   GenerateBankPartnershipOffersInputSchema,
-  GenerateBankPartnershipOffersOutputSchema,
   type GenerateBankPartnershipOffersInput,
   type GenerateBankPartnershipOffersOutput,
   GenerateCommercePartnershipOffersInputSchema,
   type GenerateCommercePartnershipOffersInput,
   type GenerateCommercePartnershipOffersOutput,
+  GenerateResidencePartnershipOffersInputSchema,
+  type GenerateResidencePartnershipOffersInput,
+  type GenerateResidencePartnershipOffersOutput,
+  GenerateIndustryPartnershipOffersInputSchema,
+  type GenerateIndustryPartnershipOffersInput,
+  type GenerateIndustryPartnershipOffersOutput,
+  GenerateConstructionPartnershipOffersInputSchema,
+  type GenerateConstructionPartnershipOffersInput,
+  type GenerateConstructionPartnershipOffersOutput,
+  GenerateRecreationPartnershipOffersInputSchema,
+  type GenerateRecreationPartnershipOffersInput,
+  type GenerateRecreationPartnershipOffersOutput,
 } from '@/lib/schemas';
 import { simulateMarket } from '@/lib/utils';
 import { generateQuests } from '@/lib/generation/quests';
@@ -141,6 +152,30 @@ export async function runBankPartnershipOfferGeneration(input: GenerateBankPartn
 
 export async function runCommercePartnershipOfferGeneration(input: GenerateCommercePartnershipOffersInput): Promise<GenerateCommercePartnershipOffersOutput> {
     const validatedInput = GenerateCommercePartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
+    return { offers };
+}
+
+export async function runResidencePartnershipOfferGeneration(input: GenerateResidencePartnershipOffersInput): Promise<GenerateResidencePartnershipOffersOutput> {
+    const validatedInput = GenerateResidencePartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
+    return { offers };
+}
+
+export async function runIndustryPartnershipOfferGeneration(input: GenerateIndustryPartnershipOffersInput): Promise<GenerateIndustryPartnershipOffersOutput> {
+    const validatedInput = GenerateIndustryPartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
+    return { offers };
+}
+
+export async function runConstructionPartnershipOfferGeneration(input: GenerateConstructionPartnershipOffersInput): Promise<GenerateConstructionPartnershipOffersOutput> {
+    const validatedInput = GenerateConstructionPartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
+    return { offers };
+}
+
+export async function runRecreationPartnershipOfferGeneration(input: GenerateRecreationPartnershipOffersInput): Promise<GenerateRecreationPartnershipOffersOutput> {
+    const validatedInput = GenerateRecreationPartnershipOffersInputSchema.parse(input);
     const offers = generateOffers(validatedInput.marketValue);
     return { offers };
 }
