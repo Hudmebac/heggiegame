@@ -75,7 +75,7 @@ export default function CareerCodex() {
                                     {career.description}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <div className="space-y-2">
                                     <h4 className="font-semibold flex items-center gap-2 text-green-400">
                                         <Zap className="h-4 w-4"/> Perks
@@ -100,6 +100,15 @@ export default function CareerCodex() {
                                         {tips.map((tip, i) => <li key={i}>{tip}</li>)}
                                     </ul>
                                 </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold flex items-center gap-2 text-yellow-400">
+                                        <Briefcase className="h-4 w-4"/> Starting Net Worth
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground">
+                                        💸 {career.startingNetWorth.toLocaleString()}: {career.rationale}
+                                    </p>
+                                </div>
+
                             </CardContent>
                         </Card>
                     )

@@ -606,6 +606,22 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleMachinistMinigameScore = useCallback((points: number) => {
+        setGameState(prev => {
+          if (!prev) return null;
+          if (points > 0) {
+            toast({ title: "Calibration Successful", description: `You earned ${points.toLocaleString()}¢ for improving factory efficiency.`});
+          }
+          return {
+            ...prev,
+            playerStats: {
+              ...prev.playerStats,
+              netWorth: prev.playerStats.netWorth + points
+            }
+          }
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -630,5 +646,6 @@ export function usePlayerActions(
         handleChangeCareer,
         handleJoinFaction,
         handleShareToFacebook,
+        handleMachinistMinigameScore,
     };
 }

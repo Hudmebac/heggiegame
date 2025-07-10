@@ -50,7 +50,7 @@ type GameContextType = {
     gameState: GameState | null;
     isClient: boolean;
     isGeneratingNewGame: boolean;
-    startNewGame: (difficulty: Difficulty, career: Career) => void;
+    startNewGame: (difficulty: Difficulty, career: Career) => Promise<void>;
     handleRedeemPromoCode: (code: string) => Promise<void>;
     loadGameStateFromKey: (key: string) => boolean;
     generateShareKey: () => string | null;

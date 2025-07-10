@@ -33,7 +33,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['Total freedom to pursue hybrid career routes', 'Unlocks adaptive quests that react to playstyle', 'Access to the Inspiration Meter to track progress', 'Increased experience from "first-time" actions'],
         risks: ['No initial bonuses or passive income', 'Limited access to high-tier faction perks', 'Vulnerable without specialization'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Contractor's Vessel" }],
-        startingNetWorth: 10000,
+        startingNetWorth: 50000,
         page: '/contractor'
     },
     {
@@ -44,7 +44,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['Start with a dedicated freighter', 'Steady income from route contracts', 'Access to cargo capacity and security upgrades'],
         risks: ['Pirate ambushes on trade routes', 'High maintenance and fuel costs for large ships'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'hauler-mk2', name: "My First Hauler" }],
-        startingNetWorth: 20000,
+        startingNetWorth: 250000,
         page: '/hauler'
     },
     {
@@ -55,7 +55,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['Frequent, fast-turnaround side missions ("Quick Quests")', 'High income variability with bonus tips', 'Build reputation with repeat clients'],
         risks: ['Time-sensitive routes; hostile encounters'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "My First Taxi" }],
-        startingNetWorth: 15000,
+        startingNetWorth: 180000,
         page: '/taxi'
     },
     {
@@ -66,7 +66,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['20% discount on all property development costs', 'Reliable long-term income stream', 'Property valuation events and bidding wars'],
         risks: ['Maintenance decay, planetary economy changes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Proprietor's Shuttle" }],
-        startingNetWorth: 75000,
+        startingNetWorth: 400000,
     },
     {
         id: 'Trader',
@@ -76,7 +76,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['20% discount on all market purchases.', 'Access to private warehouses in each system.', 'Trade route forecasting tools'],
         risks: ['Pirate theft, warehouse break-ins, price crashes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Trader's Skiff" }],
-        startingNetWorth: 30000,
+        startingNetWorth: 500000,
     },
     {
         id: 'Defender',
@@ -86,7 +86,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['Government stipends for planetary defense', 'Access to an escort quest board', 'Unique defense grid mini-game'],
         risks: ['Failure penalties for security breaches', 'Targeted retaliation waves from pirates'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Guardian's Escort", weaponLevel: 2 }],
-        startingNetWorth: 25000,
+        startingNetWorth: 100000,
         page: '/defence'
     },
     {
@@ -97,7 +97,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['Access to high-command attack quests', 'Bonuses for tactical precision', 'Unique assault uplink mini-game'],
         risks: ['Faction retaliation events', 'Resource drain from unsuccessful strikes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Mercenary's Viper", weaponLevel: 2, shieldLevel: 2 }],
-        startingNetWorth: 25000,
+        startingNetWorth: 200000,
         page: '/military'
     },
     {
@@ -108,7 +108,7 @@ export const CAREER_DATA: CareerData[] = [
         perks: ['Assign Defender/Fighter missions', 'Unlock planetary negotiation interface', 'Passive income from governance'],
         risks: ['Reputation loss for ignored duties', 'Diplomatic backlash from failed treaties'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Diplomat's Courier" }],
-        startingNetWorth: 50000,
+        startingNetWorth: 500000,
         startingInfluence: 100,
         page: '/official'
     },
