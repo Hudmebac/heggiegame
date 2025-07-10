@@ -674,9 +674,12 @@ export function usePlayerActions(
     const handleMarketFrenzyMinigameScore = useCallback((points: number) => {
         setGameState(prev => {
             if (!prev) return null;
-            if (points > 0) {
-                toast({ title: "Trade Session Ended", description: `You made a profit of ${points.toLocaleString()}¢.`});
-            }
+            setTimeout(() => {
+                if (points > 0) {
+                    toast({ title: "Trade Session Ended", description: `You made a profit of ${points.toLocaleString()}¢.`});
+                }
+            }, 0);
+
             return {
                 ...prev,
                 playerStats: {
