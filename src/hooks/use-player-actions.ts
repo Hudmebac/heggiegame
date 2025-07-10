@@ -672,22 +672,23 @@ export function usePlayerActions(
     }, [setGameState, toast]);
 
     const handleMarketFrenzyMinigameScore = useCallback((points: number) => {
-        setGameState(prev => {
-            if (!prev) return null;
-            setTimeout(() => {
+        setTimeout(() => {
+            setGameState(prev => {
+                if (!prev) return null;
+                
                 if (points > 0) {
                     toast({ title: "Trade Session Ended", description: `You made a profit of ${points.toLocaleString()}¢.`});
                 }
-            }, 0);
-
-            return {
-                ...prev,
-                playerStats: {
-                    ...prev.playerStats,
-                    netWorth: prev.playerStats.netWorth + points,
-                }
-            };
-        });
+    
+                return {
+                    ...prev,
+                    playerStats: {
+                        ...prev.playerStats,
+                        netWorth: prev.playerStats.netWorth + points,
+                    }
+                };
+            });
+        }, 0)
     }, [setGameState, toast]);
 
     return {
