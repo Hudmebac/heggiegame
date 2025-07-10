@@ -691,6 +691,22 @@ export function usePlayerActions(
         }, 0)
     }, [setGameState, toast]);
 
+    const handleHolotagMinigameScore = useCallback((points: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (points > 0) {
+                toast({ title: "Simulation Complete", description: `You earned ${points.toLocaleString()}¢ for your performance.`});
+            }
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + points,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -720,5 +736,6 @@ export function usePlayerActions(
         handleBlueprintScrambleScore,
         handleMixAndMatchMinigameScore,
         handleMarketFrenzyMinigameScore,
+        handleHolotagMinigameScore,
     };
 }
