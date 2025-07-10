@@ -103,12 +103,6 @@ export function useEncounters(
 
     startEncounterResolution(async () => {
         try {
-            // Immediately clear the encounter from the main state to hide the UI
-            setGameState(prev => {
-                if (!prev) return null;
-                return { ...prev, playerStats: { ...prev.playerStats, pirateEncounter: null } };
-            });
-
             const result = await resolveEncounter({
                 action,
                 playerNetWorth: gameState.playerStats.netWorth,
@@ -128,6 +122,7 @@ export function useEncounters(
                 
                 let newPlayerStats = { ...prev.playerStats };
                 newPlayerStats.netWorth -= result.creditsLost;
+                newPlayerStats.pirateEncounter = null;
                 let isGameOver = false;
 
                 // Determine which ship was in the encounter

@@ -1,12 +1,13 @@
 
 'use client';
 
+import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import PirateEncounter from '../pirate-encounter';
 import { useGame } from '@/app/components/game-provider';
 import { Loader2, AlertTriangle, ShieldCheck, Factory, Wheat, Cpu, Hammer, Recycle } from 'lucide-react';
 import TradeDialog from "../trade-dialog";
-import type { System } from "@/lib/types";
+import type { System, EncounterResult } from "@/lib/types";
 import WarpingOverlay from "./WarpingOverlay";
 
 export default function GameModalsAndEncounters() {
@@ -15,7 +16,6 @@ export default function GameModalsAndEncounters() {
         tradeDetails,
         setTradeDetails,
         handleTrade,
-        encounterResult,
         handlePirateAction,
         handleCloseEncounterDialog,
         travelDestination,
@@ -24,6 +24,7 @@ export default function GameModalsAndEncounters() {
         travelFuelCost,
         isResolvingEncounter,
         isSimulating,
+        encounterResult,
     } = useGame();
 
     const securityConfig = {
@@ -128,8 +129,8 @@ export default function GameModalsAndEncounters() {
                         {gameState && (
                             <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">Remaining Fuel</span>
-                                <span className={`font-mono ${gameState.playerStats.fuel - travelFuelCost < 0 ? 'text-destructive' : ''}`}>
-                                    {gameState.playerStats.fuel - travelFuelCost} SU
+                                <span className={`font-mono ${(gameState.playerStats.fuel ?? 0) - travelFuelCost < 0 ? 'text-destructive' : ''}`}>
+                                    {(gameState.playerStats.fuel ?? 0) - travelFuelCost} SU
                                 </span>
                             </div>
                         )}
