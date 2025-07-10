@@ -592,8 +592,8 @@ export function usePlayerActions(
                 lastFacebookShare: now,
             };
 
-            const appUrl = 'https://heggiegame.netlify.app/';
-            const quote = `I am playing HEGGIE - Space Game 🪐 I am a ${newPlayerStats.career}, and my net worth’s already a cosmic-sized ${newPlayerStats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
+            const appUrl = 'https://heggiegame.netlify.app/captain';
+            const quote = `I'm playing HEGGIE - Space Game 🪐 I'm a ${newPlayerStats.career}, and my net worth’s already a cosmic-sized ${newPlayerStats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
             const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent(quote)}`;
             
             window.open(facebookShareUrl, '_blank', 'noopener,noreferrer');
