@@ -27,16 +27,6 @@ export default function GameModalsAndEncounters() {
         isSimulating,
     } = useGame();
 
-    useEffect(() => {
-        if (encounterResult) {
-            const timer = setTimeout(() => {
-                handleCloseEncounterDialog();
-            }, 3000); // Close after 3 seconds
-
-            return () => clearTimeout(timer);
-        }
-    }, [encounterResult, handleCloseEncounterDialog]);
-
     const securityConfig = {
         'High': { color: 'text-green-400', icon: <ShieldCheck className="h-4 w-4"/> },
         'Medium': { color: 'text-yellow-400', icon: <ShieldCheck className="h-4 w-4"/> },
@@ -68,7 +58,7 @@ export default function GameModalsAndEncounters() {
             />
 
             {/* Encounter Result Dialog */}
-            <AlertDialog open={!!encounterResult} onOpenChange={(open) => !open && handleCloseEncounterDialog()}>
+            <AlertDialog open={!!encounterResult}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>{`Encounter Resolved`}</AlertDialogTitle>
