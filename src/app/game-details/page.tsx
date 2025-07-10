@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,6 +8,16 @@ import { Info, Mail, Bug, User, Lightbulb, MessageSquare } from 'lucide-react';
 import Link from "next/link";
 
 const changelogData = [
+    {
+        version: "v1.2.1 - 'Stability Patch'",
+        date: "Cycle 4521.09",
+        changes: [
+            "Critical fix to pirate encounter logic to prevent infinite loops and ensure encounters are decisive events.",
+            "Refined insurance behavior to correctly trigger rebirth in non-Hardcore modes and disable insurance purchasing in Hardcore mode.",
+            "Enhanced game mode distinction, ensuring permadeath is strictly enforced in Hardcore difficulty.",
+            "Corrected multiple UI and state management bugs causing hydration errors and crashes."
+        ]
+    },
     {
         version: "v1.2.0 - 'Orion's Arm'",
         date: "Cycle 4521.08",
