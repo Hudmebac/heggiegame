@@ -24,9 +24,9 @@ interface CommerceContractsProps {
 
 const getEstablishmentLevelLabel = (level: number) => {
     if (level === 0) return 'Not Purchased';
-    if (level === 1) return 'Purchased';
+    if (level === 1) return 'Licensed';
     if (level === 5) return 'Galactic Conglomerate';
-    return `Expansion Level ${level - 1}`;
+    return `Expansion Tier ${level - 1}`;
 };
 
 export default function CommerceContracts({ playerStats, onSell, onExpand, canAffordExpansion, expansionButtonLabel, nextExpansionTier }: CommerceContractsProps) {

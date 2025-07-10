@@ -8,6 +8,7 @@ import { Loader2, Shield, Skull, Star, LucideIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { Difficulty, Career as CareerType } from '@/lib/types';
 import { CAREER_DATA } from '@/lib/careers';
+import { useRouter } from 'next/navigation';
 
 const difficultyLevels: Record<Difficulty, { title: string; description: string; icon: React.ElementType }> = {
     Easy: {
@@ -121,6 +122,7 @@ const CareerSelector = ({ onSelect }: { onSelect: (career: CareerType) => void }
 
 export default function GameSetup() {
     const { startNewGame, isGeneratingNewGame } = useGame();
+    const router = useRouter();
     const [step, setStep] = useState<'difficulty' | 'career'>('difficulty');
     const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
 
@@ -129,9 +131,10 @@ export default function GameSetup() {
         setStep('career');
     };
 
-    const handleCareerSelect = (career: CareerType) => {
+    const handleCareerSelect = async (career: CareerType) => {
         if (selectedDifficulty) {
-            startNewGame(selectedDifficulty, career);
+            await startNewGame(selectedDifficulty, career);
+            router.push('/captain');
         }
     };
 

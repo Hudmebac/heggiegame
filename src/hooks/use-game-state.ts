@@ -7,8 +7,8 @@ import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCat
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
-import { SYSTEMS, ROUTES, initialShip } from '@/lib/systems';
-import { SHIPS_FOR_SALE } from '@/lib/ships';
+import { SYSTEMS, ROUTES } from '@/lib/systems';
+import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
@@ -116,59 +116,63 @@ export function useGameState() {
     }, []);
 
     const startNewGame = useCallback(async (difficulty: Difficulty, career: Career) => {
-        startNewGameTransition(async () => {
-            try {
-                const [tradersResult, questsResult] = await Promise.all([runTraderGeneration(), runQuestGeneration()]);
-                
-                const careerData = CAREER_DATA.find(c => c.id === career);
-                if (!careerData) throw new Error("Invalid career selected");
+        return new Promise<void>((resolve, reject) => {
+            startNewGameTransition(async () => {
+                try {
+                    const [tradersResult, questsResult] = await Promise.all([runTraderGeneration(), runQuestGeneration()]);
+                    
+                    const careerData = CAREER_DATA.find(c => c.id === career);
+                    if (!careerData) throw new Error("Invalid career selected");
 
-                let newPlayerStats = {
-                    ...initialGameState.playerStats,
-                    career,
-                    faction: 'Independent',
-                    factionReputation: { ...initialGameState.playerStats.factionReputation },
-                    fleet: careerData.startingFleet,
-                    netWorth: careerData.startingNetWorth,
-                    inspiration: careerData.id === 'Heggie Contractor' ? 0 : 0,
-                    influence: careerData.startingInfluence || 0,
-                    tradeContracts: [],
-                    taxiMissions: [],
-                    warehouses: [],
-                    militaryMissions: [],
-                    usedPromoCodes: [],
-                    negotiationCooldowns: {},
+                    let newPlayerStats = {
+                        ...initialGameState.playerStats,
+                        career,
+                        faction: 'Independent',
+                        factionReputation: { ...initialGameState.playerStats.factionReputation },
+                        fleet: careerData.startingFleet,
+                        netWorth: careerData.startingNetWorth,
+                        inspiration: careerData.id === 'Heggie Contractor' ? 0 : 0,
+                        influence: careerData.startingInfluence || 0,
+                        tradeContracts: [],
+                        taxiMissions: [],
+                        warehouses: [],
+                        militaryMissions: [],
+                        usedPromoCodes: [],
+                        negotiationCooldowns: {},
+                    }
+
+                    let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
+                    basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
+                    basePlayerStats.fuel = basePlayerStats.maxFuel;
+                    basePlayerStats.shipHealth = basePlayerStats.maxShipHealth;
+        
+                    const playerEntry = { trader: basePlayerStats.name, netWorth: basePlayerStats.netWorth, fleetSize: basePlayerStats.fleet.length, bio: basePlayerStats.bio, rank: 0 };
+                    const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
+                    const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry].sort((a, b) => b.netWorth - a.netWorth).map((e, i) => ({ ...e, rank: i + 1 }));
+        
+                    const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem)!;
+                    const marketItems = calculateMarketDataForSystem(currentSystem);
+        
+                    const newGameState: GameState = {
+                        ...(initialGameState as GameState),
+                        playerStats: basePlayerStats,
+                        marketItems,
+                        leaderboard: sortedLeaderboard,
+                        quests: questsResult.quests,
+                        systems: SYSTEMS, routes: ROUTES, crew: [],
+                        difficulty: difficulty,
+                        isGameOver: false,
+                    };
+        
+                    setGameState(newGameState);
+                    toast({ title: "New Game Started", description: `Your career as a ${career} begins on ${difficulty} difficulty!`, duration: 5000 });
+                    resolve();
+                } catch(e) {
+                    console.error("Failed to generate new game state", e);
+                    toast({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
+                    reject(e);
                 }
-
-                let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
-                basePlayerStats.cargo = calculateCurrentCargo(initialGameState.inventory);
-                basePlayerStats.fuel = basePlayerStats.maxFuel;
-                basePlayerStats.shipHealth = basePlayerStats.maxShipHealth;
-    
-                const playerEntry = { trader: basePlayerStats.name, netWorth: basePlayerStats.netWorth, fleetSize: basePlayerStats.fleet.length, bio: basePlayerStats.bio, rank: 0 };
-                const newLeaderboardWithBios = tradersResult.traders.map(trader => ({ ...trader, rank: 0 }));
-                const sortedLeaderboard = [...newLeaderboardWithBios, playerEntry].sort((a, b) => b.netWorth - a.netWorth).map((e, i) => ({ ...e, rank: i + 1 }));
-    
-                const currentSystem = SYSTEMS.find(s => s.name === initialGameState.currentSystem)!;
-                const marketItems = calculateMarketDataForSystem(currentSystem);
-    
-                const newGameState: GameState = {
-                    ...(initialGameState as GameState),
-                    playerStats: basePlayerStats,
-                    marketItems,
-                    leaderboard: sortedLeaderboard,
-                    quests: questsResult.quests,
-                    systems: SYSTEMS, routes: ROUTES, crew: [],
-                    difficulty: difficulty,
-                    isGameOver: false,
-                };
-    
-                setGameState(newGameState);
-                toast({ title: "New Game Started", description: `Your career as a ${career} begins on ${difficulty} difficulty!`, duration: 5000 });
-            } catch(e) {
-                console.error("Failed to generate new game state", e);
-                toast({ title: "Error Generating New Game", description: "Could not generate game data. Please try again later.", variant: "destructive" });
-            }
+            });
         });
     }, [calculateMarketDataForSystem, toast]);
 

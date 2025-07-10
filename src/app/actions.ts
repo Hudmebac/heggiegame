@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -20,6 +21,13 @@ import {
   NegotiateTradeRouteInputSchema,
   type NegotiateTradeRouteInput,
   type NegotiateTradeRouteOutput,
+  GenerateBankPartnershipOffersInputSchema,
+  GenerateBankPartnershipOffersOutputSchema,
+  type GenerateBankPartnershipOffersInput,
+  type GenerateBankPartnershipOffersOutput,
+  GenerateCommercePartnershipOffersInputSchema,
+  type GenerateCommercePartnershipOffersInput,
+  type GenerateCommercePartnershipOffersOutput,
 } from '@/lib/schemas';
 import { simulateMarket } from '@/lib/utils';
 import { generateQuests } from '@/lib/generation/quests';
@@ -104,12 +112,11 @@ const DEAL_DESCRIPTIONS = [
     "An offer from a prestigious institution known for its fair dealings and long-term growth strategies.",
 ];
 
-export async function runPartnershipOfferGeneration(input: GeneratePartnershipOffersInput): Promise<GeneratePartnershipOffersOutput> {
-    const validatedInput = GeneratePartnershipOffersInputSchema.parse(input);
-    const offers = Array.from({ length: 3 + Math.floor(Math.random() * 2) }).map(() => {
+const generateOffers = (marketValue: number) => {
+    return Array.from({ length: 3 + Math.floor(Math.random() * 2) }).map(() => {
         const stakePercentage = 0.05 + Math.random() * 0.25; // 5% to 30%
         const valuationMultiplier = 0.8 + Math.random() * 0.4; // 80% to 120% valuation
-        const cashOffer = Math.round(validatedInput.marketValue * stakePercentage * valuationMultiplier);
+        const cashOffer = Math.round(marketValue * stakePercentage * valuationMultiplier);
         return {
             partnerName: PARTNER_NAMES[Math.floor(Math.random() * PARTNER_NAMES.length)],
             stakePercentage,
@@ -117,8 +124,27 @@ export async function runPartnershipOfferGeneration(input: GeneratePartnershipOf
             dealDescription: DEAL_DESCRIPTIONS[Math.floor(Math.random() * DEAL_DESCRIPTIONS.length)],
         };
     });
+};
+
+
+export async function runPartnershipOfferGeneration(input: GeneratePartnershipOffersInput): Promise<GeneratePartnershipOffersOutput> {
+    const validatedInput = GeneratePartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
     return { offers };
 }
+
+export async function runBankPartnershipOfferGeneration(input: GenerateBankPartnershipOffersInput): Promise<GenerateBankPartnershipOffersOutput> {
+    const validatedInput = GenerateBankPartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
+    return { offers };
+}
+
+export async function runCommercePartnershipOfferGeneration(input: GenerateCommercePartnershipOffersInput): Promise<GenerateCommercePartnershipOffersOutput> {
+    const validatedInput = GenerateCommercePartnershipOffersInputSchema.parse(input);
+    const offers = generateOffers(validatedInput.marketValue);
+    return { offers };
+}
+
 
 export async function runNegotiateTradeRoute(input: NegotiateTradeRouteInput): Promise<NegotiateTradeRouteOutput> {
     const { negotiationScore } = NegotiateTradeRouteInputSchema.parse(input);
