@@ -2,7 +2,6 @@
 'use client';
 
 import type { Pirate } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Swords, Shield, DollarSign, Skull, Loader2, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -41,11 +40,11 @@ export default function PirateEncounter({ pirate, onAction, isResolving }: Pirat
                 </DialogTitle>
                 <DialogDescription>
                     You've been intercepted by {pirate.name} in a {pirate.shipType}.
-                    <div className="pt-2 flex items-center gap-4">
-                        <Badge variant="outline" className={threatColors[pirate.threatLevel]}>Threat: {pirate.threatLevel}</Badge>
-                        {isResolving && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
-                    </div>
                 </DialogDescription>
+                <div className="pt-2 flex items-center gap-4">
+                    <Badge variant="outline" className={threatColors[pirate.threatLevel]}>Threat: {pirate.threatLevel}</Badge>
+                    {isResolving && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                </div>
             </DialogHeader>
             
             <div className="space-y-4 pt-4">
