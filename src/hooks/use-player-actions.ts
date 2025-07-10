@@ -357,7 +357,7 @@ export function usePlayerActions(
             
             shipToUpgrade[moduleId] = true;
             fleet[shipIndex] = shipToUpgrade;
-            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - cost, fleet };
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - moduleData.cost, fleet };
             
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
 
