@@ -475,6 +475,7 @@ export function usePlayerActions(
     
     const handleChangeCareerLogic = (currentState: GameState, newCareer: Career): GameState => {
         const careerData = CAREER_DATA.find(c => c.id === newCareer);
+        if (!careerData) return currentState;
 
         const newPlayerStats: PlayerStats = {
             ...currentState.playerStats,
@@ -638,6 +639,22 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleBlueprintScrambleScore = useCallback((points: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (points > 0) {
+                toast({ title: "Blueprint Assembled", description: `You earned ${points.toLocaleString()}¢ for your design prowess.`});
+            }
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + points,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -664,5 +681,6 @@ export function usePlayerActions(
         handleShareToFacebook,
         handleMachinistMinigameScore,
         handleVaultBreachMinigameScore,
+        handleBlueprintScrambleScore,
     };
 }
