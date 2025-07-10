@@ -6,6 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { residenceThemes } from '@/lib/residence-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export function useResidence(
     gameState: GameState | null,
@@ -13,6 +14,8 @@ export function useResidence(
     updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
+  const residenceData = businessData.find(b => b.id === 'residence');
+  if (!residenceData) throw new Error("Residence data not found in business data.");
 
   const handleResidenceClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
@@ -54,16 +57,16 @@ export function useResidence(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
-      
       const landlordDiscount = playerStats.career === 'Landlord' ? 0.8 : 1.0;
+      
+      const upgradeConfig = residenceData.costs[0];
 
       if (playerStats.residenceLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Residence level is already at maximum." }), 0);
         return prev;
       }
       
-      const starterPrice = 250;
-      const upgradeCost = Math.round(starterPrice * Math.pow(1.30, playerStats.residenceLevel - 1) * costModifier * landlordDiscount * difficultyModifier);
+      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.residenceLevel - 1) * costModifier * landlordDiscount * difficultyModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -74,7 +77,7 @@ export function useResidence(
       setTimeout(() => toast({ title: "Residence Upgraded!", description: `Your residence is now Level ${newPlayerStats.residenceLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, residenceData]);
 
   const handleUpgradeResidenceAutoClicker = useCallback(() => {
     setGameState(prev => {
@@ -86,16 +89,16 @@ export function useResidence(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
-      
       const landlordDiscount = playerStats.career === 'Landlord' ? 0.8 : 1.0;
+      
+      const botConfig = residenceData.costs[1];
 
       if (playerStats.residenceAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot hire more than 25 bots." }), 0);
         return prev;
       }
       
-      const starterPrice = 300;
-      const botCost = Math.round(starterPrice * Math.pow(1.30, playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount * difficultyModifier);
+      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount * difficultyModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -106,7 +109,7 @@ export function useResidence(
       setTimeout(() => toast({ title: "Bot Hired!", description: "A new service bot has been hired." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, residenceData]);
 
   const handlePurchaseResidence = useCallback(() => {
     setGameState(prev => {
@@ -116,10 +119,11 @@ export function useResidence(
              return prev;
         }
 
+        const establishmentConfig = residenceData.costs[2];
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[prev.difficulty];
         const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
-        const cost = 400000 * landlordDiscount * difficultyModifier;
+        const cost = establishmentConfig.starterPrice * landlordDiscount * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -137,7 +141,7 @@ export function useResidence(
         setTimeout(() => toast({ title: "Property Acquired!", description: "You now own this residential property." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, residenceData]);
 
   const handleExpandResidence = useCallback(() => {
     setGameState(prev => {
@@ -151,13 +155,15 @@ export function useResidence(
         const difficultyModifier = difficultyModifiers[difficulty];
         const contract = playerStats.residenceContract;
         const landlordDiscount = playerStats.career === 'Landlord' ? 0.8 : 1.0;
+        
+        const establishmentConfig = residenceData.costs[2];
 
         if (!contract || playerStats.residenceEstablishmentLevel < 1 || playerStats.residenceEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or property not owned." }), 0);
              return prev;
         }
         
-        const expansionBaseCost = 400000 * Math.pow(2.0, playerStats.residenceEstablishmentLevel); // +100%
+        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.residenceEstablishmentLevel);
         const cost = Math.round(expansionBaseCost * costModifier * landlordDiscount * difficultyModifier);
 
         if (playerStats.netWorth < cost) {
@@ -178,7 +184,7 @@ export function useResidence(
         setTimeout(() => toast({ title: "Property Expanded!", description: `Your property has grown to Level ${newPlayerStats.residenceEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, residenceData]);
 
   const handleSellResidence = useCallback(() => {
     setGameState(prev => {

@@ -6,6 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { constructionThemes } from '@/lib/construction-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export function useConstruction(
     gameState: GameState | null,
@@ -13,6 +14,8 @@ export function useConstruction(
     updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
+  const constructionData = businessData.find(b => b.id === 'construction');
+  if (!constructionData) throw new Error("Construction data not found in business data.");
 
   const handleConstructionClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
@@ -55,13 +58,14 @@ export function useConstruction(
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
 
+      const upgradeConfig = constructionData.costs[0];
+
       if (playerStats.constructionLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Project level is already at maximum." }), 0);
         return prev;
       }
 
-      const starterPrice = 400;
-      const upgradeCost = Math.round(starterPrice * Math.pow(1.75, playerStats.constructionLevel - 1) * costModifier * difficultyModifier);
+      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.constructionLevel - 1) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -72,7 +76,7 @@ export function useConstruction(
       setTimeout(() => toast({ title: "Project Upgraded!", description: `Your project is now at Level ${newPlayerStats.constructionLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, constructionData]);
 
   const handleUpgradeConstructionAutoClicker = useCallback(() => {
     setGameState(prev => {
@@ -85,13 +89,14 @@ export function useConstruction(
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
 
+      const botConfig = constructionData.costs[1];
+
       if (playerStats.constructionAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
       
-      const starterPrice = 750;
-      const botCost = Math.round(starterPrice * Math.pow(1.80, playerStats.constructionAutoClickerBots) * costModifier * difficultyModifier);
+      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.constructionAutoClickerBots) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +107,7 @@ export function useConstruction(
       setTimeout(() => toast({ title: "Bot Deployed!", description: "A new construction bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, constructionData]);
 
   const handlePurchaseConstruction = useCallback(() => {
     setGameState(prev => {
@@ -112,9 +117,10 @@ export function useConstruction(
              return prev;
         }
 
+        const establishmentConfig = constructionData.costs[2];
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[prev.difficulty];
-        const cost = 2400000 * difficultyModifier;
+        const cost = establishmentConfig.starterPrice * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -132,7 +138,7 @@ export function useConstruction(
         setTimeout(() => toast({ title: "Construction Project Acquired!", description: "You now manage this construction project." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, constructionData]);
 
   const handleExpandConstruction = useCallback(() => {
     setGameState(prev => {
@@ -145,13 +151,15 @@ export function useConstruction(
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[difficulty];
         const contract = playerStats.constructionContract;
+        
+        const establishmentConfig = constructionData.costs[2];
 
         if (!contract || playerStats.constructionEstablishmentLevel < 1 || playerStats.constructionEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or project not owned." }), 0);
              return prev;
         }
         
-        const expansionBaseCost = 2400000 * Math.pow(3.5, playerStats.constructionEstablishmentLevel); // +250%
+        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.constructionEstablishmentLevel);
         const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (playerStats.netWorth < cost) {
@@ -172,7 +180,7 @@ export function useConstruction(
         setTimeout(() => toast({ title: "Project Expanded!", description: `Your project has grown to Phase ${newPlayerStats.constructionEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, constructionData]);
 
   const handleSellConstruction = useCallback(() => {
     setGameState(prev => {

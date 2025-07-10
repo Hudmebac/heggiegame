@@ -6,6 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { commerceThemes } from '@/lib/commerce-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export function useCommerce(
     gameState: GameState | null,
@@ -13,6 +14,8 @@ export function useCommerce(
     updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
+  const commerceData = businessData.find(b => b.id === 'commerce');
+  if (!commerceData) throw new Error("Commerce data not found in business data.");
 
   const handleCommerceClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
@@ -55,13 +58,14 @@ export function useCommerce(
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
 
+      const upgradeConfig = commerceData.costs[0];
+
       if (playerStats.commerceLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Commerce Hub level is already at maximum." }), 0);
         return prev;
       }
       
-      const starterPrice = 300;
-      const upgradeCost = Math.round(starterPrice * Math.pow(1.35, playerStats.commerceLevel - 1) * costModifier * difficultyModifier);
+      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.commerceLevel - 1) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -72,7 +76,7 @@ export function useCommerce(
       setTimeout(() => toast({ title: "Commerce Hub Upgraded!", description: `Your hub is now Level ${newPlayerStats.commerceLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, commerceData]);
 
   const handleUpgradeCommerceAutoClicker = useCallback(() => {
     setGameState(prev => {
@@ -85,13 +89,14 @@ export function useCommerce(
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
 
+      const botConfig = commerceData.costs[1];
+
       if (playerStats.commerceAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
 
-      const starterPrice = 400;
-      const botCost = Math.round(starterPrice * Math.pow(1.35, playerStats.commerceAutoClickerBots) * costModifier * difficultyModifier);
+      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.commerceAutoClickerBots) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +107,7 @@ export function useCommerce(
       setTimeout(() => toast({ title: "Bot Deployed!", description: "A new trading bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, commerceData]);
 
   const handlePurchaseCommerce = useCallback(() => {
     setGameState(prev => {
@@ -112,9 +117,10 @@ export function useCommerce(
              return prev;
         }
         
+        const establishmentConfig = commerceData.costs[2];
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[prev.difficulty];
-        const cost = 800000 * difficultyModifier;
+        const cost = establishmentConfig.starterPrice * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -132,7 +138,7 @@ export function useCommerce(
         setTimeout(() => toast({ title: "Commerce Hub Acquired!", description: "You now manage this commercial hub." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, commerceData]);
 
   const handleExpandCommerce = useCallback(() => {
     setGameState(prev => {
@@ -145,13 +151,15 @@ export function useCommerce(
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[difficulty];
         const contract = playerStats.commerceContract;
+        
+        const establishmentConfig = commerceData.costs[2];
 
         if (!contract || playerStats.commerceEstablishmentLevel < 1 || playerStats.commerceEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or hub not owned." }), 0);
              return prev;
         }
         
-        const expansionBaseCost = 800000 * Math.pow(2.5, playerStats.commerceEstablishmentLevel); // +150%
+        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.commerceEstablishmentLevel);
         const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (playerStats.netWorth < cost) {
@@ -172,7 +180,7 @@ export function useCommerce(
         setTimeout(() => toast({ title: "Hub Expanded!", description: `Your commerce hub has grown to Tier ${newPlayerStats.commerceEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, commerceData]);
 
   const handleSellCommerce = useCallback(() => {
     setGameState(prev => {

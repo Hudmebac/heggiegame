@@ -6,6 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { industryThemes } from '@/lib/industry-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export function useIndustry(
     gameState: GameState | null,
@@ -13,6 +14,9 @@ export function useIndustry(
     updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
+  const industryData = businessData.find(b => b.id === 'industry');
+  if (!industryData) throw new Error("Industry data not found in business data.");
+
 
   const handleIndustryClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
@@ -54,14 +58,15 @@ export function useIndustry(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
+      
+      const upgradeConfig = industryData.costs[0];
 
       if (playerStats.industryLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." }), 0);
         return prev;
       }
       
-      const starterPrice = 350;
-      const upgradeCost = Math.round(starterPrice * Math.pow(1.40, playerStats.industryLevel - 1) * costModifier * difficultyModifier);
+      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.industryLevel - 1) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -72,7 +77,7 @@ export function useIndustry(
       setTimeout(() => toast({ title: "Facility Upgraded!", description: `Your industrial facility is now at Level ${newPlayerStats.industryLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, industryData]);
 
   const handleUpgradeIndustryAutoClicker = useCallback(() => {
     setGameState(prev => {
@@ -85,13 +90,14 @@ export function useIndustry(
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
 
+      const botConfig = industryData.costs[1];
+
       if (playerStats.industryAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 bots." }), 0);
         return prev;
       }
       
-      const starterPrice = 200;
-      const botCost = Math.round(starterPrice * Math.pow(1.50, playerStats.industryAutoClickerBots) * costModifier * difficultyModifier);
+      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.industryAutoClickerBots) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +108,7 @@ export function useIndustry(
       setTimeout(() => toast({ title: "Bot Deployed!", description: "A new assembly bot has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, industryData]);
 
   const handlePurchaseIndustry = useCallback(() => {
     setGameState(prev => {
@@ -112,9 +118,10 @@ export function useIndustry(
              return prev;
         }
 
+        const establishmentConfig = industryData.costs[2];
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[prev.difficulty];
-        const cost = 1200000 * difficultyModifier;
+        const cost = establishmentConfig.starterPrice * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -132,7 +139,7 @@ export function useIndustry(
         setTimeout(() => toast({ title: "Facility Acquired!", description: "You now manage this industrial facility." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, industryData]);
 
   const handleExpandIndustry = useCallback(() => {
     setGameState(prev => {
@@ -146,12 +153,14 @@ export function useIndustry(
         const difficultyModifier = difficultyModifiers[difficulty];
         const contract = playerStats.industryContract;
 
+        const establishmentConfig = industryData.costs[2];
+
         if (!contract || playerStats.industryEstablishmentLevel < 1 || playerStats.industryEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." }), 0);
              return prev;
         }
         
-        const expansionBaseCost = 1200000 * Math.pow(2.75, playerStats.industryEstablishmentLevel); // +175%
+        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.industryEstablishmentLevel);
         const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (playerStats.netWorth < cost) {
@@ -172,7 +181,7 @@ export function useIndustry(
         setTimeout(() => toast({ title: "Facility Expanded!", description: `Your industrial facility has grown to Tier ${newPlayerStats.industryEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, industryData]);
 
   const handleSellIndustry = useCallback(() => {
     setGameState(prev => {

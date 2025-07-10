@@ -6,6 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { recreationThemes } from '@/lib/recreation-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export function useRecreation(
     gameState: GameState | null,
@@ -13,6 +14,8 @@ export function useRecreation(
     updateObjectiveProgress: (objectiveType: QuestTask['type'], state: GameState) => [GameState, ActiveObjective[]]
 ) {
   const { toast } = useToast();
+  const recreationData = businessData.find(b => b.id === 'recreation');
+  if (!recreationData) throw new Error("Recreation data not found in business data.");
 
   const handleRecreationClick = useCallback(() => {
     let completedToastMessages: { title: string, description: string }[] = [];
@@ -55,13 +58,14 @@ export function useRecreation(
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
 
+      const upgradeConfig = recreationData.costs[0];
+
       if (playerStats.recreationLevel >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Facility level is already at maximum." }), 0);
         return prev;
       }
       
-      const starterPrice = 500;
-      const upgradeCost = Math.round(starterPrice * Math.pow(1.80, playerStats.recreationLevel - 1) * costModifier * difficultyModifier);
+      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.recreationLevel - 1) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -72,7 +76,7 @@ export function useRecreation(
       setTimeout(() => toast({ title: "Facility Upgraded!", description: `Your recreation facility is now at Level ${newPlayerStats.recreationLevel}.` }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, recreationData]);
 
   const handleUpgradeRecreationAutoClicker = useCallback(() => {
     setGameState(prev => {
@@ -84,14 +88,15 @@ export function useRecreation(
       const costModifier = currentSystem ? economyCostModifiers[currentSystem.economy] : 1.0;
       const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
       const difficultyModifier = difficultyModifiers[difficulty];
+      
+      const botConfig = recreationData.costs[1];
 
       if (playerStats.recreationAutoClickerBots >= 25) {
         setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot deploy more than 25 drones." }), 0);
         return prev;
       }
       
-      const starterPrice = 1000;
-      const botCost = Math.round(starterPrice * Math.pow(1.90, playerStats.recreationAutoClickerBots) * costModifier * difficultyModifier);
+      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.recreationAutoClickerBots) * costModifier * difficultyModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +107,7 @@ export function useRecreation(
       setTimeout(() => toast({ title: "Drone Deployed!", description: "A new entertainment drone has been deployed." }), 0);
       return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, recreationData]);
 
   const handlePurchaseRecreation = useCallback(() => {
     setGameState(prev => {
@@ -112,9 +117,10 @@ export function useRecreation(
              return prev;
         }
 
+        const establishmentConfig = recreationData.costs[2];
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[prev.difficulty];
-        const cost = 3000000 * difficultyModifier;
+        const cost = establishmentConfig.starterPrice * difficultyModifier;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -132,7 +138,7 @@ export function useRecreation(
         setTimeout(() => toast({ title: "Facility Acquired!", description: "You now manage this recreation facility." }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, recreationData]);
 
   const handleExpandRecreation = useCallback(() => {
     setGameState(prev => {
@@ -145,13 +151,15 @@ export function useRecreation(
         const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
         const difficultyModifier = difficultyModifiers[difficulty];
         const contract = playerStats.recreationContract;
+        
+        const establishmentConfig = recreationData.costs[2];
 
         if (!contract || playerStats.recreationEstablishmentLevel < 1 || playerStats.recreationEstablishmentLevel >= 5) {
              setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: "Cannot expand further or facility not owned." }), 0);
              return prev;
         }
         
-        const expansionBaseCost = 3000000 * Math.pow(4.0, playerStats.recreationEstablishmentLevel); // +300%
+        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.recreationEstablishmentLevel);
         const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (playerStats.netWorth < cost) {
@@ -172,7 +180,7 @@ export function useRecreation(
         setTimeout(() => toast({ title: "Facility Expanded!", description: `Your recreation facility has grown to Tier ${newPlayerStats.recreationEstablishmentLevel - 1}.` }), 0);
         return { ...prev, playerStats: newPlayerStats };
     });
-  }, [setGameState, toast]);
+  }, [setGameState, toast, recreationData]);
 
   const handleSellRecreation = useCallback(() => {
     setGameState(prev => {
