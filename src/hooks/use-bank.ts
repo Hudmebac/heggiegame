@@ -148,8 +148,7 @@ export function useBank(
                     valueHistory: [initialValue],
                     partners: [],
                 },
-                bankAccount: undefined, // Player now owns the bank, no longer a client
-                bankShares: 0,
+                bankShares: 0, // Shares are converted to full ownership
             }
         }
     });
@@ -254,7 +253,7 @@ export function useBank(
             let newPlayerStats = { ...prev.playerStats };
             let stateChanged = false;
             
-            // --- Bank Share Price & Interest (Pre-Ownership) ---
+            // --- Bank Share Price & Interest ---
             if (newPlayerStats.bankAccount && newPlayerStats.bankEstablishmentLevel === 0) {
                 const now = Date.now();
                 const timeSinceLastUpdate = now - (newPlayerStats.bankAccount.lastFluctuation || now);

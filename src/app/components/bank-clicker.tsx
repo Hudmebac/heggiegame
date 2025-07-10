@@ -9,7 +9,7 @@ import { bankThemes } from '@/lib/bank-themes';
 import BankContracts from './bank-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export default function BankClicker() {
     const { gameState, handleBankClick, handleUpgradeBank, handleUpgradeBankAutoClicker, handleAcceptBankPartnerOffer } = useGame();
@@ -34,11 +34,16 @@ export default function BankClicker() {
     const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
     const difficultyModifier = difficultyModifiers[difficulty];
 
-    const upgradeCost = Math.round(500000 * Math.pow(playerStats.bankLevel, 2.8) * difficultyModifier);
+    const bankData = businessData.find(b => b.id === 'bank');
+    if (!bankData) return null;
+
+    const upgradeConfig = bankData.costs[0];
+    const upgradeCost = calculateCost(playerStats.bankLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier);
     const isBankLevelMaxed = playerStats.bankLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBankLevelMaxed;
 
-    const botCost = Math.round(1000000 * Math.pow(2.5, playerStats.bankAutoClickerBots) * difficultyModifier);
+    const botConfig = bankData.costs[1];
+    const botCost = calculateCost(playerStats.bankAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.bankAutoClickerBots * rawIncomePerClick;
