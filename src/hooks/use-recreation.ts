@@ -56,7 +56,7 @@ export function useRecreation(
         return prev;
       }
 
-      const upgradeCost = Math.round(422 * Math.pow(prev.playerStats.recreationLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(422 * 2.25 * Math.pow(prev.playerStats.recreationLevel, 2.5) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -81,7 +81,7 @@ export function useRecreation(
         return prev;
       }
 
-      const botCost = Math.round(5625 * Math.pow(2.25, prev.playerStats.recreationAutoClickerBots) * costModifier);
+      const botCost = Math.round(5625 * 2.5 * Math.pow(2.25, prev.playerStats.recreationAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +102,7 @@ export function useRecreation(
              return prev;
         }
 
-        const cost = 3000 * 2;
+        const cost = 3000 * 4.0;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -135,7 +135,7 @@ export function useRecreation(
              return prev;
         }
         
-        const expansionTiers = [30000, 300000, 3000000, 30000000].map(v => v * 2);
+        const expansionTiers = [30000, 300000, 3000000, 30000000].map(v => v * 4.0);
         const cost = Math.round(expansionTiers[prev.playerStats.recreationEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
