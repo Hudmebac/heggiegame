@@ -9,8 +9,19 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.22 – 'Economy Rash'",
+        date: "Startdate: Cycle 4525.0710",
+        changes: [
+            "Complete reengineering of the core economy system—introducing dynamic market fluctuations, resource volatility, and sector-based demand modeling for more emergent gameplay.",
+            "Debuted the Galactic Bank Initiative, empowering players to manage assets, negotiate multi-cycle loans, and invest in adaptive financial instruments across planetary systems.",
+            "Economic difficulty settings now influence cost scaling and risk multipliers, aligning financial strategy with player autonomy and system status.",
+            "Planetary modifiers expanded—market behavior now reflects planetary status tiers and primary trade archetypes (Agrarian, Industrial, Digital).",
+            "Faction-influenced trade perks and stability bonuses introduced to deepen strategic interstellar investment planning."
+        ]
+    },
+    {
         version: "v1.2.1 - 'Stability Patch'",
-        date: "Cycle 4521.09",
+        date: "Startdate: Cycle 4525.09.1",
         changes: [
             "Critical fix to pirate encounter logic to prevent infinite loops and ensure encounters are decisive events.",
             "Refined insurance behavior to correctly trigger rebirth in non-Hardcore modes and disable insurance purchasing in Hardcore mode.",
@@ -20,7 +31,7 @@ const changelogData = [
     },
     {
         version: "v1.2.0 - 'Orion's Arm'",
-        date: "Cycle 4521.08",
+        date: "Startdate: Cycle 4525.0709",
         changes: [
             "Introduced Faction Allegiance system. Players can now pledge to one of six major galactic powers for unique perks.",
             "Added 'How to Play' section to the Encyclopedia.",
@@ -31,7 +42,7 @@ const changelogData = [
     },
     {
         version: "v1.1.0 - 'Gemini'",
-        date: "Cycle 4521.07",
+        date: "Startdate: Cycle 4525.0708",
         changes: [
             "Overhauled the career system, introducing unique mission boards for Hauler, Taxi Pilot, Defender, and more.",
             "Added a full suite of business ventures: Residence, Commerce, Industry, Construction, and Recreation.",
@@ -40,7 +51,7 @@ const changelogData = [
     },
     {
         version: "v1.0.0 - 'Helios'",
-        date: "Cycle 4521.06",
+        date: "Startdate: Cycle 4525.0707",
         changes: [
             "Initial launch of the HEGGIE: Hegg Interstellar Exchange.",
             "Core gameplay loop established: trading, ship management, and questing.",
