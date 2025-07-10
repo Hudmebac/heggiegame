@@ -20,19 +20,19 @@ export interface BusinessData {
 
 /**
  * Calculates the compounding cost for a given level.
- * @param level - The current level of the item (1-indexed). The calculation will be for the cost to reach level+1.
+ * @param level - The current level of the item (1-indexed). The calculation will be for this level's cost.
  * @param starterPrice - The base cost at level 1.
  * @param growth - The percentage increase per level (e.g., 0.15 for 15%).
  * @param modifier - An additional multiplier for difficulty, planet, etc.
- * @returns The cost to upgrade from `level` to `level + 1`.
+ * @returns The cost to upgrade TO this `level`.
  */
 export const calculateCost = (level: number, starterPrice: number, growth: number, modifier: number = 1): number => {
-    let cost = starterPrice;
-    // We loop up to 'level' because we're calculating the cost for the *next* level.
-    for (let i = 0; i < level; i++) {
+    let cost = starterPrice * modifier;
+    // Loop up to 'level - 1' because level 1 is the starter price
+    for (let i = 1; i < level; i++) {
         cost *= (1 + growth);
     }
-    return Math.round(cost * modifier);
+    return Math.round(cost);
 };
 
 export const businessData: BusinessData[] = [
@@ -106,8 +106,11 @@ export const businessData: BusinessData[] = [
         id: "bank",
         icon: Landmark,
         title: "Galactic Bank",
-        description: "The ultimate seat of financial power. After acquiring majority ownership, you can take control of the Galactic Bank itself. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio.",
-        costs: []
+        description: "The ultimate seat of financial power. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio.",
+        costs: [
+            { label: "Upgrade Infrastructure", starterPrice: 2000000, growth: 0.85, icon: ChevronsUp },
+            { label: "Deploy Financial Bot", starterPrice: 5000000, growth: 0.95, icon: Bot },
+        ]
     },
     {
         id: "casino",
