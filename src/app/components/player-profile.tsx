@@ -106,7 +106,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
     }
   }
 
-  const shareQuote = `I am playing HEGGIE: Space Game! My Current Net Worth is ${stats.netWorth.toLocaleString()}¢ and my career is ${stats.career}. Come start your own adventure!`;
+  const shareQuote = `I am playing HEGGIE - Space Game 🪐 I am a ${stats.career}, and my net worth’s already a cosmic-sized ${stats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
 
   const handleCopyToClipboard = () => {
     navigator.clipboard.writeText(shareQuote);
@@ -244,7 +244,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
                         </DialogHeader>
                         <div className="space-y-4">
                             <Label htmlFor="share-message">Your Share Message</Label>
-                            <Textarea id="share-message" readOnly value={shareQuote} className="h-28" />
+                            <Textarea id="share-message" readOnly value={shareQuote} className="h-36" />
                             <Button onClick={handleCopyToClipboard} variant="outline" className="w-full">
                                 <Copy className="mr-2" /> Copy Message
                             </Button>
