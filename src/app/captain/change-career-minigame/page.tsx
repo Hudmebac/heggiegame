@@ -1,3 +1,4 @@
+
 'use client';
 import CareerChangeMinigame from '@/app/components/career-change-minigame';
 
