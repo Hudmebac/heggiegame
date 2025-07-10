@@ -655,6 +655,22 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleMixAndMatchMinigameScore = useCallback((points: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (points > 0) {
+                toast({ title: "Shift Complete!", description: `You earned ${points.toLocaleString()}¢ in tips for your excellent service.`});
+            }
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + points,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -682,5 +698,6 @@ export function usePlayerActions(
         handleMachinistMinigameScore,
         handleVaultBreachMinigameScore,
         handleBlueprintScrambleScore,
+        handleMixAndMatchMinigameScore,
     };
 }
