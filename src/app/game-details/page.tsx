@@ -153,13 +153,18 @@ export default function GameDetailsPage() {
                             Have a great idea, found a pesky bug, or just want to say hello? Get in touch!
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button onClick={() => window.location.href = 'mailto:heliosheggie@gmail.com?subject=HEGGIE%20Feedback'}>
-                            <Mail className="mr-2"/> Provide Feedback
-                        </Button>
-                        <Button variant="destructive" onClick={() => window.location.href = 'mailto:heliosheggie@gmail.com?subject=HEGGIE%20Bug%20Report'}>
-                            <Bug className="mr-2"/> Report a Bug
-                        </Button>
+                    <CardContent className="flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Button onClick={() => window.location.href = 'mailto:heliosheggie@gmail.com?subject=HEGGIE%20Feedback'}>
+                                <Mail className="mr-2"/> Provide Feedback
+                            </Button>
+                            <Button variant="destructive" onClick={() => window.location.href = 'mailto:heliosheggie@gmail.com?subject=HEGGIE%20Bug%20Report'}>
+                                <Bug className="mr-2"/> Report a Bug
+                            </Button>
+                        </div>
+                        <p className="text-center text-xs text-muted-foreground">
+                            Or email directly at: <span className="font-mono text-primary/80">heliosheggie@gmail.com</span>
+                        </p>
                     </CardContent>
                 </Card>
 
