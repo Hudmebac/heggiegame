@@ -27,8 +27,8 @@ export default function PirateEncounter({ pirate, onAction, isResolving }: Pirat
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm">
-        <Card className="bg-card/90 backdrop-blur-sm border-destructive/50 shadow-lg shadow-destructive/10 animate-in slide-in-from-bottom-5">
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end justify-end p-4 sm:p-6">
+      <Card className="bg-card/95 w-full max-w-sm border-destructive/50 shadow-lg shadow-destructive/10 animate-in slide-in-from-bottom-5">
         <CardHeader>
             <CardTitle className="font-headline text-lg flex items-center gap-2 text-destructive">
             <Skull />

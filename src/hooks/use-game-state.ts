@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useTransition } from 'react';
 import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, FactionId } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -314,6 +314,7 @@ export function useGameState() {
                     lastFacebookShare: savedProgress.playerStats.lastFacebookShare || 0,
                     faction: savedProgress.playerStats.faction || 'Independent',
                     factionReputation: savedProgress.playerStats.factionReputation || initialGameState.playerStats.factionReputation,
+                    pirateEncounter: null, // Don't persist pirate encounters
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
@@ -360,7 +361,15 @@ export function useGameState() {
         setIsSaving(true);
         const handler = setTimeout(() => {
             try {
-                localStorage.setItem('heggieGameState', JSON.stringify(gameState));
+                // Create a savable version of the state without transient properties
+                const stateToSave = {
+                    ...gameState,
+                    playerStats: {
+                        ...gameState.playerStats,
+                        pirateEncounter: null, // Ensure pirate encounters are not saved
+                    },
+                };
+                localStorage.setItem('heggieGameState', JSON.stringify(stateToSave));
             } catch (error) {
                 console.error("Failed to save game state to local storage:", error);
             } finally {

@@ -103,6 +103,12 @@ export function useEncounters(
 
     startEncounterResolution(async () => {
         try {
+            // Immediately clear the encounter from the main state to hide the UI
+            setGameState(prev => {
+                if (!prev) return null;
+                return { ...prev, playerStats: { ...prev.playerStats, pirateEncounter: null } };
+            });
+
             const result = await resolveEncounter({
                 action,
                 playerNetWorth: gameState.playerStats.netWorth,
@@ -116,8 +122,7 @@ export function useEncounters(
                 shieldLevel: activeShip.shieldLevel,
             });
 
-            setEncounterResult(result);
-
+            // Apply the results of the encounter
             setGameState(prev => {
                 if (!prev) return null;
                 
@@ -189,7 +194,10 @@ export function useEncounters(
 
                 newPlayerStats = syncActiveShipStats(newPlayerStats);
 
-                return { ...prev, playerStats: { ...newPlayerStats, pirateEncounter: null } };
+                // Show the result dialog *after* state has been updated
+                setEncounterResult(result);
+                
+                return { ...prev, playerStats: newPlayerStats };
             });
         } catch (error) {
             console.error(error);
