@@ -1,5 +1,6 @@
 
-import type { System, Route, Planet } from '@/lib/types';
+import type { System, Route, Planet, PlayerShip } from '@/lib/types';
+import { hullUpgrades } from './upgrades';
 
 const solPlanets: Planet[] = [
     { name: 'Mercury', type: 'Barren', description: 'A scorched rock, rich in heavy metals but devoid of life.'},
@@ -291,3 +292,5 @@ export const ROUTES: Route[] = [
     { from: 'Aldebaran', to: 'Vega' },
     { from: 'Sol', to: 'Sky' },
 ];
+
+export { initialShip } from '@/lib/ships';

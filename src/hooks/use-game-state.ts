@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
@@ -6,78 +7,15 @@ import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCat
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
-import { SYSTEMS, ROUTES } from '@/lib/systems';
+import { SYSTEMS, ROUTES, initialShip } from '@/lib/systems';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, syncActiveShipStats } from '@/lib/utils';
 import pako from 'pako';
 
-
-function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
-    if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
-
-    const activeShip = playerStats.fleet[0];
-    const newStats = { ...playerStats };
-
-    const cargoTier = cargoUpgrades[activeShip.cargoLevel - 1];
-    newStats.maxCargo = cargoTier ? cargoTier.capacity : 0;
-    newStats.cargoLevel = activeShip.cargoLevel;
-
-    const weaponTier = weaponUpgrades[activeShip.weaponLevel - 1];
-    newStats.weaponLevel = weaponTier ? weaponTier.level : 1;
-
-    const shieldTier = shieldUpgrades[activeShip.shieldLevel - 1];
-    newStats.shieldLevel = shieldTier ? shieldTier.level : 1;
-
-    const hullTier = hullUpgrades[activeShip.hullLevel - 1];
-    newStats.maxShipHealth = hullTier ? hullTier.health : 100;
-    newStats.hullLevel = activeShip.hullLevel;
-
-    const fuelTier = fuelUpgrades[activeShip.fuelLevel - 1];
-    newStats.maxFuel = fuelTier ? fuelTier.capacity : 100;
-    newStats.fuelLevel = activeShip.fuelLevel;
-
-    const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
-    newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
-    
-    const droneTier = droneUpgrades[activeShip.droneLevel - 1];
-    newStats.droneLevel = droneTier ? droneTier.level : 1;
-
-    newStats.powerCoreLevel = activeShip.powerCoreLevel;
-    newStats.overdriveEngine = activeShip.overdriveEngine;
-    newStats.warpStabilizer = activeShip.warpStabilizer;
-    newStats.stealthPlating = activeShip.stealthPlating;
-    newStats.targetingMatrix = activeShip.targetingMatrix;
-    newStats.anomalyAnalyzer = activeShip.anomalyAnalyzer;
-    newStats.fabricatorBay = activeShip.fabricatorBay;
-    newStats.gravAnchor = activeShip.gravAnchor;
-    newStats.aiCoreInterface = activeShip.aiCoreInterface;
-    newStats.bioDomeModule = activeShip.bioDomeModule;
-    newStats.flakDispensers = activeShip.flakDispensers;
-    newStats.boardingTubeSystem = activeShip.boardingTubeSystem;
-    newStats.terraformToolkit = activeShip.terraformToolkit;
-    newStats.thermalRegulator = activeShip.thermalRegulator;
-    newStats.diplomaticUplink = activeShip.diplomaticUplink;
-    
-    newStats.shipHealth = activeShip.health;
-    newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
-
-    return newStats;
-}
-
-const initialShip: PlayerShip = {
-    instanceId: Date.now(),
-    shipId: 'shuttle-s',
-    name: 'My Shuttle',
-    cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
-    powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
-    gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
-    health: hullUpgrades[0].health,
-    status: 'operational',
-};
 
 const initialCasinoState: CasinoState = {
     lastPlayed: {},

@@ -1,24 +1,15 @@
 
+
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
-import type { GameState, Pirate, EncounterResult, PlayerStats } from '@/lib/types';
+import type { GameState, Pirate, EncounterResult, PlayerStats, PlayerShip, Difficulty } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { hullUpgrades } from '@/lib/upgrades';
 import { runPirateScan } from '@/app/actions';
-
-function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
-    if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
-
-    const activeShip = playerStats.fleet[0];
-    const newStats = { ...playerStats };
-
-    const hullTier = hullUpgrades[activeShip.hullLevel - 1];
-    newStats.maxShipHealth = hullTier ? hullTier.health : 100;
-    newStats.shipHealth = activeShip.health;
-    
-    return newStats;
-}
+import { initialShip } from '@/lib/ships';
+import { syncActiveShipStats, calculateCargoValue } from '@/lib/utils';
+import { STATIC_ITEMS } from '@/lib/items';
 
 // Simulated resolveEncounter logic
 async function resolveEncounter(input: {
@@ -85,6 +76,48 @@ async function resolveEncounter(input: {
     return { outcome, narrative, cargoLost, creditsLost, damageTaken };
 }
 
+function handleRebirth(stats: PlayerStats, difficulty: Difficulty): PlayerStats {
+    if (difficulty === 'Hardcore') return { ...stats }; // Should be handled by gameOver, but as a safeguard.
+    
+    let newNetWorth = stats.netWorth;
+    let newInventory = [...stats.inventory];
+    let newShip = { ...initialShip, instanceId: Date.now() };
+
+    // Apply Health Insurance
+    if(stats.insurance.health) {
+        newNetWorth = stats.netWorth * 0.5;
+    } else {
+        newNetWorth = 10000; // Base rebirth cash
+    }
+
+    // Apply Ship Insurance
+    if(stats.insurance.ship && stats.fleet.length > 0) {
+        // Find most valuable ship that was lost and restore it, but damaged
+        const restoredShip = [...stats.fleet].sort((a,b) => calculateShipValue(b) - calculateShipValue(a))[0];
+        if(restoredShip) {
+            const maxHealth = hullUpgrades[restoredShip.hullLevel - 1]?.health || 100;
+            newShip = { ...restoredShip, health: maxHealth * 0.25, status: 'repair_needed' };
+        }
+    }
+    
+    // Apply Cargo Insurance
+    if(stats.insurance.cargo) {
+        // Keep 25% of cargo value by converting it to cash
+        const cargoValue = calculateCargoValue(stats.inventory, []); // Using base prices
+        newNetWorth += cargoValue * 0.25;
+        newInventory = [];
+    } else {
+        newInventory = [];
+    }
+
+    return {
+        ...stats,
+        netWorth: Math.round(newNetWorth),
+        fleet: [newShip],
+        inventory: newInventory,
+    };
+}
+
 
 export function useEncounters(
     gameState: GameState | null,
@@ -98,7 +131,6 @@ export function useEncounters(
     if (!gameState?.pirateEncounter) return;
 
     const pirate = gameState.pirateEncounter;
-    
     const activeShip = gameState.playerStats.fleet[0];
 
     startEncounterResolution(async () => {
@@ -116,18 +148,19 @@ export function useEncounters(
                 shieldLevel: activeShip.shieldLevel,
             });
 
-            // Apply the results of the encounter
+            // This state update will happen in the background
+            setEncounterResult(result);
+            
+            // The main logic now happens inside this state update
             setGameState(prev => {
-                if (!prev) return null;
+                if (!prev || !prev.pirateEncounter) return prev;
                 
                 let newPlayerStats = { ...prev.playerStats };
+                
                 newPlayerStats.netWorth -= result.creditsLost;
-                newPlayerStats.pirateEncounter = null;
-                let isGameOver = false;
-
-                // Determine which ship was in the encounter
+                
                 let shipInstanceId = activeShip.instanceId;
-                if (pirate.missionId && pirate.missionType && pirate.missionType !== 'trade') {
+                 if (pirate.missionId && pirate.missionType && pirate.missionType !== 'trade') {
                     const missionsKey = `${pirate.missionType}s` as 'escortMissions' | 'tradeContracts' | 'taxiMissions' | 'militaryMissions';
                     const mission = (prev.playerStats as any)[missionsKey]?.find((m: any) => m.id === pirate.missionId);
                     if(mission?.assignedShipInstanceId) {
@@ -145,29 +178,23 @@ export function useEncounters(
 
                 if (shipIndex !== -1) {
                     const ship = { ...fleet[shipIndex] };
-                    const maxHealth = hullUpgrades[ship.hullLevel - 1]?.health || 100;
-
                     ship.health = Math.max(0, ship.health - result.damageTaken);
 
                     if (ship.health <= 0) {
-                        fleet.splice(shipIndex, 1); // Remove ship from fleet
-                        setTimeout(() => toast({ variant: "destructive", title: "Ship Destroyed!", description: `Your ${ship.name} has been lost to the void.` }), 0);
-                        if (fleet.length === 0) {
-                           isGameOver = true;
+                        if(prev.difficulty === 'Hardcore') {
+                            setTimeout(() => toast({ variant: "destructive", title: "Game Over", description: "Your ship has been destroyed. Your journey ends here." }), 0);
+                            return { ...prev, isGameOver: true };
+                        } else {
+                            setTimeout(() => toast({ variant: "destructive", title: "Ship Destroyed!", description: "You have been reborn in the Sol system with a new vessel." }), 0);
+                            newPlayerStats = handleRebirth(newPlayerStats, prev.difficulty);
                         }
-                    } else if (ship.health < maxHealth / 2) {
-                        ship.status = 'repair_needed';
-                        setTimeout(() => toast({ variant: "destructive", title: "Ship Damaged", description: `Your ${ship.name} needs critical repairs and is unavailable for missions.` }), 0);
-                    }
-                    
-                    if (ship.health > 0) {
+                    } else {
+                        ship.status = ship.health < (hullUpgrades[ship.hullLevel - 1]?.health || 100) / 2 ? 'repair_needed' : 'operational';
                         fleet[shipIndex] = ship;
+                        newPlayerStats.fleet = fleet;
                     }
                 }
-
-                newPlayerStats.fleet = fleet;
-
-                // Handle mission failure
+                
                 if (pirate.missionId && pirate.missionType) {
                      const missionsKey = `${pirate.missionType}s` as 'escortMissions' | 'tradeContracts' | 'taxiMissions' | 'militaryMissions';
                      const missions = [...((newPlayerStats as any)[missionsKey] || [])];
@@ -177,22 +204,12 @@ export function useEncounters(
                         missions[missionIndex] = { ...missions[missionIndex], status: 'Failed', assignedShipInstanceId: null };
                         (newPlayerStats as any)[missionsKey] = missions;
                         newPlayerStats.reputation = Math.max(0, newPlayerStats.reputation - 5);
-                        setTimeout(() => toast({ variant: "destructive", title: `${pirate.missionType.charAt(0).toUpperCase() + pirate.missionType.slice(1)} Failed`, description: `You failed to complete your mission due to the ambush. Your reputation has suffered.` }), 0);
-                    } else {
-                        setTimeout(() => toast({ title: "Threat Neutralized", description: "You've dealt with the ambush and can continue your mission, but you have lost time." }), 0);
                     }
-                }
-
-                if (isGameOver) {
-                    return { ...prev, isGameOver: true };
                 }
 
                 newPlayerStats = syncActiveShipStats(newPlayerStats);
 
-                // Show the result dialog *after* state has been updated
-                setEncounterResult(result);
-                
-                return { ...prev, playerStats: newPlayerStats };
+                return { ...prev, playerStats: newPlayerStats, pirateEncounter: null };
             });
         } catch (error) {
             console.error(error);
@@ -202,7 +219,9 @@ export function useEncounters(
     });
   }, [gameState, setGameState, toast]);
 
-  const handleCloseEncounterDialog = () => setEncounterResult(null);
+  const handleCloseEncounterDialog = () => {
+    setEncounterResult(null);
+  }
 
   return {
     isResolvingEncounter,
