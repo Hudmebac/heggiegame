@@ -116,7 +116,7 @@ export default function GameDetailsPage() {
                         <div className="space-y-2">
                             <h4 className="font-semibold flex items-center gap-2"><User className="h-4 w-4"/> The Bio</h4>
                              <p className="text-sm text-muted-foreground">
-                                Craig is a solo developer with a passion for building intricate worlds and game systems. With a background in web development, he's leveraging NextJS, React, and Tailwind to bring the HEGGIE universe to life, one feature at a time.
+                                Craig is a solo developer with a passion for building intricate worlds and game systems. With a background in software development, he's leveraging AI, NextJS, React, and Tailwind to bring the HEGGIE universe to life, one feature at a time.
                             </p>
                         </div>
                     </CardContent>
