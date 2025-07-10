@@ -75,7 +75,7 @@ export function useBar(
         return prev;
       }
       
-      const upgradeCost = calculateCost(playerStats.barLevel, upgradeConfig, difficultyModifier, costModifier);
+      const upgradeCost = calculateCost(playerStats.barLevel + 1, upgradeConfig, difficultyModifier, costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -169,7 +169,7 @@ export function useBar(
              return prev;
         }
         
-        const expansionBaseCost = calculateCost(playerStats.establishmentLevel, establishmentConfig, 1, 1);
+        const expansionBaseCost = calculateCost(playerStats.establishmentLevel + 1, establishmentConfig, 1, 1);
         const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (playerStats.netWorth < cost) {

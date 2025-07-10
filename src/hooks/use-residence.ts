@@ -47,6 +47,14 @@ export function useResidence(
     }
   }, [setGameState, updateObjectiveProgress, toast]);
 
+  const calculateCost = (level: number, config: { starterPrice: number, growth: number }, difficultyModifier: number, costModifier: number) => {
+      let cost = config.starterPrice;
+      for (let i = 1; i < level; i++) {
+        cost *= (1 + config.growth);
+      }
+      return Math.round(cost * difficultyModifier * costModifier);
+  };
+  
   const handleUpgradeResidence = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
@@ -66,7 +74,7 @@ export function useResidence(
         return prev;
       }
       
-      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.residenceLevel - 1) * costModifier * landlordDiscount * difficultyModifier);
+      const upgradeCost = calculateCost(playerStats.residenceLevel + 1, upgradeConfig, difficultyModifier, costModifier * landlordDiscount);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -98,7 +106,7 @@ export function useResidence(
         return prev;
       }
       
-      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount * difficultyModifier);
+      const botCost = calculateCost(playerStats.residenceAutoClickerBots + 1, botConfig, difficultyModifier, costModifier * landlordDiscount);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -163,7 +171,7 @@ export function useResidence(
              return prev;
         }
         
-        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.residenceEstablishmentLevel);
+        const expansionBaseCost = calculateCost(playerStats.residenceEstablishmentLevel + 1, establishmentConfig, 1, 1);
         const cost = Math.round(expansionBaseCost * costModifier * landlordDiscount * difficultyModifier);
 
         if (playerStats.netWorth < cost) {

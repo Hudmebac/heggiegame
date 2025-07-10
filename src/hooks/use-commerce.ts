@@ -47,6 +47,14 @@ export function useCommerce(
     }
   }, [setGameState, updateObjectiveProgress, toast]);
 
+  const calculateCost = (level: number, config: { starterPrice: number, growth: number }, difficultyModifier: number, costModifier: number) => {
+      let cost = config.starterPrice;
+      for (let i = 1; i < level; i++) {
+        cost *= (1 + config.growth);
+      }
+      return Math.round(cost * difficultyModifier * costModifier);
+  };
+
   const handleUpgradeCommerce = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
@@ -65,7 +73,7 @@ export function useCommerce(
         return prev;
       }
       
-      const upgradeCost = Math.round(upgradeConfig.starterPrice * Math.pow(1 + upgradeConfig.growth, playerStats.commerceLevel - 1) * costModifier * difficultyModifier);
+      const upgradeCost = calculateCost(playerStats.commerceLevel + 1, upgradeConfig, difficultyModifier, costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -96,7 +104,7 @@ export function useCommerce(
         return prev;
       }
 
-      const botCost = Math.round(botConfig.starterPrice * Math.pow(1 + botConfig.growth, playerStats.commerceAutoClickerBots) * costModifier * difficultyModifier);
+      const botCost = calculateCost(playerStats.commerceAutoClickerBots + 1, botConfig, difficultyModifier, costModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -159,7 +167,7 @@ export function useCommerce(
              return prev;
         }
         
-        const expansionBaseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, playerStats.commerceEstablishmentLevel);
+        const expansionBaseCost = calculateCost(playerStats.commerceEstablishmentLevel + 1, establishmentConfig, 1, 1);
         const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
 
         if (playerStats.netWorth < cost) {
