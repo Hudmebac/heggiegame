@@ -135,7 +135,7 @@ export function useCommerce(
              return prev;
         }
         
-        const expansionTiers = [60000, 600000, 6000000, 60000000].map(v => v * 1.5);
+        const expansionTiers = [2000000, 20000000, 200000000, 2000000000]; // 150% increase
         const cost = Math.round(expansionTiers[prev.playerStats.commerceEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {

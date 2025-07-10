@@ -24,7 +24,7 @@ export function useRecreation(
         const zoneType = currentSystem?.zoneType;
         const theme = (zoneType && recreationThemes[zoneType]) ? recreationThemes[zoneType] : recreationThemes['Default'];
         const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
-
+    
         const totalPartnerShare = (prev.playerStats.recreationContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
         const rawIncomePerClick = theme.baseIncome * prev.playerStats.recreationLevel;
         const income = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
@@ -135,7 +135,7 @@ export function useRecreation(
              return prev;
         }
         
-        const expansionTiers = [30000, 300000, 3000000, 30000000].map(v => v * 3.0);
+        const expansionTiers = [9000000, 90000000, 900000000, 9000000000]; // 300% increase
         const cost = Math.round(expansionTiers[prev.playerStats.recreationEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {

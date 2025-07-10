@@ -135,7 +135,7 @@ export function useIndustry(
              return prev;
         }
         
-        const expansionTiers = [40000, 400000, 4000000, 40000000].map(v => v * 1.75);
+        const expansionTiers = [3300000, 33000000, 330000000, 3300000000]; // 175% increase
         const cost = Math.round(expansionTiers[prev.playerStats.industryEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {

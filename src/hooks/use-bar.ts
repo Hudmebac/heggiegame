@@ -137,7 +137,7 @@ export function useBar(
              return prev;
         }
         
-        const expansionTiers = [60000, 600000, 6000000, 60000000];
+        const expansionTiers = [150000, 1500000, 15000000, 150000000]; // 50% increase from original values
         const cost = Math.round(expansionTiers[prev.playerStats.establishmentLevel - 1] * 1.50 * costModifier);
 
         if (prev.playerStats.netWorth < cost) {

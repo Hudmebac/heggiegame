@@ -139,7 +139,7 @@ export function useResidence(
              return prev;
         }
         
-        const expansionTiers = [50000, 500000, 5000000, 50000000].map(v => v * 2.0);
+        const expansionTiers = [800000, 8000000, 80000000, 800000000]; // 100% increase
         const cost = Math.round(expansionTiers[prev.playerStats.residenceEstablishmentLevel - 1] * costModifier * landlordDiscount);
 
         if (prev.playerStats.netWorth < cost) {

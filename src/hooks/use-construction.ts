@@ -135,7 +135,7 @@ export function useConstruction(
              return prev;
         }
         
-        const expansionTiers = [50000, 500000, 5000000, 50000000].map(v => v * 2.5);
+        const expansionTiers = [8400000, 84000000, 840000000, 8400000000]; // 250% increase
         const cost = Math.round(expansionTiers[prev.playerStats.constructionEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {
