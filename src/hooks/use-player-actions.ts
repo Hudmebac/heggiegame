@@ -5,67 +5,15 @@
 import { useCallback, useTransition } from 'react';
 import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { SHIPS_FOR_SALE } from '@/lib/ships';
+import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
-import { calculateCurrentCargo, calculateShipValue, calculateCargoValue } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, syncActiveShipStats } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
 import { CAREER_DATA } from '@/lib/careers';
 import { FACTIONS_DATA } from '@/lib/factions';
 
-
-function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
-    if (!playerStats.fleet || playerStats.fleet.length === 0) return playerStats;
-
-    const activeShip = playerStats.fleet[0];
-    const newStats = { ...playerStats };
-
-    const cargoTier = cargoUpgrades[activeShip.cargoLevel - 1];
-    newStats.maxCargo = cargoTier ? cargoTier.capacity : 0;
-    newStats.cargoLevel = activeShip.cargoLevel;
-
-    const weaponTier = weaponUpgrades[activeShip.weaponLevel - 1];
-    newStats.weaponLevel = weaponTier ? weaponTier.level : 1;
-
-    const shieldTier = shieldUpgrades[activeShip.shieldLevel - 1];
-    newStats.shieldLevel = shieldTier ? shieldTier.level : 1;
-
-    const hullTier = hullUpgrades[activeShip.hullLevel - 1];
-    newStats.maxShipHealth = hullTier ? hullTier.health : 100;
-    newStats.hullLevel = activeShip.hullLevel;
-
-    const fuelTier = fuelUpgrades[activeShip.fuelLevel - 1];
-    newStats.maxFuel = fuelTier ? fuelTier.capacity : 100;
-    newStats.fuelLevel = activeShip.fuelLevel;
-
-    const sensorTier = sensorUpgrades[activeShip.sensorLevel - 1];
-    newStats.sensorLevel = sensorTier ? sensorTier.level : 1;
-    
-    const droneTier = droneUpgrades[activeShip.droneLevel - 1];
-    newStats.droneLevel = droneTier ? droneTier.level : 1;
-    
-    newStats.powerCoreLevel = activeShip.powerCoreLevel;
-    newStats.overdriveEngine = activeShip.overdriveEngine;
-    newStats.warpStabilizer = activeShip.warpStabilizer;
-    newStats.stealthPlating = activeShip.stealthPlating;
-    newStats.targetingMatrix = activeShip.targetingMatrix;
-    newStats.anomalyAnalyzer = activeShip.anomalyAnalyzer;
-    newStats.fabricatorBay = activeShip.fabricatorBay;
-    newStats.gravAnchor = activeShip.gravAnchor;
-    newStats.aiCoreInterface = activeShip.aiCoreInterface;
-    newStats.bioDomeModule = activeShip.bioDomeModule;
-    newStats.flakDispensers = activeShip.flakDispensers;
-    newStats.boardingTubeSystem = activeShip.boardingTubeSystem;
-    newStats.terraformToolkit = activeShip.terraformToolkit;
-    newStats.thermalRegulator = activeShip.thermalRegulator;
-    newStats.diplomaticUplink = activeShip.diplomaticUplink;
-    
-    newStats.shipHealth = activeShip.health;
-    newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
-
-    return newStats;
-}
 
 export function usePlayerActions(
     gameState: GameState | null,
@@ -120,10 +68,10 @@ export function usePlayerActions(
     }, [setGameState]);
 
     const handleResetGame = useCallback(() => {
-        toast({
+        setTimeout(() => toast({
             title: "Game Resetting...",
             description: "Wiping all progress. A new adventure awaits!",
-        });
+        }), 0);
         localStorage.removeItem('heggieGameState');
         setGameState(null);
     }, [toast, setGameState]);
@@ -549,7 +497,7 @@ export function usePlayerActions(
             if (!prev) return null;
             const cost = Math.floor(prev.playerStats.netWorth * 0.25);
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: "destructive", title: "Cannot Afford Career Change", description: `You need ${cost.toLocaleString()}¢ to change your career.` });
+                setTimeout(() => toast({ variant: "destructive", title: "Cannot Afford Career Change", description: `You need ${cost.toLocaleString()}¢ to change your career.` }), 0);
                 return prev;
             }
 
@@ -563,7 +511,7 @@ export function usePlayerActions(
 
             const finalState = handleChangeCareerLogic(stateWithCostDeducted, newCareer);
             
-            toast({ title: "Career Path Changed!", description: `You spent ${cost.toLocaleString()}¢ to become a ${newCareer}.` });
+            setTimeout(() => toast({ title: "Career Path Changed!", description: `You spent ${cost.toLocaleString()}¢ to become a ${newCareer}.` }), 0);
             return finalState;
         });
     }, [setGameState, toast]);
@@ -572,7 +520,7 @@ export function usePlayerActions(
         setGameState(prev => {
             if (!prev) return null;
             const finalState = handleChangeCareerLogic(prev, newCareer);
-            toast({ title: "Career Path Changed!", description: `You have successfully proven your aptitude and become a ${newCareer}.` });
+            setTimeout(() => toast({ title: "Career Path Changed!", description: `You have successfully proven your aptitude and become a ${newCareer}.` }), 0);
             return finalState;
         });
     }, [setGameState, toast]);
@@ -584,7 +532,7 @@ export function usePlayerActions(
             const cost = factionId === 'Independent' ? 0 : 50000;
     
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: "destructive", title: "Allegiance Failed", description: "Insufficient funds to pay the allegiance fee." });
+                setTimeout(() => toast({ variant: "destructive", title: "Allegiance Failed", description: "Insufficient funds to pay the allegiance fee." }), 0);
                 return prev;
             }
     
@@ -612,7 +560,7 @@ export function usePlayerActions(
                 factionReputation: newFactionReputation,
             };
     
-            toast({ title: "Allegiance Pledged!", description: `You are now aligned with ${newFactionData.name}.` });
+            setTimeout(() => toast({ title: "Allegiance Pledged!", description: `You are now aligned with ${newFactionData.name}.` }), 0);
     
             return { ...prev, playerStats: newPlayerStats };
         });

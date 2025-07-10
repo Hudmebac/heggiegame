@@ -19,10 +19,10 @@ export function useBank(
         if (!prev) return null;
         const cost = 1000;
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Cannot Open Account", description: "Insufficient funds." });
+            setTimeout(() => toast({ variant: "destructive", title: "Cannot Open Account", description: "Insufficient funds." }), 0);
             return prev;
         }
-        toast({ title: "Account Opened", description: "You are now a client of the Galactic Bank." });
+        setTimeout(() => toast({ title: "Account Opened", description: "You are now a client of the Galactic Bank." }), 0);
         return {
             ...prev,
             playerStats: {
@@ -38,7 +38,7 @@ export function useBank(
     setGameState(prev => {
         if (!prev || !prev.playerStats.bankAccount) return prev;
         if (amount <= 0 || prev.playerStats.netWorth < amount) {
-            toast({ variant: "destructive", title: "Deposit Failed", description: "Invalid amount or insufficient funds." });
+            setTimeout(() => toast({ variant: "destructive", title: "Deposit Failed", description: "Invalid amount or insufficient funds." }), 0);
             return prev;
         }
         return {
@@ -56,7 +56,7 @@ export function useBank(
     setGameState(prev => {
         if (!prev || !prev.playerStats.bankAccount) return prev;
         if (amount <= 0 || prev.playerStats.bankAccount.balance < amount) {
-            toast({ variant: "destructive", title: "Withdrawal Failed", description: "Invalid amount or insufficient balance." });
+            setTimeout(() => toast({ variant: "destructive", title: "Withdrawal Failed", description: "Invalid amount or insufficient balance." }), 0);
             return prev;
         }
         return {
@@ -75,10 +75,10 @@ export function useBank(
         if (!prev) return null;
         const cost = 1000000;
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: "Insufficient funds to buy a bank share." });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Insufficient funds to buy a bank share." }), 0);
             return prev;
         }
-        toast({ title: "Share Purchased", description: "You have acquired one share of the Galactic Bank." });
+        setTimeout(() => toast({ title: "Share Purchased", description: "You have acquired one share of the Galactic Bank." }), 0);
         return {
             ...prev,
             playerStats: {
@@ -95,11 +95,11 @@ export function useBank(
         if (!prev || (prev.playerStats.bankShares || 0) < 100) return prev;
         const cost = 50000000; // Final acquisition cost
         if (prev.playerStats.netWorth < cost) {
-            toast({ variant: "destructive", title: "Acquisition Failed", description: "Insufficient funds for the final acquisition." });
+            setTimeout(() => toast({ variant: "destructive", title: "Acquisition Failed", description: "Insufficient funds for the final acquisition." }), 0);
             return prev;
         }
         const initialValue = cost * 1.5;
-        toast({ title: "Bank Acquired!", description: "You are now the owner of the Galactic Bank!" });
+        setTimeout(() => toast({ title: "Bank Acquired!", description: "You are now the owner of the Galactic Bank!" }), 0);
         return {
             ...prev,
             playerStats: {
@@ -141,15 +141,15 @@ export function useBank(
         if (!prev) return null;
         const { playerStats } = prev;
         if (playerStats.bankLevel >= 25) {
-            toast({ variant: "destructive", title: "Upgrade Failed", description: "Bank level is already at maximum." });
+            setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Bank level is already at maximum." }), 0);
             return prev;
         }
         const upgradeCost = Math.round(500000 * Math.pow(playerStats.bankLevel, 2.8));
         if (playerStats.netWorth < upgradeCost) {
-            toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
             return prev;
         }
-        toast({ title: "Bank Upgraded!", description: `Your bank is now Level ${playerStats.bankLevel + 1}.` });
+        setTimeout(() => toast({ title: "Bank Upgraded!", description: `Your bank is now Level ${playerStats.bankLevel + 1}.` }), 0);
         return {
             ...prev,
             playerStats: { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, bankLevel: playerStats.bankLevel + 1 }
@@ -162,18 +162,18 @@ export function useBank(
         if (!prev) return null;
         const { playerStats } = prev;
         if (playerStats.bankAutoClickerBots >= 25) {
-            toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more bots." });
+            setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more bots." }), 0);
             return prev;
         }
         const botCost = Math.round(1000000 * Math.pow(2.5, playerStats.bankAutoClickerBots));
         if (playerStats.netWorth < botCost) {
-            toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
             return prev;
         }
-        toast({ title: "Bot Purchased!", description: "A new financial bot has been activated." });
+        setTimeout(() => toast({ title: "Bot Purchased!", description: "A new financial bot has been activated." }), 0);
         return {
             ...prev,
-            playerStats: { ...playerStats, netWorth: prev.playerStats.netWorth - botCost, bankAutoClickerBots: playerStats.bankAutoClickerBots + 1 }
+            playerStats: { ...playerStats, netWorth: playerStats.netWorth - botCost, bankAutoClickerBots: playerStats.bankAutoClickerBots + 1 }
         };
     });
   }, [setGameState, toast]);
@@ -186,10 +186,10 @@ export function useBank(
         const totalPartnerShare = newPartners.reduce((acc, p) => acc + p.percentage, 0);
 
         if (totalPartnerShare > 1) {
-            toast({ variant: "destructive", title: "Deal Failed", description: "Cannot sell more than 100% of the bank." });
+            setTimeout(() => toast({ variant: "destructive", title: "Deal Failed", description: "Cannot sell more than 100% of the bank." }), 0);
             return prev;
         }
-        toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName}.` });
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName}.` }), 0);
         return {
             ...prev,
             playerStats: {
@@ -206,12 +206,12 @@ export function useBank(
         if (!prev) return prev;
         const { playerStats } = prev;
         if (playerStats.loan) {
-            toast({ variant: "destructive", title: "Loan Rejected", description: "You already have an outstanding loan." });
+            setTimeout(() => toast({ variant: "destructive", title: "Loan Rejected", description: "You already have an outstanding loan." }), 0);
             return prev;
         }
         const maxLoan = playerStats.netWorth * 100;
         if (amount <= 0 || amount > maxLoan) {
-            toast({ variant: "destructive", title: "Loan Rejected", description: `Invalid amount. Maximum loan is ${maxLoan.toLocaleString()}¢.` });
+            setTimeout(() => toast({ variant: "destructive", title: "Loan Rejected", description: `Invalid amount. Maximum loan is ${maxLoan.toLocaleString()}¢.` }), 0);
             return prev;
         }
 
@@ -228,7 +228,7 @@ export function useBank(
             nextDueDate: Date.now() + 5 * 60 * 1000, // 5 minutes
         };
 
-        toast({ title: "Loan Approved!", description: `You have received ${amount.toLocaleString()}¢. Your first payment of ${repaymentAmount.toLocaleString()}¢ is due soon.` });
+        setTimeout(() => toast({ title: "Loan Approved!", description: `You have received ${amount.toLocaleString()}¢. Your first payment of ${repaymentAmount.toLocaleString()}¢ is due soon.` }), 0);
 
         return {
             ...prev,
@@ -248,14 +248,14 @@ export function useBank(
         const { loan } = playerStats;
 
         if (playerStats.netWorth < loan.repaymentAmount) {
-            toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds to make a repayment." });
+            setTimeout(() => toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds to make a repayment." }), 0);
             return prev;
         }
         
         const newLoan = { ...loan, repaymentsMade: loan.repaymentsMade + 1, nextDueDate: Date.now() + 5 * 60 * 1000 };
         const isPaidOff = newLoan.repaymentsMade >= newLoan.totalRepayments;
 
-        toast({ title: "Payment Successful", description: `You paid ${loan.repaymentAmount.toLocaleString()}¢. ${isPaidOff ? 'Your loan is now fully paid off!' : ''}` });
+        setTimeout(() => toast({ title: "Payment Successful", description: `You paid ${loan.repaymentAmount.toLocaleString()}¢. ${isPaidOff ? 'Your loan is now fully paid off!' : ''}` }), 0);
         
         return {
             ...prev,
@@ -281,11 +281,11 @@ export function useBank(
             const payoffAmount = Math.ceil(remainingPrincipal + preferentialInterest);
 
             if (playerStats.netWorth < payoffAmount) {
-                toast({ variant: "destructive", title: "Payoff Failed", description: `Insufficient funds. You need ${payoffAmount.toLocaleString()}¢.` });
+                setTimeout(() => toast({ variant: "destructive", title: "Payoff Failed", description: `Insufficient funds. You need ${payoffAmount.toLocaleString()}¢.` }), 0);
                 return prev;
             }
 
-            toast({ title: "Loan Repaid!", description: `You paid off your loan early for ${payoffAmount.toLocaleString()}¢, saving on interest.` });
+            setTimeout(() => toast({ title: "Loan Repaid!", description: `You paid off your loan early for ${payoffAmount.toLocaleString()}¢, saving on interest.` }), 0);
 
             return {
                 ...prev,
@@ -303,12 +303,12 @@ export function useBank(
             if (!prev) return prev;
             const { playerStats } = prev;
             if (playerStats.creditCard) {
-                toast({ variant: "destructive", title: "Application Rejected", description: "You already have an active credit line." });
+                setTimeout(() => toast({ variant: "destructive", title: "Application Rejected", description: "You already have an active credit line." }), 0);
                 return prev;
             }
             const fee = 5000;
             if (playerStats.netWorth < fee) {
-                 toast({ variant: "destructive", title: "Application Failed", description: `You need ${fee.toLocaleString()}¢ to open a credit line.` });
+                 setTimeout(() => toast({ variant: "destructive", title: "Application Failed", description: `You need ${fee.toLocaleString()}¢ to open a credit line.` }), 0);
                 return prev;
             }
 
@@ -317,7 +317,7 @@ export function useBank(
                 balance: 0,
             };
 
-            toast({ title: "Credit Line Approved!", description: `You have secured a credit line of ${newCreditCard.limit.toLocaleString()}¢.` });
+            setTimeout(() => toast({ title: "Credit Line Approved!", description: `You have secured a credit line of ${newCreditCard.limit.toLocaleString()}¢.` }), 0);
 
             return {
                 ...prev,
@@ -337,11 +337,11 @@ export function useBank(
             const { creditCard } = playerStats;
 
             if (amount <= 0 || amount > (creditCard.limit - creditCard.balance)) {
-                 toast({ variant: "destructive", title: "Draw Failed", description: "Invalid amount or exceeds available credit." });
+                 setTimeout(() => toast({ variant: "destructive", title: "Draw Failed", description: "Invalid amount or exceeds available credit." }), 0);
                 return prev;
             }
 
-            toast({ title: "Funds Drawn", description: `You have added ${amount.toLocaleString()}¢ to your wallet from your credit line.` });
+            setTimeout(() => toast({ title: "Funds Drawn", description: `You have added ${amount.toLocaleString()}¢ to your wallet from your credit line.` }), 0);
 
             return {
                 ...prev,
@@ -367,11 +367,11 @@ export function useBank(
             
             if (payAmount <= 0) return prev;
             if (playerStats.netWorth < payAmount) {
-                toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds." });
+                setTimeout(() => toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds." }), 0);
                 return prev;
             }
 
-            toast({ title: "Payment Successful", description: `You have paid ${payAmount.toLocaleString()}¢ towards your credit balance.` });
+            setTimeout(() => toast({ title: "Payment Successful", description: `You have paid ${payAmount.toLocaleString()}¢ towards your credit balance.` }), 0);
 
             return {
                 ...prev,
