@@ -22,10 +22,10 @@ import FactionDialog from '../components/faction-dialog';
 import { FACTIONS_DATA } from '@/lib/factions';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle as DialogTitleComponent, DialogDescription as DialogDescriptionComponent } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { AVATARS } from '@/lib/avatars';
 import ShareProgressDialog from '@/app/components/share-progress-dialog';
@@ -144,8 +144,8 @@ function PlayerProfile() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitleComponent>Share to Facebook</AlertDialogTitleComponent>
-                                <AlertDialogDescriptionComponent>This will open a new tab to share the following message. You will receive 1,000,000 tokens for sharing.</AlertDialogDescriptionComponent>
+                                <AlertDialogTitle>Share to Facebook</AlertDialogTitle>
+                                <AlertDialogDescription>This will open a new tab to share the following message. You will receive 1,000,000 tokens for sharing.</AlertDialogDescription>
                             </AlertDialogHeader>
                             <div className="p-4 bg-muted rounded-md text-sm italic border">
                                 {fbShareText}
@@ -161,8 +161,8 @@ function PlayerProfile() {
              <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
                 <DialogContent className="max-w-3xl">
                     <DialogHeader>
-                        <DialogTitleComponent>Select Your Avatar</DialogTitleComponent>
-                        <DialogDescriptionComponent>Choose a new portrait to represent you in the galaxy.</DialogDescriptionComponent>
+                        <DialogTitle>Select Your Avatar</DialogTitle>
+                        <DialogDescription>Choose a new portrait to represent you in the galaxy.</DialogDescription>
                     </DialogHeader>
                     <Carousel opts={{ align: "start", loop: true }}>
                         <CarouselContent>
