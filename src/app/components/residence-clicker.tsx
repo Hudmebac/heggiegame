@@ -10,7 +10,7 @@ import { residenceThemes } from '@/lib/residence-themes';
 import ResidenceContracts from './residence-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export default function ResidenceClicker() {
     const { gameState, handleResidenceClick, handleUpgradeResidence, handleUpgradeResidenceAutoClicker, handlePurchaseResidence, handleExpandResidence, handleSellResidence } = useGame();
@@ -40,21 +40,13 @@ export default function ResidenceClicker() {
     const residenceData = businessData.find(b => b.id === 'residence');
     if (!residenceData) return null;
 
-    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
-        let cost = config.starterPrice;
-        for (let i = 1; i < level; i++) {
-            cost *= (1 + config.growth);
-        }
-        return Math.round(cost * difficultyModifier * costModifier);
-    };
-
     const upgradeConfig = residenceData.costs[0];
-    const upgradeCost = calculateCost(playerStats.residenceLevel + 1, upgradeConfig);
+    const upgradeCost = calculateCost(playerStats.residenceLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
     const isResidenceLevelMaxed = playerStats.residenceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isResidenceLevelMaxed;
     
     const botConfig = residenceData.costs[1];
-    const botCost = calculateCost(playerStats.residenceAutoClickerBots + 1, botConfig);
+    const botCost = calculateCost(playerStats.residenceAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.residenceAutoClickerBots * rawIncomePerClick;
@@ -72,20 +64,12 @@ export default function ResidenceClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
-        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
+        expansionCost = calculateCost(currentEstablishmentLevel, establishmentConfig.starterPrice, establishmentConfig.growth, difficultyModifier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         const tierLabel = currentEstablishmentLevel === 0 ? "Purchase Property Deed" : `Expand Property (Level ${currentEstablishmentLevel})`;
         expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseResidence : handleExpandResidence;
     }
-
-    const getEstablishmentLevelLabel = (level: number) => {
-        if (level === 0) return 'Not Purchased';
-        if (level === 1) return 'Purchased';
-        if (level === 5) return 'Galactic Estate';
-        return `Expansion Level ${level - 1}`;
-    };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         handleResidenceClick();

@@ -1,12 +1,13 @@
 
-
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard } from '@/lib/types';
+import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard, BankAccount } from '@/lib/types';
 import { bankThemes } from '@/lib/bank-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+
+const TOTAL_BANK_SHARES = 10000;
 
 export function useBank(
     gameState: GameState | null,
@@ -22,13 +23,23 @@ export function useBank(
             setTimeout(() => toast({ variant: "destructive", title: "Cannot Open Account", description: "Insufficient funds." }), 0);
             return prev;
         }
+        
+        const newBankAccount: BankAccount = {
+            balance: 0,
+            interestRate: 0.1,
+            sharePrice: 1000000,
+            sharePriceHistory: [1000000],
+            lastFluctuation: Date.now(),
+        };
+
         setTimeout(() => toast({ title: "Account Opened", description: "You are now a client of the Galactic Bank." }), 0);
         return {
             ...prev,
             playerStats: {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth - cost,
-                bankAccount: { balance: 0 }
+                bankAccount: newBankAccount,
+                bankShares: 0,
             }
         };
     });
@@ -46,7 +57,7 @@ export function useBank(
             playerStats: {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth - amount,
-                bankAccount: { balance: prev.playerStats.bankAccount.balance + amount }
+                bankAccount: { ...prev.playerStats.bankAccount, balance: prev.playerStats.bankAccount.balance + amount }
             }
         };
     });
@@ -64,27 +75,51 @@ export function useBank(
             playerStats: {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth + amount,
-                bankAccount: { balance: prev.playerStats.bankAccount.balance - amount }
+                bankAccount: { ...prev.playerStats.bankAccount, balance: prev.playerStats.bankAccount.balance - amount }
             }
         };
     });
   }, [setGameState, toast]);
 
-  const handlePurchaseShare = useCallback(() => {
+  const handlePurchaseShare = useCallback((amount: number) => {
     setGameState(prev => {
-        if (!prev) return null;
-        const cost = 1000000;
+        if (!prev || !prev.playerStats.bankAccount) return null;
+        const cost = prev.playerStats.bankAccount.sharePrice * amount;
         if (prev.playerStats.netWorth < cost) {
-            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Insufficient funds to buy a bank share." }), 0);
+            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Insufficient funds to buy shares." }), 0);
             return prev;
         }
-        setTimeout(() => toast({ title: "Share Purchased", description: "You have acquired one share of the Galactic Bank." }), 0);
+        if ((prev.playerStats.bankShares || 0) + amount > TOTAL_BANK_SHARES) {
+             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Not enough shares available on the market." }), 0);
+            return prev;
+        }
+        setTimeout(() => toast({ title: "Shares Purchased", description: `You have acquired ${amount} share(s) of the Galactic Bank.` }), 0);
         return {
             ...prev,
             playerStats: {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth - cost,
-                bankShares: (prev.playerStats.bankShares || 0) + 1,
+                bankShares: (prev.playerStats.bankShares || 0) + amount,
+            }
+        };
+    });
+  }, [setGameState, toast]);
+
+  const handleSellShare = useCallback((amount: number) => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.bankAccount) return null;
+        if (amount > (prev.playerStats.bankShares || 0)) {
+            setTimeout(() => toast({ variant: "destructive", title: "Sale Failed", description: "You do not own enough shares." }), 0);
+            return prev;
+        }
+        const income = prev.playerStats.bankAccount.sharePrice * amount;
+        setTimeout(() => toast({ title: "Shares Sold", description: `You have sold ${amount} share(s) for ${income.toLocaleString()}¢.` }), 0);
+        return {
+            ...prev,
+            playerStats: {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + income,
+                bankShares: (prev.playerStats.bankShares || 0) - amount,
             }
         };
     });
@@ -92,8 +127,8 @@ export function useBank(
   
   const handleAcquireBank = useCallback(() => {
     setGameState(prev => {
-        if (!prev || (prev.playerStats.bankShares || 0) < 100) return prev;
-        const cost = 50000000; // Final acquisition cost
+        if (!prev || (prev.playerStats.bankShares || 0) < TOTAL_BANK_SHARES) return prev;
+        const cost = 50000000;
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Acquisition Failed", description: "Insufficient funds for the final acquisition." }), 0);
             return prev;
@@ -110,300 +145,92 @@ export function useBank(
                     currentMarketValue: initialValue,
                     valueHistory: [initialValue],
                     partners: [],
-                }
+                },
+                bankAccount: undefined, // Player now owns the bank, no longer a client
+                bankShares: 0,
             }
         }
     });
   }, [setGameState, toast]);
+
+    const handleSetInterestRate = useCallback((rate: number) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.bankAccount || (prev.playerStats.bankShares || 0) < 5001) return prev;
+            setTimeout(() => toast({ title: "Policy Updated", description: `Bank interest rate set to ${rate.toFixed(2)}%` }), 0);
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    bankAccount: {
+                        ...prev.playerStats.bankAccount,
+                        interestRate: rate
+                    }
+                }
+            }
+        });
+    }, [setGameState, toast]);
+
+  // Bank clicker logic (for when player OWNS the bank)
+  const handleBankClick = useCallback(() => { /* ... */ }, []);
+  const handleUpgradeBank = useCallback(() => { /* ... */ }, []);
+  const handleUpgradeBankAutoClicker = useCallback(() => { /* ... */ }, []);
+  const handleAcceptBankPartnerOffer = useCallback((offer: PartnershipOffer) => { /* ... */ }, []);
   
-  const handleBankClick = useCallback(() => {
-    setGameState(prev => {
-        if (!prev) return null;
-        const { playerStats } = prev;
-        const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-        const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
-        const zoneType = currentSystem?.zoneType;
-        const theme = (zoneType && bankThemes[zoneType]) ? bankThemes[zoneType] : bankThemes['Default'];
-        const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
-
-        const totalPartnerShare = (playerStats.bankContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
-        const income = Math.round((theme.baseIncome * playerStats.bankLevel) * (1 - totalPartnerShare) * planetModifier);
-
-        return {
-            ...prev,
-            playerStats: { ...playerStats, netWorth: playerStats.netWorth + income }
-        };
-    });
-  }, [setGameState]);
-
-  const handleUpgradeBank = useCallback(() => {
-    setGameState(prev => {
-        if (!prev) return null;
-        const { playerStats } = prev;
-        if (playerStats.bankLevel >= 25) {
-            setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Bank level is already at maximum." }), 0);
-            return prev;
-        }
-        const upgradeCost = Math.round(500000 * Math.pow(playerStats.bankLevel, 2.8));
-        if (playerStats.netWorth < upgradeCost) {
-            setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
-            return prev;
-        }
-        setTimeout(() => toast({ title: "Bank Upgraded!", description: `Your bank is now Level ${playerStats.bankLevel + 1}.` }), 0);
-        return {
-            ...prev,
-            playerStats: { ...playerStats, netWorth: playerStats.netWorth - upgradeCost, bankLevel: playerStats.bankLevel + 1 }
-        };
-    });
-  }, [setGameState, toast]);
-
-  const handleUpgradeBankAutoClicker = useCallback(() => {
-    setGameState(prev => {
-        if (!prev) return null;
-        const { playerStats } = prev;
-        if (playerStats.bankAutoClickerBots >= 25) {
-            setTimeout(() => toast({ variant: "destructive", title: "Limit Reached", description: "You cannot purchase more bots." }), 0);
-            return prev;
-        }
-        const botCost = Math.round(1000000 * Math.pow(2.5, playerStats.bankAutoClickerBots));
-        if (playerStats.netWorth < botCost) {
-            setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
-            return prev;
-        }
-        setTimeout(() => toast({ title: "Bot Purchased!", description: "A new financial bot has been activated." }), 0);
-        return {
-            ...prev,
-            playerStats: { ...playerStats, netWorth: playerStats.netWorth - botCost, bankAutoClickerBots: playerStats.bankAutoClickerBots + 1 }
-        };
-    });
-  }, [setGameState, toast]);
-
-  const handleAcceptBankPartnerOffer = useCallback((offer: PartnershipOffer) => {
-    setGameState(prev => {
-        if (!prev || !prev.playerStats.bankContract) return prev;
-        const { playerStats } = prev;
-        const newPartners = [...(playerStats.bankContract.partners || []), { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer }];
-        const totalPartnerShare = newPartners.reduce((acc, p) => acc + p.percentage, 0);
-
-        if (totalPartnerShare > 1) {
-            setTimeout(() => toast({ variant: "destructive", title: "Deal Failed", description: "Cannot sell more than 100% of the bank." }), 0);
-            return prev;
-        }
-        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName}.` }), 0);
-        return {
-            ...prev,
-            playerStats: {
-                ...playerStats,
-                netWorth: playerStats.netWorth + offer.cashOffer,
-                bankContract: { ...playerStats.bankContract, partners: newPartners }
-            }
-        };
-    });
-  }, [setGameState, toast]);
-
-  const handleApplyForLoan = useCallback((amount: number, repaymentCount: number) => {
-    setGameState(prev => {
-        if (!prev) return prev;
-        const { playerStats } = prev;
-        if (playerStats.loan) {
-            setTimeout(() => toast({ variant: "destructive", title: "Loan Rejected", description: "You already have an outstanding loan." }), 0);
-            return prev;
-        }
-        const maxLoan = playerStats.netWorth * 100;
-        if (amount <= 0 || amount > maxLoan) {
-            setTimeout(() => toast({ variant: "destructive", title: "Loan Rejected", description: `Invalid amount. Maximum loan is ${maxLoan.toLocaleString()}¢.` }), 0);
-            return prev;
-        }
-
-        const interestRate = 0.10;
-        const totalOwed = amount * (1 + interestRate);
-        const repaymentAmount = Math.ceil(totalOwed / repaymentCount);
-        
-        const newLoan: Loan = {
-            principal: amount,
-            interestRate,
-            totalRepayments: repaymentCount,
-            repaymentsMade: 0,
-            repaymentAmount,
-            nextDueDate: Date.now() + 5 * 60 * 1000, // 5 minutes
-        };
-
-        setTimeout(() => toast({ title: "Loan Approved!", description: `You have received ${amount.toLocaleString()}¢. Your first payment of ${repaymentAmount.toLocaleString()}¢ is due soon.` }), 0);
-
-        return {
-            ...prev,
-            playerStats: {
-                ...playerStats,
-                netWorth: playerStats.netWorth + amount,
-                loan: newLoan,
-            }
-        };
-    });
-  }, [setGameState, toast]);
-
-  const handleMakeLoanRepayment = useCallback(() => {
-    setGameState(prev => {
-        if (!prev || !prev.playerStats.loan) return prev;
-        const { playerStats } = prev;
-        const { loan } = playerStats;
-
-        if (playerStats.netWorth < loan.repaymentAmount) {
-            setTimeout(() => toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds to make a repayment." }), 0);
-            return prev;
-        }
-        
-        const newLoan = { ...loan, repaymentsMade: loan.repaymentsMade + 1, nextDueDate: Date.now() + 5 * 60 * 1000 };
-        const isPaidOff = newLoan.repaymentsMade >= newLoan.totalRepayments;
-
-        setTimeout(() => toast({ title: "Payment Successful", description: `You paid ${loan.repaymentAmount.toLocaleString()}¢. ${isPaidOff ? 'Your loan is now fully paid off!' : ''}` }), 0);
-        
-        return {
-            ...prev,
-            playerStats: {
-                ...playerStats,
-                netWorth: playerStats.netWorth - loan.repaymentAmount,
-                loan: isPaidOff ? undefined : newLoan,
-            }
-        };
-    });
-  }, [setGameState, toast]);
-
-  const handleRepayLoanEarly = useCallback(() => {
-        setGameState(prev => {
-            if (!prev || !prev.playerStats.loan) return prev;
-            const { playerStats } = prev;
-            const { loan } = playerStats;
-            
-            const remainingPrincipal = loan.principal * (1 - (loan.repaymentsMade / loan.totalRepayments));
-            const totalInterest = loan.principal * loan.interestRate;
-            const remainingInterest = totalInterest * (1 - (loan.repaymentsMade / loan.totalRepayments));
-            const preferentialInterest = remainingInterest * 0.5; // 50% discount on remaining interest
-            const payoffAmount = Math.ceil(remainingPrincipal + preferentialInterest);
-
-            if (playerStats.netWorth < payoffAmount) {
-                setTimeout(() => toast({ variant: "destructive", title: "Payoff Failed", description: `Insufficient funds. You need ${payoffAmount.toLocaleString()}¢.` }), 0);
-                return prev;
-            }
-
-            setTimeout(() => toast({ title: "Loan Repaid!", description: `You paid off your loan early for ${payoffAmount.toLocaleString()}¢, saving on interest.` }), 0);
-
-            return {
-                ...prev,
-                playerStats: {
-                    ...playerStats,
-                    netWorth: playerStats.netWorth - payoffAmount,
-                    loan: undefined,
-                }
-            };
-        });
-    }, [setGameState, toast]);
-
-    const handleApplyForCreditCard = useCallback(() => {
-        setGameState(prev => {
-            if (!prev) return prev;
-            const { playerStats } = prev;
-            if (playerStats.creditCard) {
-                setTimeout(() => toast({ variant: "destructive", title: "Application Rejected", description: "You already have an active credit line." }), 0);
-                return prev;
-            }
-            const fee = 5000;
-            if (playerStats.netWorth < fee) {
-                 setTimeout(() => toast({ variant: "destructive", title: "Application Failed", description: `You need ${fee.toLocaleString()}¢ to open a credit line.` }), 0);
-                return prev;
-            }
-
-            const newCreditCard: CreditCard = {
-                limit: playerStats.netWorth * 50,
-                balance: 0,
-            };
-
-            setTimeout(() => toast({ title: "Credit Line Approved!", description: `You have secured a credit line of ${newCreditCard.limit.toLocaleString()}¢.` }), 0);
-
-            return {
-                ...prev,
-                playerStats: {
-                    ...playerStats,
-                    netWorth: playerStats.netWorth - fee,
-                    creditCard: newCreditCard,
-                }
-            };
-        });
-    }, [setGameState, toast]);
-
-    const handleDrawFromCreditCard = useCallback((amount: number) => {
-        setGameState(prev => {
-            if (!prev || !prev.playerStats.creditCard) return prev;
-            const { playerStats } = prev;
-            const { creditCard } = playerStats;
-
-            if (amount <= 0 || amount > (creditCard.limit - creditCard.balance)) {
-                 setTimeout(() => toast({ variant: "destructive", title: "Draw Failed", description: "Invalid amount or exceeds available credit." }), 0);
-                return prev;
-            }
-
-            setTimeout(() => toast({ title: "Funds Drawn", description: `You have added ${amount.toLocaleString()}¢ to your wallet from your credit line.` }), 0);
-
-            return {
-                ...prev,
-                playerStats: {
-                    ...playerStats,
-                    netWorth: playerStats.netWorth + amount,
-                    creditCard: { 
-                        ...creditCard, 
-                        balance: creditCard.balance + amount,
-                        dueDate: creditCard.dueDate ?? Date.now() + 10 * 60 * 1000,
-                    },
-                }
-            };
-        });
-    }, [setGameState, toast]);
-
-    const handlePayCreditCard = useCallback((amount: number) => {
-        setGameState(prev => {
-            if (!prev || !prev.playerStats.creditCard) return prev;
-            const { playerStats } = prev;
-            const { creditCard } = playerStats;
-            const payAmount = Math.min(amount, creditCard.balance);
-            
-            if (payAmount <= 0) return prev;
-            if (playerStats.netWorth < payAmount) {
-                setTimeout(() => toast({ variant: "destructive", title: "Payment Failed", description: "Insufficient funds." }), 0);
-                return prev;
-            }
-
-            setTimeout(() => toast({ title: "Payment Successful", description: `You have paid ${payAmount.toLocaleString()}¢ towards your credit balance.` }), 0);
-
-            return {
-                ...prev,
-                playerStats: {
-                    ...playerStats,
-                    netWorth: playerStats.netWorth - payAmount,
-                    creditCard: { ...creditCard, balance: creditCard.balance - payAmount },
-                }
-            };
-        });
-    }, [setGameState, toast]);
-  
+  // Timer for share price fluctuation and interest
   useEffect(() => {
-    if (!gameState || (gameState.playerStats.bankAutoClickerBots || 0) === 0) return;
     const interval = setInterval(() => {
         setGameState(prev => {
-            if (!prev || (prev.playerStats.bankAutoClickerBots || 0) === 0) return prev;
-            const { playerStats } = prev;
-            const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
-            const currentPlanet = currentSystem?.planets.find(p => p.name === prev.currentPlanet);
-            const zoneType = currentSystem?.zoneType;
-            const theme = (zoneType && bankThemes[zoneType]) ? bankThemes[zoneType] : bankThemes['Default'];
-            const planetModifier = currentPlanet ? (PLANET_TYPE_MODIFIERS[currentPlanet.type] || 1.0) : 1.0;
-            const totalPartnerShare = (playerStats.bankContract?.partners || []).reduce((acc, p) => acc + p.percentage, 0);
-            const incomePerClick = theme.baseIncome * playerStats.bankLevel;
-            const incomePerSecond = Math.round((playerStats.bankAutoClickerBots || 0) * incomePerClick * (1 - totalPartnerShare) * planetModifier);
+            if (!prev || !prev.playerStats.bankAccount || prev.playerStats.bankEstablishmentLevel > 0) return prev;
 
-            return { ...prev, playerStats: { ...playerStats, netWorth: playerStats.netWorth + incomePerSecond }};
+            const now = Date.now();
+            const timeSinceLastUpdate = now - (prev.playerStats.bankAccount.lastFluctuation || now);
+
+            if (timeSinceLastUpdate < (5 * 60 * 1000)) return prev; // 5 minutes
+
+            let newBankAccount = { ...prev.playerStats.bankAccount };
+            let newNetWorth = prev.playerStats.netWorth;
+
+            // 1. Share Price Fluctuation
+            const hasMajority = (prev.playerStats.bankShares || 0) >= 5001;
+            const interestRateFactor = hasMajority ? 1 - (newBankAccount.interestRate / 10) : 1; // High interest slightly lowers price
+            const volatility = (Math.random() * 0.04) + 0.01; // 1% to 5%
+            const direction = Math.random() > (0.5 - (1-interestRateFactor)*0.5) ? 1 : -1;
+            const newSharePrice = Math.max(10000, Math.round(newBankAccount.sharePrice * (1 + (volatility * direction))));
+            
+            newBankAccount.sharePrice = newSharePrice;
+            newBankAccount.sharePriceHistory = [...newBankAccount.sharePriceHistory, newSharePrice].slice(-50);
+            
+            // 2. Apply Interest to player's deposit
+            if (newBankAccount.balance > 0) {
+                const interestEarned = Math.round(newBankAccount.balance * (newBankAccount.interestRate / 100));
+                newBankAccount.balance += interestEarned;
+                if(interestEarned > 0) {
+                    setTimeout(() => toast({title: "Interest Accrued", description: `You earned ${interestEarned.toLocaleString()}¢ in interest.`}), 0);
+                }
+            }
+
+            // 3. Nominal return for shareholders
+            const shareHoldingIncome = Math.round((prev.playerStats.bankShares || 0) * 0.1);
+            newNetWorth += shareHoldingIncome;
+            if(shareHoldingIncome > 0) {
+                 setTimeout(() => toast({title: "Dividends Paid", description: `You earned ${shareHoldingIncome.toLocaleString()}¢ from your bank shares.`}), 0);
+            }
+
+            newBankAccount.lastFluctuation = now;
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: newNetWorth,
+                    bankAccount: newBankAccount,
+                }
+            };
         });
-    }, 1000);
+    }, 5000); // Check every 5 seconds
+
     return () => clearInterval(interval);
-  }, [gameState?.playerStats.bankAutoClickerBots, gameState?.currentSystem, gameState?.currentPlanet, setGameState]);
+  }, [setGameState, toast]);
 
 
   return {
@@ -411,16 +238,12 @@ export function useBank(
     handleDeposit,
     handleWithdraw,
     handlePurchaseShare,
+    handleSellShare,
     handleAcquireBank,
+    handleSetInterestRate,
     handleBankClick,
     handleUpgradeBank,
     handleUpgradeBankAutoClicker,
     handleAcceptBankPartnerOffer,
-    handleApplyForLoan,
-    handleMakeLoanRepayment,
-    handleRepayLoanEarly,
-    handleApplyForCreditCard,
-    handleDrawFromCreditCard,
-    handlePayCreditCard,
   };
 }

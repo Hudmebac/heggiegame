@@ -10,7 +10,7 @@ import { commerceThemes } from '@/lib/commerce-themes';
 import CommerceContracts from './commerce-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export default function CommerceClicker() {
     const { gameState, handleCommerceClick, handleUpgradeCommerce, handleUpgradeCommerceAutoClicker, handlePurchaseCommerce, handleExpandCommerce, handleSellCommerce } = useGame();
@@ -40,21 +40,13 @@ export default function CommerceClicker() {
     const commerceData = businessData.find(b => b.id === 'commerce');
     if (!commerceData) return null;
 
-    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
-        let cost = config.starterPrice;
-        for (let i = 1; i < level; i++) {
-            cost *= (1 + config.growth);
-        }
-        return Math.round(cost * difficultyModifier * costModifier);
-    };
-
     const upgradeConfig = commerceData.costs[0];
-    const upgradeCost = calculateCost(playerStats.commerceLevel + 1, upgradeConfig);
+    const upgradeCost = calculateCost(playerStats.commerceLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
     const isCommerceLevelMaxed = playerStats.commerceLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isCommerceLevelMaxed;
 
     const botConfig = commerceData.costs[1];
-    const botCost = calculateCost(playerStats.commerceAutoClickerBots + 1, botConfig);
+    const botCost = calculateCost(playerStats.commerceAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.commerceAutoClickerBots * rawIncomePerClick;
@@ -72,20 +64,12 @@ export default function CommerceClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
-        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
+        expansionCost = calculateCost(currentEstablishmentLevel, establishmentConfig.starterPrice, establishmentConfig.growth, difficultyModifier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         const tierLabel = currentEstablishmentLevel === 0 ? "Acquire Commerce License" : `Expand Commerce Hub (Tier ${currentEstablishmentLevel})`;
         expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseCommerce : handleExpandCommerce;
     }
-
-    const getEstablishmentLevelLabel = (level: number) => {
-        if (level === 0) return 'Unlicensed';
-        if (level === 1) return 'Licensed';
-        if (level === 5) return 'Galactic Conglomerate';
-        return `Expansion Tier ${level - 1}`;
-    };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         handleCommerceClick();

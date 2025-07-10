@@ -10,7 +10,7 @@ import { barThemes } from '@/lib/bar-themes';
 import BarContracts from './bar-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export default function BarClicker() {
     const { gameState, handleBarClick, handleUpgradeBar, handleUpgradeBarAutoClicker, handlePurchaseBar, handleExpandBar, handleSellBar } = useGame();
@@ -39,22 +39,14 @@ export default function BarClicker() {
 
     const barData = businessData.find(b => b.id === 'bar');
     if (!barData) return null;
-
-    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
-        let cost = config.starterPrice;
-        for (let i = 1; i < level; i++) {
-            cost *= (1 + config.growth);
-        }
-        return Math.round(cost * difficultyModifier * costModifier);
-    };
     
     const upgradeConfig = barData.costs[0];
-    const upgradeCost = calculateCost(playerStats.barLevel + 1, upgradeConfig);
+    const upgradeCost = calculateCost(playerStats.barLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
     const isBarLevelMaxed = playerStats.barLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBarLevelMaxed;
 
     const botConfig = barData.costs[1];
-    const botCost = calculateCost(playerStats.autoClickerBots + 1, botConfig);
+    const botCost = calculateCost(playerStats.autoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.autoClickerBots * rawIncomePerClick;
@@ -63,16 +55,8 @@ export default function BarClicker() {
 
     // Establishment upgrade logic
     const establishmentConfig = barData.costs[2];
-    const expansionTiers = [
-        { level: 1, costMultiplier: 1, label: "Purchase Establishment" },
-        { level: 2, costMultiplier: 1.5, label: "Expand Establishment (Level 1)" },
-        { level: 3, costMultiplier: 2.25, label: "Expand Establishment (Level 2)" },
-        { level: 4, costMultiplier: 3.375, label: "Expand Establishment (Level 3)" },
-        { level: 5, costMultiplier: 5.0625, label: "Expand to Galactic Franchise" },
-    ];
-    
     const currentEstablishmentLevel = playerStats.establishmentLevel;
-    const nextExpansionTier = currentEstablishmentLevel < expansionTiers.length ? expansionTiers[currentEstablishmentLevel] : null;
+    const nextExpansionTier = currentEstablishmentLevel < 5;
 
     let expansionCost = 0;
     let canAffordExpansion = false;
@@ -80,19 +64,12 @@ export default function BarClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
-        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
+        expansionCost = calculateCost(currentEstablishmentLevel, establishmentConfig.starterPrice, establishmentConfig.growth, difficultyModifier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
-        expansionButtonLabel = `${nextExpansionTier.label} (${expansionCost.toLocaleString()}¢)`;
+        const tierLabel = currentEstablishmentLevel === 0 ? "Purchase Establishment" : `Expand Establishment (Level ${currentEstablishmentLevel})`;
+        expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseBar : handleExpandBar;
     }
-
-    const getEstablishmentLevelLabel = (level: number) => {
-        if (level === 0) return 'Not Purchased';
-        if (level === 1) return 'Purchased';
-        if (level === 5) return 'Galactic Franchise';
-        return `Expansion Level ${level - 1}`;
-    };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         handleBarClick();
@@ -206,7 +183,7 @@ export default function BarClicker() {
                         onExpand={expansionHandler}
                         canAffordExpansion={canAffordExpansion}
                         expansionButtonLabel={expansionButtonLabel}
-                        nextExpansionTier={!!nextExpansionTier}
+                        nextExpansionTier={nextExpansionTier}
                     />
                 )}
             </div>

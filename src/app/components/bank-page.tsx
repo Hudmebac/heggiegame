@@ -6,7 +6,7 @@ import { useGame } from '@/app/components/game-provider';
 import BankClicker from './bank-clicker';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, Martini, Home, Factory, Building2, Ticket } from 'lucide-react';
+import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, Martini, Home, Factory, Building2, Ticket, TrendingUp, Percent, ChevronsUp, ChevronsDown } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,7 @@ import { commerceThemes } from '@/lib/commerce-themes';
 import { industryThemes } from '@/lib/industry-themes';
 import { constructionThemes } from '@/lib/construction-themes';
 import { recreationThemes } from '@/lib/recreation-themes';
+import BankValueChart from './bank-value-chart';
 
 const TransactionDialog = ({ type, onConfirm, maxAmount, currentBalance }: { type: 'Deposit' | 'Withdraw', onConfirm: (amount: number) => void, maxAmount: number, currentBalance: number }) => {
     const [amount, setAmount] = useState(0);
@@ -53,75 +54,38 @@ const TransactionDialog = ({ type, onConfirm, maxAmount, currentBalance }: { typ
     )
 }
 
-const LoanApplicationDialog = ({ onConfirm, maxLoan }: { onConfirm: (amount: number, repayments: number) => void, maxLoan: number }) => {
-    const [amount, setAmount] = useState(Math.min(10000, maxLoan));
-    const [repayments, setRepayments] = useState(12); // 12 repayments of 5 mins = 1 hour total
-    
-    const totalOwed = Math.ceil(amount * 1.10);
-    const repaymentAmount = Math.ceil(totalOwed / repayments);
+const ShareTransactionDialog = ({ type, onConfirm, price, maxShares, playerShares, playerNetWorth }: { type: 'Buy' | 'Sell', onConfirm: (amount: number) => void, price: number, maxShares: number, playerShares: number, playerNetWorth: number }) => {
+    const [amount, setAmount] = useState(1);
+    const maxAffordable = price > 0 ? Math.floor(playerNetWorth / price) : 0;
+    const maxCanTransact = type === 'Buy' ? Math.min(maxShares, maxAffordable) : maxShares;
 
     return (
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Apply for a Loan</DialogTitle>
-                <DialogDescription>Leverage your assets to secure capital. All loans have a 10% interest rate.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 py-4">
-                <div>
-                    <Label>Loan Amount (Max: {maxLoan.toLocaleString()}¢)</Label>
-                    <Input type="number" value={amount} onChange={e => setAmount(Math.max(0, Math.min(maxLoan, Number(e.target.value))))} />
-                </div>
-                <div>
-                    <Label>Number of Repayments: {repayments}</Label>
-                    <Slider defaultValue={[12]} min={6} max={24} step={1} onValueChange={(value) => setRepayments(value[0])} />
-                </div>
-                <div className="text-sm space-y-2 p-3 rounded-md bg-card/50 border">
-                    <div className="flex justify-between"><span>Total Repayment:</span> <span className="font-mono">{totalOwed.toLocaleString()}¢</span></div>
-                    <div className="flex justify-between"><span>Payment Amount:</span> <span className="font-mono">{repaymentAmount.toLocaleString()}¢</span></div>
-                    <div className="flex justify-between"><span>Payment Frequency:</span> <span className="font-mono">Every 5 minutes</span></div>
-                </div>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <DialogClose asChild><Button onClick={() => onConfirm(amount, repayments)} disabled={amount <= 0}>Take Loan</Button></DialogClose>
-            </DialogFooter>
-        </DialogContent>
-    )
-}
-
-const CreditCardDialog = ({ type, onConfirm, card }: { type: 'Draw' | 'Pay', onConfirm: (amount: number) => void, card: any }) => {
-    const [amount, setAmount] = useState(0);
-    const { gameState } = useGame();
-    if (!gameState) return null;
-    const maxAmount = type === 'Draw' ? card.limit - card.balance : Math.min(card.balance, gameState.playerStats.netWorth);
-
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>{type} Funds</DialogTitle>
+                <DialogTitle>{type} Bank Shares</DialogTitle>
                 <DialogDescription>
-                    {type === 'Draw' ? 'Draw funds from your available credit line. This will increase your balance owed.' : 'Pay down your outstanding credit card balance.'}
+                    Current share price: {price.toLocaleString()}¢. {type === 'Buy' ? `You can afford ${maxAffordable.toLocaleString()} share(s).` : `You own ${maxShares.toLocaleString()} share(s).`}
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-                <div className="flex justify-between text-sm"><span>Available Credit:</span> <span className="font-mono">{(card.limit - card.balance).toLocaleString()}¢</span></div>
-                <div className="flex justify-between text-sm"><span>Current Balance:</span> <span className="font-mono">{card.balance.toLocaleString()}¢</span></div>
                  <div>
-                    <Label htmlFor="amount">Amount (Max: {maxAmount.toLocaleString()}¢)</Label>
-                    <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+                    <Label htmlFor="share-amount">Amount (Max: {maxCanTransact.toLocaleString()})</Label>
+                    <Input id="share-amount" type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
                 </div>
+                 <div className="text-sm text-muted-foreground">Total Cost: {(amount * price).toLocaleString()}¢</div>
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <DialogClose asChild><Button onClick={() => onConfirm(amount)} disabled={amount <= 0 || amount > maxAmount}>Confirm {type}</Button></DialogClose>
+                <DialogClose asChild><Button onClick={() => onConfirm(amount)} disabled={amount <= 0 || amount > maxCanTransact}>Confirm {type}</Button></DialogClose>
             </DialogFooter>
         </DialogContent>
     )
 }
 
 export default function BankPageComponent() {
-    const { gameState, handleOpenAccount, handleDeposit, handleWithdraw, handlePurchaseShare, handleAcquireBank, handleApplyForLoan, handleMakeLoanRepayment, handleRepayLoanEarly, handleApplyForCreditCard, handleDrawFromCreditCard, handlePayCreditCard } = useGame();
-    const [dialog, setDialog] = useState<'deposit' | 'withdraw' | 'loan' | 'cc_draw' | 'cc_pay' | null>(null);
+    const { gameState, handleOpenAccount, handleDeposit, handleWithdraw, handlePurchaseShare, handleSellShare, handleAcquireBank, handleSetInterestRate } = useGame();
+    const [dialog, setDialog] = useState<'deposit' | 'withdraw' | 'buy_shares' | 'sell_shares' | null>(null);
+    const [newInterestRate, setNewInterestRate] = useState(gameState?.playerStats.bankAccount?.interestRate || 0.1);
 
     if (!gameState) return null;
 
@@ -146,36 +110,13 @@ export default function BankPageComponent() {
     }
 
     const { playerStats, systems, currentSystem: currentSystemName } = gameState;
-    const currentSystem = systems.find(s => s.name === currentSystemName);
-    const zoneType = currentSystem?.zoneType;
-    const { bankAccount, bankShares = 0, loan, creditCard, debt } = playerStats;
-    const sharePurchaseCost = 1000000;
-    const canAffordShare = playerStats.netWorth >= sharePurchaseCost;
-    const canAcquireBank = bankShares >= 100;
-    const acquisitionCost = 50000000;
-    const canAffordAcquisition = playerStats.netWorth >= acquisitionCost;
+    const { bankAccount, bankShares = 0, debt } = playerStats;
     const totalWealth = playerStats.netWorth + (bankAccount?.balance || 0);
 
-    const loanPayoffAmount = loan ? Math.ceil((loan.principal * (1 - (loan.repaymentsMade / loan.totalRepayments))) + ((loan.principal * loan.interestRate) * (1 - (loan.repaymentsMade / loan.totalRepayments)) * 0.5)) : 0;
-
-    const calculateIncome = (level: number, bots: number, contract: any, themes: any) => {
-        if (!zoneType) return 0;
-        const theme = themes[zoneType] || themes['Default'];
-        const totalPartnerShare = (contract?.partners || []).reduce((acc: number, p: { percentage: number }) => acc + p.percentage, 0);
-        const rawIncomePerClick = theme.baseIncome * level;
-        return Math.round((bots * rawIncomePerClick) * (1 - totalPartnerShare));
-    };
-
-    const portfolio = [
-        { name: 'Bar', icon: Martini, level: playerStats.barLevel, bots: playerStats.autoClickerBots, income: calculateIncome(playerStats.barLevel, playerStats.autoClickerBots, playerStats.barContract, barThemes) },
-        { name: 'Residence', icon: Home, level: playerStats.residenceLevel, bots: playerStats.residenceAutoClickerBots, income: calculateIncome(playerStats.residenceLevel, playerStats.residenceAutoClickerBots, playerStats.residenceContract, residenceThemes) },
-        { name: 'Commerce', icon: Landmark, level: playerStats.commerceLevel, bots: playerStats.commerceAutoClickerBots, income: calculateIncome(playerStats.commerceLevel, playerStats.commerceAutoClickerBots, playerStats.commerceContract, commerceThemes) },
-        { name: 'Industry', icon: Factory, level: playerStats.industryLevel, bots: playerStats.industryAutoClickerBots, income: calculateIncome(playerStats.industryLevel, playerStats.industryAutoClickerBots, playerStats.industryContract, industryThemes) },
-        { name: 'Construction', icon: Building2, level: playerStats.constructionLevel, bots: playerStats.constructionAutoClickerBots, income: calculateIncome(playerStats.constructionLevel, playerStats.constructionAutoClickerBots, playerStats.constructionContract, constructionThemes) },
-        { name: 'Recreation', icon: Ticket, level: playerStats.recreationLevel, bots: playerStats.recreationAutoClickerBots, income: calculateIncome(playerStats.recreationLevel, playerStats.recreationAutoClickerBots, playerStats.recreationContract, recreationThemes) },
-      ];
-
-    const totalPassiveIncome = portfolio.reduce((sum, item) => sum + item.income, 0);
+    const hasMajority = bankShares >= 5001;
+    const hasFullOwnership = bankShares >= 10000;
+    const acquisitionCost = 50000000;
+    const canAffordAcquisition = playerStats.netWorth >= acquisitionCost;
 
     return (
         <div className="space-y-6">
@@ -184,28 +125,16 @@ export default function BankPageComponent() {
                 <p className="text-muted-foreground">Your central hub for all financial operations.</p>
             </div>
             <Dialog open={!!dialog} onOpenChange={(open) => !open && setDialog(null)}>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <Card className="xl:col-span-1">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card className="lg:col-span-1">
                         <CardHeader>
                             <CardTitle className="font-headline text-lg flex items-center gap-2"><PiggyBank className="text-primary"/> Account Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Cash on Hand:</span>
-                                <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()}¢</span>
-                            </div>
-                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Bank Balance:</span>
-                                <span className="font-mono text-amber-300">{bankAccount.balance.toLocaleString()}¢</span>
-                            </div>
-                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground flex items-center gap-2"><AlertTriangle className="text-destructive"/> Debt:</span>
-                                <span className="font-mono text-destructive">{debt.toLocaleString()}¢</span>
-                            </div>
-                            <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                                <span>Total Wealth:</span>
-                                <span className="font-mono text-primary">{totalWealth.toLocaleString()}¢</span>
-                            </div>
+                            <div className="flex justify-between text-sm"><span>Cash on Hand:</span><span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()}¢</span></div>
+                            <div className="flex justify-between text-sm"><span>Bank Balance:</span><span className="font-mono text-amber-300">{bankAccount.balance.toLocaleString()}¢</span></div>
+                            <div className="flex justify-between text-sm"><span>Interest Rate:</span><span className="font-mono text-amber-300">{bankAccount.interestRate.toFixed(2)}%</span></div>
+                            <div className="flex justify-between text-lg font-bold pt-2 border-t"><span>Total Wealth:</span><span className="font-mono text-primary">{totalWealth.toLocaleString()}¢</span></div>
                             <div className="flex gap-2 pt-4">
                                 <Button className="w-full" onClick={() => setDialog('deposit')}>Deposit</Button>
                                 <Button variant="outline" className="w-full" onClick={() => setDialog('withdraw')}>Withdraw</Button>
@@ -213,120 +142,63 @@ export default function BankPageComponent() {
                         </CardContent>
                     </Card>
 
-                    <Card className="xl:col-span-1">
+                    <Card className="lg:col-span-2">
                         <CardHeader>
                             <CardTitle className="font-headline text-lg flex items-center gap-2"><Briefcase className="text-primary"/> Investment Portfolio</CardTitle>
                             <CardDescription>Acquire shares to gain ownership of the bank.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Bank Shares Owned:</span>
-                                <span className="font-mono">{bankShares} / 100</span>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p className="text-muted-foreground">Shares Owned</p>
+                                    <p className="font-mono text-xl">{bankShares.toLocaleString()} / 10,000</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-muted-foreground">Share Price</p>
+                                    <p className="font-mono text-xl text-amber-300">{bankAccount.sharePrice.toLocaleString()}¢</p>
+                                </div>
                             </div>
-                            <Progress value={bankShares} />
-                             <Button className="w-full" onClick={handlePurchaseShare} disabled={!canAffordShare}>
-                                Buy 1 Share ({sharePurchaseCost.toLocaleString()}¢)
-                            </Button>
-                            {canAcquireBank && (
-                                 <Button variant="destructive" className="w-full" onClick={handleAcquireBank} disabled={!canAffordAcquisition}>
-                                    Acquire Bank ({acquisitionCost.toLocaleString()}¢)
-                                </Button>
-                            )}
+                            <Progress value={(bankShares / 10000) * 100} />
+                            <div className="h-[150px]">
+                                <BankValueChart valueHistory={bankAccount.sharePriceHistory} />
+                            </div>
+                            <div className="flex gap-2">
+                                <Button className="w-full" onClick={() => setDialog('buy_shares')} disabled={bankShares >= 10000}>Buy Shares</Button>
+                                <Button variant="outline" className="w-full" onClick={() => setDialog('sell_shares')} disabled={bankShares === 0}>Sell Shares</Button>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="xl:col-span-1">
-                        <CardHeader>
-                             <CardTitle className="font-headline text-lg flex items-center gap-2"><HandCoins className="text-primary"/> Financial Instruments</CardTitle>
-                             <CardDescription>Leverage debt to accelerate your growth.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {loan ? (
-                                <div className="p-3 rounded-md border bg-card/50 space-y-3">
-                                    <h4 className="font-semibold text-sm">Active Loan</h4>
-                                    <div className="text-xs space-y-1 text-muted-foreground">
-                                        <div className="flex justify-between"><span>Principal:</span><span>{loan.principal.toLocaleString()}¢</span></div>
-                                        <div className="flex justify-between"><span>Next Payment:</span><span>{loan.repaymentAmount.toLocaleString()}¢</span></div>
-                                        <div className="flex justify-between"><span>Due In:</span><span><CooldownTimer expiry={loan.nextDueDate} /></span></div>
-                                        <div className="flex justify-between"><span>Payments Left:</span><span>{loan.totalRepayments - loan.repaymentsMade}</span></div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button size="sm" className="w-full" onClick={handleMakeLoanRepayment} disabled={playerStats.netWorth < loan.repaymentAmount}>Pay Now</Button>
-                                        <Button size="sm" variant="outline" className="w-full" onClick={handleRepayLoanEarly} disabled={playerStats.netWorth < loanPayoffAmount}>Pay Off Early ({loanPayoffAmount.toLocaleString()}¢)</Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Button className="w-full" onClick={() => setDialog('loan')}>Apply for Loan</Button>
-                            )}
-                            
-                             {creditCard ? (
-                                <div className="p-3 rounded-md border bg-card/50 space-y-3">
-                                    <h4 className="font-semibold text-sm">Credit Line</h4>
-                                    <div className="text-xs space-y-1 text-muted-foreground">
-                                        <div className="flex justify-between"><span>Credit Limit:</span><span>{creditCard.limit.toLocaleString()}¢</span></div>
-                                        <div className="flex justify-between"><span>Balance Owed:</span><span>{creditCard.balance.toLocaleString()}¢</span></div>
-                                        <div className="flex justify-between">
-                                            <span>Payment Due:</span>
-                                            <span>
-                                                {creditCard.dueDate ? <CooldownTimer expiry={creditCard.dueDate} /> : 'N/A'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                     <div className="flex gap-2">
-                                        <Button size="sm" className="w-full" onClick={() => setDialog('cc_draw')} disabled={creditCard.balance >= creditCard.limit}>Draw Funds</Button>
-                                        <Button size="sm" variant="outline" className="w-full" onClick={() => setDialog('cc_pay')} disabled={creditCard.balance <= 0}>Make Payment</Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Button className="w-full" variant="secondary" onClick={handleApplyForCreditCard} disabled={playerStats.netWorth < 5000}>Apply for Credit Card (5,000¢)</Button>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                     <div className="lg:col-span-2 xl:col-span-3">
-                        <Card>
+                    {hasMajority && !hasFullOwnership && (
+                        <Card className="lg:col-span-3">
                             <CardHeader>
-                                <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                    <Briefcase className="text-primary"/>
-                                    Business Portfolio
-                                </CardTitle>
-                                <CardDescription>
-                                    Overview of your income-generating assets across the galaxy.
-                                </CardDescription>
+                                <CardTitle className="font-headline text-lg flex items-center gap-2"><Percent className="text-primary"/> Majority Shareholder Controls</CardTitle>
+                                <CardDescription>As the majority shareholder, you can now influence the bank's interest rate.</CardDescription>
                             </CardHeader>
-                            <CardContent className="p-0">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Asset</TableHead>
-                                            <TableHead className="text-right">Level</TableHead>
-                                            <TableHead className="text-right">Bots</TableHead>
-                                            <TableHead className="text-right">Income/sec</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {portfolio.map(asset => (
-                                            <TableRow key={asset.name}>
-                                                <TableCell className="font-medium flex items-center gap-2">
-                                                    <asset.icon className="h-4 w-4 text-muted-foreground" />
-                                                    {asset.name}
-                                                </TableCell>
-                                                <TableCell className="text-right font-mono">{asset.level}</TableCell>
-                                                <TableCell className="text-right font-mono">{asset.bots}</TableCell>
-                                                <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                    <TableFooter>
-                                        <TableRow>
-                                            <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
-                                            <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
-                                        </TableRow>
-                                    </TableFooter>
-                                </Table>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label>Set Interest Rate: {newInterestRate.toFixed(2)}%</Label>
+                                    <Slider defaultValue={[bankAccount.interestRate]} min={0.05} max={5} step={0.05} onValueChange={(value) => setNewInterestRate(value[0])} />
+                                    <p className="text-xs text-muted-foreground mt-2">Higher rates attract more deposits but can lower shareholder confidence and share price. Lower rates do the opposite.</p>
+                                </div>
+                                <Button onClick={() => handleSetInterestRate(newInterestRate)}>Set New Rate</Button>
                             </CardContent>
                         </Card>
-                    </div>
+                    )}
+                    
+                    {hasFullOwnership && (
+                         <Card className="lg:col-span-3 border-primary">
+                            <CardHeader>
+                                <CardTitle className="font-headline text-lg flex items-center gap-2"><Landmark className="text-primary"/> Full Ownership</CardTitle>
+                                <CardDescription>You own all outstanding shares of the Galactic Bank. You can now nationalize it as your own private enterprise for a final fee.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Button variant="destructive" className="w-full" onClick={handleAcquireBank} disabled={!canAffordAcquisition}>
+                                    Acquire Bank and Convert to Private Business ({acquisitionCost.toLocaleString()}¢)
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
 
                 </div>
                 {dialog === 'deposit' && (
@@ -345,14 +217,25 @@ export default function BankPageComponent() {
                         currentBalance={playerStats.netWorth}
                     />
                 )}
-                 {dialog === 'loan' && (
-                    <LoanApplicationDialog onConfirm={handleApplyForLoan} maxLoan={playerStats.netWorth * 100} />
+                 {dialog === 'buy_shares' && (
+                    <ShareTransactionDialog 
+                        type="Buy"
+                        onConfirm={handlePurchaseShare}
+                        price={bankAccount.sharePrice}
+                        maxShares={10000 - bankShares}
+                        playerShares={bankShares}
+                        playerNetWorth={playerStats.netWorth}
+                    />
                  )}
-                 {dialog === 'cc_draw' && creditCard && (
-                    <CreditCardDialog type="Draw" onConfirm={handleDrawFromCreditCard} card={creditCard} />
-                 )}
-                  {dialog === 'cc_pay' && creditCard && (
-                    <CreditCardDialog type="Pay" onConfirm={handlePayCreditCard} card={creditCard} />
+                  {dialog === 'sell_shares' && (
+                    <ShareTransactionDialog 
+                        type="Sell"
+                        onConfirm={handleSellShare}
+                        price={bankAccount.sharePrice}
+                        maxShares={bankShares}
+                        playerShares={bankShares}
+                        playerNetWorth={playerStats.netWorth}
+                    />
                  )}
             </Dialog>
         </div>

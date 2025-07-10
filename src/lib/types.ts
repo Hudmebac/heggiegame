@@ -56,6 +56,13 @@ export type RecreationContract = BarContract;
 export type BankContract = BarContract;
 export type BankPartner = BarPartner;
 
+export interface BankAccount {
+    balance: number;
+    interestRate: number; // Player-set interest rate if they are majority shareholder
+    sharePrice: number;
+    sharePriceHistory: number[];
+    lastFluctuation: number; // timestamp
+}
 
 export interface PlayerShip {
   instanceId: number;
@@ -275,7 +282,7 @@ export interface PlayerStats {
   casino: CasinoState;
 
   // Bank Stats
-  bankAccount?: { balance: number };
+  bankAccount?: BankAccount;
   bankShares: number;
   bankLevel: number;
   bankAutoClickerBots: number;

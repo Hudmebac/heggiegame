@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,16 +9,17 @@ import { bankThemes } from '@/lib/bank-themes';
 import BankContracts from './bank-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { businessData } from '@/lib/business-data';
 
 export default function BankClicker() {
-    const { gameState, handleBankClick, handleUpgradeBank, handleUpgradeBankAutoClicker } = useGame();
+    const { gameState, handleBankClick, handleUpgradeBank, handleUpgradeBankAutoClicker, handleAcceptBankPartnerOffer } = useGame();
     const [feedbackMessages, setFeedbackMessages] = useState<{ id: number, x: number, y: number, amount: number }[]>([]);
 
     if (!gameState || !gameState.playerStats.bankContract) {
         return null;
     }
 
-    const { playerStats } = gameState;
+    const { playerStats, difficulty } = gameState;
     const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
     const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
@@ -31,11 +31,14 @@ export default function BankClicker() {
     const rawIncomePerClick = theme.baseIncome * playerStats.bankLevel;
     const incomePerClick = Math.round(rawIncomePerClick * (1 - totalPartnerShare) * planetModifier);
 
-    const upgradeCost = Math.round(500000 * Math.pow(playerStats.bankLevel, 2.8));
+    const difficultyModifiers = { 'Easy': 0.5, 'Medium': 1.0, 'Hard': 1.5, 'Hardcore': 1.5 };
+    const difficultyModifier = difficultyModifiers[difficulty];
+
+    const upgradeCost = Math.round(500000 * Math.pow(playerStats.bankLevel, 2.8) * difficultyModifier);
     const isBankLevelMaxed = playerStats.bankLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isBankLevelMaxed;
 
-    const botCost = Math.round(1000000 * Math.pow(2.5, playerStats.bankAutoClickerBots));
+    const botCost = Math.round(1000000 * Math.pow(2.5, playerStats.bankAutoClickerBots) * difficultyModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.bankAutoClickerBots * rawIncomePerClick;

@@ -10,7 +10,7 @@ import { constructionThemes } from '@/lib/construction-themes';
 import ConstructionContracts from './construction-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export default function ConstructionClicker() {
     const { gameState, handleConstructionClick, handleUpgradeConstruction, handleUpgradeConstructionAutoClicker, handlePurchaseConstruction, handleExpandConstruction, handleSellConstruction } = useGame();
@@ -40,21 +40,13 @@ export default function ConstructionClicker() {
     const constructionData = businessData.find(b => b.id === 'construction');
     if (!constructionData) return null;
 
-    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
-        let cost = config.starterPrice;
-        for (let i = 1; i < level; i++) {
-            cost *= (1 + config.growth);
-        }
-        return Math.round(cost * difficultyModifier * costModifier);
-    };
-
     const upgradeConfig = constructionData.costs[0];
-    const upgradeCost = calculateCost(playerStats.constructionLevel + 1, upgradeConfig);
+    const upgradeCost = calculateCost(playerStats.constructionLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
     const isConstructionLevelMaxed = playerStats.constructionLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isConstructionLevelMaxed;
 
     const botConfig = constructionData.costs[1];
-    const botCost = calculateCost(playerStats.constructionAutoClickerBots + 1, botConfig);
+    const botCost = calculateCost(playerStats.constructionAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.constructionAutoClickerBots * rawIncomePerClick;
@@ -72,20 +64,12 @@ export default function ConstructionClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
-        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
+        expansionCost = calculateCost(currentEstablishmentLevel, establishmentConfig.starterPrice, establishmentConfig.growth, difficultyModifier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         const tierLabel = currentEstablishmentLevel === 0 ? "Acquire Land Deed" : `Expand Project (Phase ${currentEstablishmentLevel})`;
         expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseConstruction : handleExpandConstruction;
     }
-
-    const getEstablishmentLevelLabel = (level: number) => {
-        if (level === 0) return 'Unowned';
-        if (level === 1) return 'Deed Acquired';
-        if (level === 5) return 'Megastructure';
-        return `Phase ${level - 1}`;
-    };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         handleConstructionClick();

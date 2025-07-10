@@ -10,7 +10,7 @@ import { recreationThemes } from '@/lib/recreation-themes';
 import RecreationContracts from './recreation-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export default function RecreationClicker() {
     const { gameState, handleRecreationClick, handleUpgradeRecreation, handleUpgradeRecreationAutoClicker, handlePurchaseRecreation, handleExpandRecreation, handleSellRecreation } = useGame();
@@ -40,21 +40,13 @@ export default function RecreationClicker() {
     const recreationData = businessData.find(b => b.id === 'recreation');
     if (!recreationData) return null;
 
-    const calculateCost = (level: number, config: { starterPrice: number, growth: number }) => {
-        let cost = config.starterPrice;
-        for (let i = 1; i < level; i++) {
-            cost *= (1 + config.growth);
-        }
-        return Math.round(cost * difficultyModifier * costModifier);
-    };
-
     const upgradeConfig = recreationData.costs[0];
-    const upgradeCost = calculateCost(playerStats.recreationLevel + 1, upgradeConfig);
+    const upgradeCost = calculateCost(playerStats.recreationLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
     const isRecreationLevelMaxed = playerStats.recreationLevel >= 25;
     const canAffordUpgrade = playerStats.netWorth >= upgradeCost && !isRecreationLevelMaxed;
 
     const botConfig = recreationData.costs[1];
-    const botCost = calculateCost(playerStats.recreationAutoClickerBots + 1, botConfig);
+    const botCost = calculateCost(playerStats.recreationAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
     const canAffordBot = playerStats.netWorth >= botCost;
     
     const rawIncomePerSecond = playerStats.recreationAutoClickerBots * rawIncomePerClick;
@@ -72,20 +64,12 @@ export default function RecreationClicker() {
     let expansionHandler = () => {};
 
     if (nextExpansionTier) {
-        const baseCost = establishmentConfig.starterPrice * Math.pow(1 + establishmentConfig.growth, currentEstablishmentLevel);
-        expansionCost = Math.round(baseCost * costModifier * difficultyModifier);
+        expansionCost = calculateCost(currentEstablishmentLevel, establishmentConfig.starterPrice, establishmentConfig.growth, difficultyModifier * costModifier);
         canAffordExpansion = playerStats.netWorth >= expansionCost;
         const tierLabel = currentEstablishmentLevel === 0 ? "Acquire Entertainment License" : `Expand Facility (Tier ${currentEstablishmentLevel})`;
         expansionButtonLabel = `${tierLabel} (${expansionCost.toLocaleString()}¢)`;
         expansionHandler = currentEstablishmentLevel === 0 ? handlePurchaseRecreation : handleExpandRecreation;
     }
-
-    const getEstablishmentLevelLabel = (level: number) => {
-        if (level === 0) return 'Unlicensed';
-        if (level === 1) return 'Licensed';
-        if (level === 5) return 'Galactic Resort';
-        return `Expansion Tier ${level - 1}`;
-    };
 
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         handleRecreationClick();
