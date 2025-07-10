@@ -56,7 +56,7 @@ export function useIndustry(
         return prev;
       }
 
-      const upgradeCost = Math.round(350 * 1.40 * Math.pow(prev.playerStats.industryLevel, 2.5) * costModifier);
+      const upgradeCost = Math.round(350 * Math.pow(1.40, prev.playerStats.industryLevel - 1) * costModifier);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -81,7 +81,7 @@ export function useIndustry(
         return prev;
       }
 
-      const botCost = Math.round(200 * 1.50 * Math.pow(2.25, prev.playerStats.industryAutoClickerBots) * costModifier);
+      const botCost = Math.round(200 * Math.pow(1.50, prev.playerStats.industryAutoClickerBots) * costModifier);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -102,7 +102,7 @@ export function useIndustry(
              return prev;
         }
 
-        const cost = 1200000 * 2.75;
+        const cost = 1200000;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
@@ -135,7 +135,7 @@ export function useIndustry(
              return prev;
         }
         
-        const expansionTiers = [40000, 400000, 4000000, 40000000].map(v => v * 3.0);
+        const expansionTiers = [40000, 400000, 4000000, 40000000].map(v => v * 1.75);
         const cost = Math.round(expansionTiers[prev.playerStats.industryEstablishmentLevel - 1] * costModifier);
 
         if (prev.playerStats.netWorth < cost) {

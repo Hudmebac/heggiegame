@@ -57,7 +57,7 @@ export function useResidence(
         return prev;
       }
 
-      const upgradeCost = Math.round(250 * 1.30 * Math.pow(prev.playerStats.residenceLevel, 2.5) * costModifier * landlordDiscount);
+      const upgradeCost = Math.round(250 * Math.pow(1.30, prev.playerStats.residenceLevel - 1) * costModifier * landlordDiscount);
 
       if (prev.playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -83,7 +83,7 @@ export function useResidence(
         return prev;
       }
 
-      const botCost = Math.round(300 * 1.30 * Math.pow(2.25, prev.playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount);
+      const botCost = Math.round(300 * Math.pow(1.30, prev.playerStats.residenceAutoClickerBots) * costModifier * landlordDiscount);
 
       if (prev.playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -105,7 +105,7 @@ export function useResidence(
         }
 
         const landlordDiscount = prev.playerStats.career === 'Landlord' ? 0.8 : 1.0;
-        const cost = 400000 * 2.0 * landlordDiscount;
+        const cost = 400000 * landlordDiscount;
 
         if (prev.playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
