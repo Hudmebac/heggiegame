@@ -59,7 +59,7 @@ const faqData = [
     },
     {
         question: "What's the best career?",
-        answer: "Each career offers a unique playstyle. 'Hauler' and 'Trader' are great for those who enjoy logistics and market speculation. 'Defender' and 'Fighter' are for combat-oriented players. 'Galactic Official' is for those who enjoy strategy and diplomacy. 'Landlord' is for players who prefer building a passive empire. The 'Heggie Contractor' is a great 'jack-of-all-trades' for experiencing everything."
+        answer: "Each career offers a unique playstyle. 'Hauler' and 'Trader' are for those who enjoy logistics and market speculation. 'Defender' and 'Fighter' are for combat-oriented players. 'Galactic Official' is for those who enjoy strategy and diplomacy. 'Landlord' is for players who prefer building a passive empire. The 'Heggie Contractor' is a great 'jack-of-all-trades' for experiencing everything."
     },
     {
         question: "How do I change my Faction or Career?",
@@ -154,15 +154,11 @@ export default function GameDetailsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button asChild>
-                            <a href="mailto:heliosheggie@gmail.com?subject=HEGGIE%20Feedback" target="_blank" rel="noopener noreferrer">
-                                <Mail className="mr-2"/> Provide Feedback
-                            </a>
+                        <Button onClick={() => window.location.href = 'mailto:heliosheggie@gmail.com?subject=HEGGIE%20Feedback'}>
+                            <Mail className="mr-2"/> Provide Feedback
                         </Button>
-                         <Button asChild variant="destructive">
-                            <a href="mailto:heliosheggie@gmail.com?subject=HEGGIE%20Bug%20Report" target="_blank" rel="noopener noreferrer">
-                                <Bug className="mr-2"/> Report a Bug
-                            </a>
+                        <Button variant="destructive" onClick={() => window.location.href = 'mailto:heliosheggie@gmail.com?subject=HEGGIE%20Bug%20Report'}>
+                            <Bug className="mr-2"/> Report a Bug
                         </Button>
                     </CardContent>
                 </Card>
