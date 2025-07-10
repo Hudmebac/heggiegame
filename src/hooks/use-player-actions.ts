@@ -707,6 +707,22 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleKeypadCrackerMinigameScore = useCallback((points: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (points > 0) {
+                toast({ title: "System Bypassed", description: `You earned ${points.toLocaleString()}¢ for your quick thinking.`});
+            }
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + points,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -737,5 +753,6 @@ export function usePlayerActions(
         handleMixAndMatchMinigameScore,
         handleMarketFrenzyMinigameScore,
         handleHolotagMinigameScore,
+        handleKeypadCrackerMinigameScore,
     };
 }
