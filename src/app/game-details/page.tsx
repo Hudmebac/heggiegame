@@ -9,7 +9,19 @@ import Link from "next/link";
 
 const changelogData = [
     {
-        version: "v1.22 – 'Economy Rash'",
+        version: "v1.2.3 – 'Strategic Depth'",
+        date: "Startdate: Cycle 4525.07.11",
+        changes: [
+            "Implemented a comprehensive Insurance System, allowing players to purchase policies to mitigate the risks of ship destruction and cargo loss.",
+            "Introduced the Galactic Bank Loan System, enabling players to take on strategic debt to accelerate their enterprise's growth.",
+            "Overhauled the Career Codex in the Encyclopedia with dynamic video previews for each career path, providing a richer, more engaging overview.",
+            "Enhanced the 'Sync & Share' feature with a polished dialog for easier cross-device progress sharing.",
+            "Improved the Facebook sharing feature with dynamic text and a more rewarding token system.",
+            "Added interactive mini-games to the Residence and Recreation business hubs ('Keypad Cracker' and 'Holotag Arena') to provide more engaging gameplay loops."
+        ]
+    },
+    {
+        version: "v1.2.2 – 'Economy Rash'",
         date: "Startdate: Cycle 4525.0710",
         changes: [
             "Complete reengineering of the core economy system—introducing dynamic market fluctuations, resource volatility, and sector-based demand modeling for more emergent gameplay.",
