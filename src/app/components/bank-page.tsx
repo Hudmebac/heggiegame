@@ -82,9 +82,45 @@ const ShareTransactionDialog = ({ type, onConfirm, price, maxShares, playerShare
     )
 }
 
+const LoanDialog = ({ onConfirm, netWorth }: { onConfirm: (amount: number) => void, netWorth: number }) => {
+    const [amount, setAmount] = useState(10000);
+    const maxLoan = netWorth * 100;
+    const interest = amount * 0.10;
+    const totalRepayable = amount + interest;
+    const repayments = 12;
+    const repaymentAmount = Math.ceil(totalRepayable / repayments);
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Request a Loan</DialogTitle>
+                <DialogDescription>Take on debt to accelerate your growth. Loans are repaid in 12 installments every 5 minutes.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4 text-sm">
+                <div>
+                    <Label htmlFor="loan-amount">Loan Amount (Max: {maxLoan.toLocaleString()}¢)</Label>
+                    <Input id="loan-amount" type="number" value={amount} onChange={e => setAmount(Math.max(0, Math.min(maxLoan, Number(e.target.value))))} />
+                </div>
+                <div className="p-3 rounded-md bg-background/50 border">
+                    <div className="flex justify-between"><span>Interest (10%):</span> <span className="font-mono">{interest.toLocaleString()}¢</span></div>
+                    <div className="flex justify-between"><span>Total Repayable:</span> <span className="font-mono">{totalRepayable.toLocaleString()}¢</span></div>
+                    <div className="flex justify-between"><span>Installments:</span> <span className="font-mono">{repayments} x {repaymentAmount.toLocaleString()}¢</span></div>
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <DialogClose asChild>
+                    <Button onClick={() => onConfirm(amount)} disabled={amount <= 0 || amount > maxLoan}>Sign Loan Agreement</Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
+
+
 export default function BankPageComponent() {
-    const { gameState, handleOpenAccount, handleDeposit, handleWithdraw, handlePurchaseShare, handleSellShare, handleAcquireBank, handleSetInterestRate } = useGame();
-    const [dialog, setDialog] = useState<'deposit' | 'withdraw' | 'buy_shares' | 'sell_shares' | null>(null);
+    const { gameState, handleOpenAccount, handleDeposit, handleWithdraw, handlePurchaseShare, handleSellShare, handleAcquireBank, handleSetInterestRate, handleTakeLoan } = useGame();
+    const [dialog, setDialog] = useState<'deposit' | 'withdraw' | 'buy_shares' | 'sell_shares' | 'loan' | null>(null);
     const [newInterestRate, setNewInterestRate] = useState(gameState?.playerStats.bankAccount?.interestRate || 0.1);
 
     if (!gameState) return null;
@@ -110,7 +146,7 @@ export default function BankPageComponent() {
     }
 
     const { playerStats, systems, currentSystem: currentSystemName } = gameState;
-    const { bankAccount, bankShares = 0, debt } = playerStats;
+    const { bankAccount, bankShares = 0, debt, loan } = playerStats;
     const totalWealth = playerStats.netWorth + (bankAccount?.balance || 0);
 
     const hasMajority = bankShares >= 5001;
@@ -142,7 +178,29 @@ export default function BankPageComponent() {
                         </CardContent>
                     </Card>
 
-                    <Card className="lg:col-span-2">
+                     <Card className="lg:col-span-1">
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg flex items-center gap-2"><HandCoins className="text-primary"/> Loans & Credit</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {loan ? (
+                                <div className="text-sm space-y-2">
+                                    <p className="font-semibold">Active Loan</p>
+                                    <div className="flex justify-between"><span>Principal:</span><span className="font-mono">{loan.principal.toLocaleString()}¢</span></div>
+                                    <div className="flex justify-between"><span>Next Payment:</span><span className="font-mono"><CooldownTimer expiry={loan.nextDueDate} /></span></div>
+                                    <div className="flex justify-between"><span>Repayments:</span><span className="font-mono">{loan.repaymentsMade} / {loan.totalRepayments}</span></div>
+                                </div>
+                            ) : (
+                                <Button className="w-full" onClick={() => setDialog('loan')}>Request Loan</Button>
+                            )}
+                             <div className="flex justify-between text-sm pt-4 border-t">
+                                <span className="text-destructive flex items-center gap-2"><AlertTriangle/> Outstanding Debt:</span>
+                                <span className="font-mono text-destructive">{debt.toLocaleString()}¢</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="lg:col-span-1">
                         <CardHeader>
                             <CardTitle className="font-headline text-lg flex items-center gap-2"><Briefcase className="text-primary"/> Investment Portfolio</CardTitle>
                             <CardDescription>Acquire shares to gain ownership of the bank.</CardDescription>
@@ -159,14 +217,22 @@ export default function BankPageComponent() {
                                 </div>
                             </div>
                             <Progress value={(bankShares / 10000) * 100} />
-                            <div className="h-[150px]">
-                                <BankValueChart valueHistory={bankAccount.sharePriceHistory} />
-                            </div>
                             <div className="flex gap-2">
                                 <Button className="w-full" onClick={() => setDialog('buy_shares')} disabled={bankShares >= 10000}>Buy Shares</Button>
                                 <Button variant="outline" className="w-full" onClick={() => setDialog('sell_shares')} disabled={bankShares === 0}>Sell Shares</Button>
                             </div>
                         </CardContent>
+                    </Card>
+                    
+                    <Card className="lg:col-span-3">
+                        <CardHeader>
+                            <CardTitle>Share Price History</CardTitle>
+                        </CardHeader>
+                         <CardContent>
+                            <div className="h-[150px]">
+                                <BankValueChart valueHistory={bankAccount.sharePriceHistory} />
+                            </div>
+                         </CardContent>
                     </Card>
 
                     {hasMajority && !hasFullOwnership && (
@@ -236,6 +302,9 @@ export default function BankPageComponent() {
                         playerShares={bankShares}
                         playerNetWorth={playerStats.netWorth}
                     />
+                 )}
+                 {dialog === 'loan' && (
+                    <LoanDialog onConfirm={handleTakeLoan} netWorth={playerStats.netWorth}/>
                  )}
             </Dialog>
         </div>

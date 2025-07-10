@@ -171,6 +171,38 @@ export function useBank(
         });
     }, [setGameState, toast]);
 
+    const handleTakeLoan = useCallback((amount: number) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.bankAccount || prev.playerStats.loan) return prev;
+
+            const maxLoan = prev.playerStats.netWorth * 100;
+            if (amount <= 0 || amount > maxLoan) {
+                setTimeout(() => toast({ variant: "destructive", title: "Loan Denied", description: "Invalid loan amount requested." }), 0);
+                return prev;
+            }
+
+            const newLoan: Loan = {
+                principal: amount,
+                interestRate: 0.10,
+                totalRepayments: 12,
+                repaymentsMade: 0,
+                repaymentAmount: Math.ceil((amount * 1.10) / 12),
+                nextDueDate: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+            };
+
+            setTimeout(() => toast({ title: "Loan Approved", description: `You have received ${amount.toLocaleString()}¢. Repayments will begin soon.` }), 0);
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + amount,
+                    loan: newLoan,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
   // Bank clicker logic (for when player OWNS the bank)
   const handleBankClick = useCallback(() => {
     setGameState(prev => {
@@ -325,6 +357,7 @@ export function useBank(
     handleSellShare,
     handleAcquireBank,
     handleSetInterestRate,
+    handleTakeLoan,
     handleBankClick,
     handleUpgradeBank,
     handleUpgradeBankAutoClicker,
