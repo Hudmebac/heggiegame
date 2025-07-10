@@ -155,12 +155,12 @@ export default function GameDetailsPage() {
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Button asChild>
-                            <a href="mailto:heliosheggie@gmail.com?subject=HEGGIE Feedback" target="_blank" rel="noopener noreferrer">
+                            <a href="mailto:heliosheggie@gmail.com?subject=HEGGIE%20Feedback" target="_blank" rel="noopener noreferrer">
                                 <Mail className="mr-2"/> Provide Feedback
                             </a>
                         </Button>
                          <Button asChild variant="destructive">
-                            <a href="mailto:heliosheggie@gmail.com?subject=HEGGIE Bug Report" target="_blank" rel="noopener noreferrer">
+                            <a href="mailto:heliosheggie@gmail.com?subject=HEGGIE%20Bug%20Report" target="_blank" rel="noopener noreferrer">
                                 <Bug className="mr-2"/> Report a Bug
                             </a>
                         </Button>
