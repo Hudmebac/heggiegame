@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,6 +11,7 @@ import BankContracts from './bank-contracts';
 import type { SystemEconomy } from '@/lib/types';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
 import { businessData, calculateCost } from '@/lib/business-data';
+import VaultBreachMinigame from './vault-breach-minigame';
 
 export default function BankClicker() {
     const { gameState, handleBankClick, handleUpgradeBank, handleUpgradeBankAutoClicker, handleAcceptBankPartnerOffer } = useGame();
@@ -19,8 +21,8 @@ export default function BankClicker() {
         return null;
     }
 
-    const { playerStats, difficulty } = gameState;
-    const currentSystem = gameState.systems.find(s => s.name === gameState.currentSystem);
+    const { playerStats, difficulty, currentSystem: systemName } = gameState;
+    const currentSystem = gameState.systems.find(s => s.name === systemName);
     const currentPlanet = currentSystem?.planets.find(p => p.name === gameState.currentPlanet);
     const zoneType = currentSystem?.zoneType;
     const theme = (zoneType && bankThemes[zoneType]) ? bankThemes[zoneType] : bankThemes['Default'];
@@ -150,6 +152,18 @@ export default function BankClicker() {
                 <BankContracts />
 
             </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <Landmark className="text-primary"/>
+                        Security Simulations
+                    </CardTitle>
+                    <CardDescription>Hone your defense skills and earn extra credits.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <VaultBreachMinigame />
+                </CardContent>
+            </Card>
         </div>
     );
 }

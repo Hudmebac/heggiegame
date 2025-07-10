@@ -622,6 +622,22 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleVaultBreachMinigameScore = useCallback((points: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            if (points > 0) {
+                toast({ title: "Vault Secured", description: `You earned ${points.toLocaleString()}¢ for repelling the breach.`});
+            }
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    netWorth: prev.playerStats.netWorth + points,
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -647,5 +663,6 @@ export function usePlayerActions(
         handleJoinFaction,
         handleShareToFacebook,
         handleMachinistMinigameScore,
+        handleVaultBreachMinigameScore,
     };
 }
