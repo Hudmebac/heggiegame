@@ -175,8 +175,10 @@ export default function HistoryEventsPage() {
                 </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 gap-6">
-                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="lg:col-span-2">
+                    <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+                </div>
                 <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
