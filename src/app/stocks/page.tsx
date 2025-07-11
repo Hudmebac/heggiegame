@@ -58,10 +58,12 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
     const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
     
     const handleQuickBuy = (amount: number) => {
+        setTradeAmount(amount);
         onBuy(stock.id, amount);
     };
 
     const handleQuickSell = (amount: number) => {
+        setTradeAmount(amount);
         onSell(stock.id, amount);
     };
 
@@ -90,7 +92,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="text-sm flex justify-between">
                         <span>Available:</span>
-                        <span className="font-mono">{stock.totalShares <= 0 ? 'Unlimited' : stock.sharesAvailable?.toLocaleString() ?? 'N/A'}</span>
+                        <span className="font-mono">{stock.totalShares <= 0 ? 'Unlimited' : (stock.sharesAvailable ?? 0).toLocaleString()}</span>
                     </div>
                      <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
@@ -99,13 +101,13 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
                         <div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleBuyStock(stock.id, tradeAmount)} disabled={!canAfford || (stock.sharesAvailable > 0 && tradeAmount > stock.sharesAvailable)}>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford || (stock.totalShares > 0 && tradeAmount > (stock.sharesAvailable || 0))}>
                                 <ArrowUp className="mr-2"/> Buy
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
                         </div>
                          <div>
-                            <Button variant="destructive" className="w-full" onClick={() => handleSellStock(stock.id, tradeAmount)} disabled={ownedShares < tradeAmount}>
+                            <Button variant="destructive" className="w-full" onClick={() => onSell(stock.id, tradeAmount)} disabled={ownedShares < tradeAmount}>
                                 <ArrowDown className="mr-2"/> Sell
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Value: {(stock.price * tradeAmount).toLocaleString()}¢</p>
@@ -117,7 +119,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                         <p className="text-xs text-center text-muted-foreground">Quick Buy</p>
                         <div className="grid grid-cols-4 gap-1">
                              {quickTradeAmounts.map(amount => (
-                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => handleQuickBuy(amount)} disabled={netWorth < stock.price * amount || (stock.sharesAvailable > 0 && amount > stock.sharesAvailable)}>
+                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => handleQuickBuy(amount)} disabled={netWorth < stock.price * amount || (stock.totalShares > 0 && amount > (stock.sharesAvailable || 0))}>
                                     {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
                                 </Button>
                             ))}
@@ -174,7 +176,7 @@ export default function StocksPage() {
         }
     };
     
-    const selectedStock = stocks.find(s => s.id === selectedStockId) ?? null;
+    const selectedStock = gameState.playerStats.stocks.find(s => s.id === selectedStockId) ?? null;
     const ownedShares = portfolio.find(s => s.id === selectedStock?.id)?.shares || 0;
 
     return (
@@ -253,3 +255,4 @@ export default function StocksPage() {
         </div>
     );
 }
+
