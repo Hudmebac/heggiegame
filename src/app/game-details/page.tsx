@@ -108,7 +108,7 @@ export default function GameDetailsPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Accordion type="single" collapsible className="w-full">
+                        <Accordion type="single" collapsible className="w-full" defaultValue={changelogData[0].version}>
                             {changelogData.map(log => (
                                 <AccordionItem key={log.version} value={log.version}>
                                     <AccordionTrigger>{log.version} ({log.date})</AccordionTrigger>
