@@ -9,6 +9,16 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.3.0 - 'The Exchange'",
+        date: "Startdate: Cycle 4525.07.12",
+        changes: [
+            "Introduced the HEGGIE Stock Exchange, a dynamic market for trading shares in galactic corporations and ship manufacturers.",
+            "Implemented a sophisticated stock price fluctuation model, including micro-fluctuations and random market events like spikes and crashes.",
+            "Added a dedicated 'Stocks' page to the main navigation for monitoring markets and managing portfolios.",
+            "Integrated a 'Float New Share' feature for players who achieve full ownership of the Galactic Bank, allowing them to introduce new companies to the market."
+        ]
+    },
+    {
         version: "v1.2.3 – 'Strategic Depth'",
         date: "Startdate: Cycle 4525.07.11",
         changes: [
@@ -95,7 +105,7 @@ export default function GameDetailsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-headline text-slate-200 tracking-wider">Game Details & Support</h2>
+                <h2 className="text-2xl font-headline text-slate-200 tracking-wider">Game Details &amp; Support</h2>
                 <p className="text-muted-foreground">Information about the game, its development, and how to get help.</p>
             </div>
             
@@ -171,7 +181,7 @@ export default function GameDetailsPage() {
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
                             <Mail className="text-primary"/>
-                            Support & Feedback
+                            Support &amp; Feedback
                         </CardTitle>
                         <CardDescription>
                             Have a great idea, found a pesky bug, or just want to say hello? Get in touch!
