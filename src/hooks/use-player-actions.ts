@@ -46,6 +46,13 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
     
+    const setPlayerBio = useCallback((bio: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            return { ...prev, playerStats: { ...prev.playerStats, bio } };
+        });
+    }, [setGameState]);
+
     const setPlayerName = useCallback((name: string) => {
         setGameState(prev => {
             if (!prev) return null;
@@ -804,6 +811,7 @@ export function usePlayerActions(
         handleSetAvatar,
         handleGenerateBio,
         setPlayerName,
+        setPlayerBio,
         updateTraderBio,
         handleResetGame,
         handleRefuel,

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText, Edit } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { AVATARS } from '@/lib/avatars';
 import ShareProgressDialog from '@/app/components/share-progress-dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -51,9 +52,11 @@ function getReputationTier(score: number) {
 }
 
 function PlayerProfile() {
-    const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handleShareToFacebook } = useGame();
+    const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, setPlayerBio, handleSetAvatar, handleResetGame, handleShareToFacebook } = useGame();
     const [isEditingName, setIsEditingName] = useState(false);
     const [name, setName] = useState(gameState?.playerStats.name || '');
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [bio, setBio] = useState(gameState?.playerStats.bio || '');
     const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
     const [isFBConsentOpen, setIsFBConsentOpen] = useState(false);
@@ -66,6 +69,11 @@ function PlayerProfile() {
         setPlayerName(name);
         setIsEditingName(false);
     };
+
+    const handleBioSave = () => {
+        setPlayerBio(bio);
+        setIsEditingBio(false);
+    }
 
     const handleAvatarSelect = (avatarUrl: string) => {
         handleSetAvatar(avatarUrl);
@@ -105,19 +113,32 @@ function PlayerProfile() {
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="p-4 bg-background/50 rounded-lg h-28 overflow-y-auto">
-                    <p className="text-sm text-muted-foreground italic">{playerStats.bio}</p>
+                <div className="p-4 bg-background/50 rounded-lg min-h-[140px]">
+                    {isEditingBio ? (
+                        <div className="space-y-2">
+                            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="h-24" />
+                            <div className="flex justify-end gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => setIsEditingBio(false)}>Cancel</Button>
+                                <Button size="sm" onClick={handleBioSave}>Save Bio</Button>
+                            </div>
+                        </div>
+                    ) : (
+                         <p className="text-sm text-muted-foreground italic h-28 overflow-y-auto">{playerStats.bio}</p>
+                    )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                     <Button variant="outline" onClick={handleGenerateBio} disabled={isGeneratingBio}>
                         {isGeneratingBio ? <Loader2 className="animate-spin"/> : <RefreshCw />}
                         New Bio
+                    </Button>
+                     <Button variant="outline" onClick={() => setIsEditingBio(true)} disabled={isEditingBio}>
+                        <Edit /> Edit Bio
                     </Button>
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="destructive">
                                 <RefreshCw className="mr-2" />
-                                Reset Game
+                                Reset
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
