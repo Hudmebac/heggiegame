@@ -32,6 +32,7 @@ import ShareProgressDialog from '@/app/components/share-progress-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -91,10 +92,20 @@ function PlayerProfile() {
     };
 
     const onShareToWhatsapp = () => {
+        handleShareToWhatsapp();
         const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(shareText)}`;
         window.open(whatsappUrl, '_blank');
-        handleShareToWhatsapp();
     };
+
+    const now = Date.now();
+    const fbCooldown = 5 * 60 * 1000;
+    const whatsAppCooldown = 5 * 60 * 1000;
+
+    const fbExpiry = (playerStats.lastFacebookShare || 0) + fbCooldown;
+    const isFbOnCooldown = now < fbExpiry;
+
+    const whatsAppExpiry = (playerStats.lastWhatsappShare || 0) + whatsAppCooldown;
+    const isWhatsAppOnCooldown = now < whatsAppExpiry;
 
     return (
         <Card className="h-full">
@@ -173,8 +184,8 @@ function PlayerProfile() {
                     </Button>
                      <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
                         <AlertDialogTrigger asChild>
-                            <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700">
-                                Share for 1M¢
+                           <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700" disabled={isFbOnCooldown}>
+                                {isFbOnCooldown ? <CooldownTimer expiry={fbExpiry} /> : 'Share for 1M¢'}
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -191,8 +202,8 @@ function PlayerProfile() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={onShareToWhatsapp}>
-                        <WhatsAppIcon className="mr-2" /> Share for 1M¢
+                    <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={onShareToWhatsapp} disabled={isWhatsAppOnCooldown}>
+                        {isWhatsAppOnCooldown ? <CooldownTimer expiry={whatsAppExpiry} /> : <><WhatsAppIcon className="mr-2" /> Share for 1M¢</>}
                     </Button>
                 </div>
                  <div className="grid grid-cols-1">
