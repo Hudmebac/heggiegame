@@ -52,8 +52,12 @@ export default function HistoryEventsPage() {
     const today = new Date();
 
     const getRelativeDate = (date: string) => {
-        const d = new Date(date);
-        return formatRelative(d, today);
+        try {
+            const d = new Date(date);
+            return formatRelative(d, today);
+        } catch (error) {
+            return date;
+        }
     }
 
     const eventTypes: Array<'all' | GameEventType> = ['all', 'Trade', 'Combat', 'Upgrade', 'Mission', 'System', 'Career', 'Faction'];
