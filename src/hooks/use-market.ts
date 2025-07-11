@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { GameState, MarketItem, InventoryItem, GameEvent, Stock } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +17,22 @@ export function useMarket(
     const [chartItem, setChartItem] = useState<string>(STATIC_ITEMS[0].name);
     const [tradeDetails, setTradeDetails] = useState<{ item: MarketItem, type: 'buy' | 'sell' } | null>(null);
     const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+
+    // This effect ensures the selectedStock state is always in sync with the main gameState
+    useEffect(() => {
+        if (selectedStock && gameState?.playerStats.stocks) {
+            const freshStockData = gameState.playerStats.stocks.find(s => s.id === selectedStock.id);
+            if (freshStockData) {
+                // Avoids a render loop by checking if the data is actually different
+                if (JSON.stringify(freshStockData) !== JSON.stringify(selectedStock)) {
+                    setSelectedStock(freshStockData);
+                }
+            } else {
+                setSelectedStock(null); // The stock no longer exists
+            }
+        }
+    }, [gameState?.playerStats.stocks, selectedStock]);
+
 
     const handleTrade = useCallback((itemName: string, type: 'buy' | 'sell', amount: number) => {
         setGameState(prev => {

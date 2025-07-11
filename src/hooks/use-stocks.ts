@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useCallback } from 'react';
@@ -14,7 +15,7 @@ export function useStocks(
     const handleAddStock = useCallback((name: string, price: number, shares: number) => {
         setGameState(prev => {
             if (!prev) return null;
-            const totalShares = shares > 0 ? shares : 1_000_000_000_000;
+            const totalShares = shares > 0 ? shares : 0; // Use 0 for unlimited
             const newStock: Stock = {
                 id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
                 name,
@@ -47,7 +48,7 @@ export function useStocks(
             
             const stock = { ...prev.playerStats.stocks[stockIndex] };
 
-            if (stock.sharesAvailable > 0 && amount > stock.sharesAvailable) {
+            if (stock.totalShares > 0 && amount > stock.sharesAvailable) {
                  setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
@@ -67,7 +68,9 @@ export function useStocks(
                 newPortfolio.push({ id: stockId, shares: amount });
             }
             
-            stock.sharesAvailable -= amount;
+            if (stock.totalShares > 0) {
+              stock.sharesAvailable -= amount;
+            }
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
 
@@ -110,7 +113,9 @@ export function useStocks(
             const newPortfolio = [...prev.playerStats.portfolio];
             newPortfolio[holdingIndex] = { ...newPortfolio[holdingIndex], shares: newPortfolio[holdingIndex].shares - amount };
 
-            stock.sharesAvailable += amount;
+            if (stock.totalShares > 0) {
+              stock.sharesAvailable += amount;
+            }
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
 
