@@ -15,6 +15,7 @@ export interface GameEvent {
   description: string;
   value: number; // e.g., trade profit, mission reward, upgrade cost
   isMilestone: boolean;
+  reputationChange?: number;
 }
 
 export interface StaticItem {

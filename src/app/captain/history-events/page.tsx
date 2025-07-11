@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { format, formatRelative, subDays } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
 import NetWorthChart from "@/app/components/net-worth-chart";
+import ReputationChart from "@/app/components/reputation-chart";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
@@ -30,9 +31,9 @@ export default function HistoryEventsPage() {
     const [timeRange, setTimeRange] = useState('all');
     const [eventType, setEventType] = useState<GameEventType | 'all'>('all');
 
-    const MOCK_EVENTS = gameState?.playerStats.events || [];
+    const ALL_EVENTS = gameState?.playerStats.events || [];
 
-    const filteredEvents = MOCK_EVENTS.filter(event => {
+    const filteredEvents = ALL_EVENTS.filter(event => {
         const eventDate = new Date(event.timestamp);
         let dateCondition = true;
         if (timeRange === '7d') {
@@ -94,7 +95,10 @@ export default function HistoryEventsPage() {
                 </CardContent>
             </Card>
 
-            <NetWorthChart events={filteredEvents} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <NetWorthChart events={filteredEvents} />
+                <ReputationChart events={filteredEvents} initialReputation={0} />
+            </div>
 
             <Card className="bg-card/50">
                 <CardHeader>
