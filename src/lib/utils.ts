@@ -2,7 +2,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats } from "./types";
+import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock } from "./types";
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from './upgrades';
@@ -81,11 +81,12 @@ export function calculateShipValue(ship: PlayerShip): number {
     return totalValue;
 }
 
-export function calculateCargoValue(inventory: InventoryItem[], marketItems: MarketItem[]): number {
+export function calculateCargoValue(inventory: InventoryItem[], marketItems: (MarketItem[] | Stock[])): number {
+    if (!inventory) return 0;
     return inventory.reduce((acc, item) => {
         const marketData = marketItems.find(mi => mi.name === item.name);
         // Use base price as a fallback if not in the current market
-        const price = marketData?.currentPrice || STATIC_ITEMS.find(si => si.name === item.name)?.basePrice || 0;
+        const price = (marketData as MarketItem)?.currentPrice || (marketData as Stock)?.price || STATIC_ITEMS.find(si => si.name === item.name)?.basePrice || 0;
         return acc + (item.owned * price);
     }, 0);
 }
