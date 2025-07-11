@@ -109,7 +109,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                         <p className="text-xs text-center text-muted-foreground">Quick Buy</p>
                         <div className="grid grid-cols-4 gap-1">
                              {quickTradeAmounts.map(amount => (
-                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onBuy(stock.id, amount)} disabled={netWorth < stock.price * amount || stock.sharesAvailable < amount}>
+                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onBuy(stock.id, amount)} disabled={netWorth < stock.price * amount || amount > stock.sharesAvailable}>
                                     {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
                                 </Button>
                             ))}
@@ -119,7 +119,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     <div className="space-y-2">
                         <p className="text-xs text-center text-muted-foreground">Quick Sell</p>
                          <div className="grid grid-cols-4 gap-1">
-                            {quickTradeAmounts.map(amount => (
+                            {quickTradeAmounts.slice(0, 7).map(amount => (
                                 <Button key={`sell-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onSell(stock.id, amount)} disabled={ownedShares < amount}>
                                     {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
                                 </Button>
