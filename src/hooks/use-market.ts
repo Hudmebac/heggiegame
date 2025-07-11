@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { GameState, MarketItem, InventoryItem, GameEvent } from '@/lib/types';
+import type { GameState, MarketItem, InventoryItem, GameEvent, Stock } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
@@ -15,6 +15,7 @@ export function useMarket(
     const { toast } = useToast();
     const [chartItem, setChartItem] = useState<string>(STATIC_ITEMS[0].name);
     const [tradeDetails, setTradeDetails] = useState<{ item: MarketItem, type: 'buy' | 'sell' } | null>(null);
+    const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
 
     const handleTrade = useCallback((itemName: string, type: 'buy' | 'sell', amount: number) => {
         setGameState(prev => {
@@ -73,7 +74,7 @@ export function useMarket(
             const currentSystem = prev.systems.find(s => s.name === prev.currentSystem);
             if (currentSystem) {
                  const economyMultiplier = ECONOMY_MULTIPLIERS[staticItemData.category]?.[currentSystem.economy] ?? 1.0;
-                 newMarketItem.currentPrice = calculatePrice(staticItemData.basePrice, newMarketItem.supply, newMarketItem.demand, economyMultiplier);
+                 newMarketItem.currentPrice = calculatePrice(staticItem.basePrice, newMarketItem.supply, newMarketItem.demand, economyMultiplier);
                  newMarketItems[marketItemIndex] = newMarketItem;
             }
 
@@ -110,5 +111,7 @@ export function useMarket(
         setTradeDetails,
         handleTrade,
         handleInitiateTrade,
+        selectedStock,
+        setSelectedStock,
     };
 };

@@ -57,6 +57,16 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
 
     const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
     
+    const handleQuickBuy = (amount: number) => {
+        setTradeAmount(amount);
+        onBuy(stock.id, amount);
+    };
+
+    const handleQuickSell = (amount: number) => {
+        setTradeAmount(amount);
+        onSell(stock.id, amount);
+    };
+
     return (
         <Card className="sticky top-6">
             <CardHeader>
@@ -91,7 +101,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
                         <div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford || tradeAmount > stock.sharesAvailable}>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford || (stock.sharesAvailable > 0 && tradeAmount > stock.sharesAvailable)}>
                                 <ArrowUp className="mr-2"/> Buy
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
@@ -109,7 +119,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                         <p className="text-xs text-center text-muted-foreground">Quick Buy</p>
                         <div className="grid grid-cols-4 gap-1">
                              {quickTradeAmounts.map(amount => (
-                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onBuy(stock.id, amount)} disabled={netWorth < stock.price * amount || amount > stock.sharesAvailable}>
+                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => handleQuickBuy(amount)} disabled={netWorth < stock.price * amount || (stock.sharesAvailable > 0 && amount > stock.sharesAvailable)}>
                                     {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
                                 </Button>
                             ))}
@@ -120,11 +130,11 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                         <p className="text-xs text-center text-muted-foreground">Quick Sell</p>
                          <div className="grid grid-cols-4 gap-1">
                             {quickTradeAmounts.slice(0, 7).map(amount => (
-                                <Button key={`sell-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onSell(stock.id, amount)} disabled={ownedShares < amount}>
+                                <Button key={`sell-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => handleQuickSell(amount)} disabled={ownedShares < amount}>
                                     {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
                                 </Button>
                             ))}
-                            <Button variant="destructive" size="sm" className="h-auto px-1 text-xs" onClick={() => onSell(stock.id, ownedShares)} disabled={ownedShares === 0}>
+                            <Button variant="destructive" size="sm" className="h-auto px-1 text-xs" onClick={() => handleQuickSell(ownedShares)} disabled={ownedShares <= 0}>
                                 All
                             </Button>
                         </div>
@@ -136,10 +146,9 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
 }
 
 export default function StocksPage() {
-    const { gameState, handleBuyStock, handleSellStock } = useGame();
+    const { gameState, handleBuyStock, handleSellStock, selectedStock, setSelectedStock } = useGame();
     const [sortKey, setSortKey] = useState<keyof Stock>('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-    const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
 
     if (!gameState) return null;
 
@@ -245,4 +254,3 @@ export default function StocksPage() {
         </div>
     );
 }
-
