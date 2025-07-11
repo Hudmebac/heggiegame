@@ -178,8 +178,8 @@ export default function HistoryEventsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
-                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
                 <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
         </div>
     );
