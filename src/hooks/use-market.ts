@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { GameState, MarketItem, InventoryItem } from '@/lib/types';
+import type { GameState, MarketItem, InventoryItem, GameEvent } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
@@ -91,6 +91,17 @@ export function useMarket(
 
             const newCargoValue = calculateCargoValue(updatedInventory, newMarketItems);
             newPlayerStats.cargoValueHistory = [...(prev.playerStats.cargoValueHistory || [0]), newCargoValue].slice(-20);
+
+            const newEvent: GameEvent = {
+                id: `evt_trade_${Date.now()}`,
+                timestamp: Date.now(),
+                type: 'Trade',
+                description: `${type === 'buy' ? 'Bought' : 'Sold'} ${amount} units of ${itemName}.`,
+                value: type === 'buy' ? -totalCost : totalCost,
+                reputationChange: 0.1,
+                isMilestone: false,
+            };
+            newPlayerStats.events = [...(newPlayerStats.events || []), newEvent];
 
             return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory, marketItems: newMarketItems };
         });
