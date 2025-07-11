@@ -5,6 +5,7 @@ export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | '
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
 export type FactionId = 'Independent' | 'Federation of Sol' | 'Corporate Hegemony' | 'Veritas Concord' | 'Frontier Alliance' | 'Independent Miners Guild';
+export type StockCategory = 'Technology' | 'Industrial' | 'Ship Manufacturing' | 'Finance' | 'Consumer Services' | 'Real Estate' | 'Energy' | 'Medical';
 
 export type GameEventType = 'Trade' | 'Combat' | 'Upgrade' | 'Mission' | 'System' | 'Career' | 'Faction' | 'Purchase';
 
@@ -56,12 +57,13 @@ export interface InventoryItem {
 export interface Stock {
   id: string;
   name: string;
+  category: StockCategory;
   price: number;
   history: number[];
   changePercent: number;
   lastUpdated: number;
   totalShares: number;
-  sharesAvailable: number;
+  sharesAvailable: number | null;
 }
 
 export interface PortfolioItem {

@@ -3,7 +3,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { GameState, Stock, PortfolioItem } from '@/lib/types';
+import type { GameState, Stock, PortfolioItem, StockCategory } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
 export function useStocks(
@@ -12,19 +12,20 @@ export function useStocks(
 ) {
     const { toast } = useToast();
 
-    const handleAddStock = useCallback((name: string, price: number, shares: number) => {
+    const handleAddStock = useCallback((name: string, price: number, shares: number, category: StockCategory) => {
         setGameState(prev => {
             if (!prev) return null;
             const totalShares = shares > 0 ? shares : 0; // Use 0 for unlimited
             const newStock: Stock = {
                 id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
                 name,
+                category,
                 price,
                 history: Array(50).fill(price),
                 changePercent: 0,
                 lastUpdated: Date.now(),
                 totalShares: totalShares,
-                sharesAvailable: totalShares,
+                sharesAvailable: totalShares > 0 ? totalShares : null,
             };
             return {
                 ...prev,
@@ -54,9 +55,7 @@ export function useStocks(
                 return prev;
             }
             
-            // This is the critical, hardened check.
-            const isLimited = stock.totalShares > 0;
-            if (isLimited && amount > (stock.sharesAvailable ?? 0)) {
+            if (stock.totalShares > 0 && stock.sharesAvailable !== null && amount > stock.sharesAvailable) {
                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
@@ -70,8 +69,8 @@ export function useStocks(
                 newPortfolio.push({ id: stockId, shares: amount });
             }
             
-            if (isLimited) {
-              stock.sharesAvailable = (stock.sharesAvailable ?? 0) - amount;
+            if (stock.totalShares > 0 && stock.sharesAvailable !== null) {
+              stock.sharesAvailable = stock.sharesAvailable - amount;
             }
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
@@ -115,8 +114,8 @@ export function useStocks(
             const newPortfolio = [...prev.playerStats.portfolio];
             newPortfolio[holdingIndex] = { ...newPortfolio[holdingIndex], shares: newPortfolio[holdingIndex].shares - amount };
 
-            if (stock.totalShares > 0) {
-              stock.sharesAvailable = (stock.sharesAvailable ?? 0) + amount;
+            if (stock.totalShares > 0 && stock.sharesAvailable !== null) {
+              stock.sharesAvailable = stock.sharesAvailable + amount;
             }
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;

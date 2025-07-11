@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard, BankAccount, SystemEconomy, Stock } from '@/lib/types';
+import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard, BankAccount, SystemEconomy, Stock, StockCategory } from '@/lib/types';
 import { bankThemes } from '@/lib/bank-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
@@ -13,7 +13,7 @@ const TOTAL_BANK_SHARES = 10000;
 export function useBank(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
-    handleAddStock: (name: string, price: number, shares: number) => void
+    handleAddStock: (name: string, price: number, shares: number, category: StockCategory) => void
 ) {
   const { toast } = useToast();
   const bankData = businessData.find(b => b.id === 'bank');
@@ -299,12 +299,12 @@ export function useBank(
     });
   }, [setGameState, toast]);
   
-  const handleFloatShare = useCallback((name: string, price: number, shares: number) => {
+  const handleFloatShare = useCallback((name: string, price: number, shares: number, category: StockCategory) => {
     if (!name || price <= 0) {
         setTimeout(() => toast({ variant: 'destructive', title: 'Invalid Share', description: 'Please provide a valid name and starting price.' }), 0);
         return;
     }
-    handleAddStock(name, price, shares);
+    handleAddStock(name, price, shares, category);
     setTimeout(() => toast({ title: 'IPO Successful!', description: `${name} is now listed on the HEGGIE Stock Exchange.` }), 0);
   }, [handleAddStock, toast]);
 

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { PlayerStats, PartnershipOffer } from '@/lib/types';
+import type { PlayerStats, PartnershipOffer, StockCategory } from '@/lib/types';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,17 +14,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { STOCK_CATEGORIES } from '@/lib/stock-categories';
 
-const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: number, shares: number) => void }) => {
+const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: number, shares: number, category: StockCategory) => void }) => {
     const [name, setName] = useState('');
     const [price, setPrice] = useState(100);
     const [shares, setShares] = useState<string | number>(10000);
+    const [category, setCategory] = useState<StockCategory>('Technology');
 
     const shareOptions = [10000, 100000, 1000000, 1000000000];
 
     const handleConfirmIPO = () => {
         const numShares = shares === 'custom' ? 0 : Number(shares);
-        onConfirm(name, price, numShares);
+        onConfirm(name, price, numShares, category);
     }
     
     return (
@@ -38,6 +40,17 @@ const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: numb
                     <Label htmlFor="share-name">Share/Company Name</Label>
                     <Input id="share-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Orion Mining Guild"/>
                 </div>
+                 <div>
+                    <Label htmlFor="share-category">Category</Label>
+                     <Select onValueChange={(value: StockCategory) => setCategory(value)} defaultValue={category}>
+                        <SelectTrigger id="share-category">
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {STOCK_CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div>
                     <Label htmlFor="share-price">Starting Price (¢)</Label>
                     <Input id="share-price" type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
@@ -50,7 +63,7 @@ const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: numb
                         </SelectTrigger>
                         <SelectContent>
                             {shareOptions.map(opt => <SelectItem key={opt} value={String(opt)}>{opt.toLocaleString()} shares</SelectItem>)}
-                            <SelectItem value="custom">Custom (Unlimited)</SelectItem>
+                            <SelectItem value="custom">Unlimited</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -103,8 +116,8 @@ export default function BankContracts() {
         setIsOffersDialogOpen(false);
     };
 
-    const handleConfirmFloatShare = (name: string, price: number, shares: number) => {
-        handleFloatShare(name, price, shares);
+    const handleConfirmFloatShare = (name: string, price: number, shares: number, category: StockCategory) => {
+        handleFloatShare(name, price, shares, category);
         setIsFloatShareDialogOpen(false);
     }
 

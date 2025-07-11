@@ -6,11 +6,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { CandlestickChart, TrendingUp, TrendingDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { CandlestickChart, TrendingUp, TrendingDown, ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import type { Stock } from '@/lib/types';
+import type { Stock, StockCategory } from '@/lib/types';
 import { Input } from '@/components/ui/input';
+import { STOCK_CATEGORIES } from '@/lib/stock-categories';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PortfolioCard = ({ portfolio, stocks, onSelectStock, selectedStockId }: { portfolio: any[], stocks: Stock[], onSelectStock: (stock: Stock) => void, selectedStockId: string | null }) => {
     const portfolioValue = portfolio.reduce((acc, holding) => {
@@ -56,7 +58,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
     const [tradeAmount, setTradeAmount] = useState(1);
     
     const maxAffordable = stock.price > 0 ? Math.floor(netWorth / stock.price) : Infinity;
-    const isLimitedStock = stock.totalShares > 0;
+    const isLimitedStock = stock.totalShares > 0 && stock.sharesAvailable !== null;
     const maxCanBuy = isLimitedStock ? Math.min(maxAffordable, stock.sharesAvailable ?? 0) : maxAffordable;
 
     const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
@@ -91,16 +93,16 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="text-sm flex justify-between">
                         <span>Available:</span>
-                        <span className="font-mono">{!isLimitedStock ? 'Unlimited' : (stock.sharesAvailable ?? 0).toLocaleString()}</span>
+                        <span className="font-mono">{stock.sharesAvailable === null ? 'Unlimited' : stock.sharesAvailable.toLocaleString()}</span>
                     </div>
                      <div className="flex items-center justify-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAmountChange(tradeAmount - 1)}>-</Button>
                         <Input type="number" value={tradeAmount} onChange={e => handleAmountChange(Number(e.target.value))} max={maxCanBuy} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.min(maxCanBuy, prev + 1))}>+</Button>
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleAmountChange(tradeAmount + 1)}>+</Button>
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
                         <div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={tradeAmount <= 0 || tradeAmount > maxCanBuy}>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={tradeAmount > maxCanBuy || tradeAmount <= 0}>
                                 <ArrowUp className="mr-2"/> Buy
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
@@ -148,13 +150,21 @@ export default function StocksPage() {
     const { gameState, handleBuyStock, handleSellStock, selectedStockId, setSelectedStockId } = useGame();
     const [sortKey, setSortKey] = useState<keyof Stock>('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState<StockCategory | 'All'>('All');
 
     if (!gameState) return null;
 
     const { playerStats } = gameState;
     const { portfolio, stocks } = playerStats;
+
+    const filteredStocks = stocks.filter(stock => {
+        const nameMatch = stock.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const categoryMatch = categoryFilter === 'All' || stock.category === categoryFilter;
+        return nameMatch && categoryMatch;
+    });
     
-    const sortedStocks = [...stocks].sort((a, b) => {
+    const sortedStocks = [...filteredStocks].sort((a, b) => {
         const aVal = a[sortKey];
         const bVal = b[sortKey];
         if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -196,7 +206,32 @@ export default function StocksPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle className="font-headline text-lg">Galactic Market</CardTitle>
-                            <CardDescription>Click on a stock to view details and trade.</CardDescription>
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                <CardDescription>Click on a stock to view details and trade.</CardDescription>
+                                <div className="flex gap-2">
+                                     <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as any)}>
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder="Filter by category" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="All">All Categories</SelectItem>
+                                            {STOCK_CATEGORIES.map(cat => (
+                                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <div className="relative">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Search stocks..."
+                                            className="pl-8 w-full sm:w-auto"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </CardHeader>
                         <CardContent className="p-0">
                             <Table>
