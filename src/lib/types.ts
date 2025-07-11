@@ -242,12 +242,12 @@ export interface PlayerStats {
   warehouses: Warehouse[];
   events: GameEvent[];
   assetHistory: AssetSnapshot[];
+  cashInHandHistory: number[];
   usedPromoCodes: string[];
   negotiationCooldowns: Record<string, number>;
   lastFacebookShare?: number;
   lastWhatsappShare?: number;
   cargoValueHistory: number[];
-  cashInHandHistory: number[];
   stardate: string;
 
   fleet: PlayerShip[];

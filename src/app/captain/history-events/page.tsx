@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useGame } from '@/app/components/game-provider';
 import { EventIconMap } from '@/lib/events';
 import { CAREER_DATA } from '@/lib/careers';
+import CashFlowChart from '@/app/components/cash-flow-chart';
 
 const groupEventsByDay = (events: GameEvent[]) => {
     return events.reduce((acc, event) => {
@@ -112,8 +113,9 @@ export default function HistoryEventsPage() {
                 currentNetWorth={gameState.playerStats.netWorth}
             />
 
-            <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-1 gap-6">
                 <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
 
