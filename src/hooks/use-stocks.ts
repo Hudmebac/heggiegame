@@ -71,7 +71,7 @@ export function useStocks(
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
 
-            setTimeout(() => toast({ title: 'Purchase Successful', description: `Bought ${amount} share(s) of ${stock.name}.` }), 0);
+            setTimeout(() => toast({ title: 'Purchase Successful', description: `Bought ${amount.toLocaleString()} share(s) of ${stock.name}.` }), 0);
             
             return {
                 ...prev,
@@ -92,7 +92,7 @@ export function useStocks(
             const stockIndex = prev.playerStats.stocks.findIndex(s => s.id === stockId);
             const holding = prev.playerStats.portfolio.find(h => h.id === stockId);
             
-            if (stockIndex === -1 || !holding || holding.shares < amount) {
+            if (stockIndex === -1 || !holding || holding.shares < amount || amount <= 0) {
                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares to sell.' }), 0);
                 return prev;
             }
@@ -108,7 +108,7 @@ export function useStocks(
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
 
-            setTimeout(() => toast({ title: 'Sale Successful', description: `Sold ${amount} share(s) of ${stock.name}.` }), 0);
+            setTimeout(() => toast({ title: 'Sale Successful', description: `Sold ${amount.toLocaleString()} share(s) of ${stock.name}.` }), 0);
 
             return {
                 ...prev,
