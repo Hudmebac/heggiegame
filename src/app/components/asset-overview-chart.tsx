@@ -84,7 +84,6 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
                                     fillOpacity={0.4}
                                     fill={`url(#color-${key})`}
                                     strokeWidth={2}
-                                    stackId="1"
                                     name={chartConfig[key].label as string}
                                     dot={false}
                                 />
