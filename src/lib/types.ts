@@ -1,5 +1,4 @@
 
-
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Heggie Contractor' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -50,6 +49,20 @@ export interface MarketItem {
 export interface InventoryItem {
     name: string;
     owned: number;
+}
+
+export interface Stock {
+  id: string;
+  name: string;
+  price: number;
+  history: number[];
+  changePercent: number;
+  lastUpdated: number;
+}
+
+export interface PortfolioItem {
+    id: string;
+    shares: number;
 }
 
 export interface BarPartner {
@@ -249,6 +262,8 @@ export interface PlayerStats {
   lastWhatsappShare?: number;
   cargoValueHistory: number[];
   stardate: string;
+  portfolio: PortfolioItem[];
+  stocks: Stock[];
 
   fleet: PlayerShip[];
 
@@ -326,7 +341,8 @@ export interface PlayerStats {
   tradeContracts: TradeRouteContract[];
   taxiMissions: TaxiMission[];
   escortMissions: EscortMission[];
-  militaryMissions: DiplomaticMission[];
+  militaryMissions: MilitaryMission[];
+  diplomaticMissions: DiplomaticMission[];
 }
 
 export interface PriceHistory {

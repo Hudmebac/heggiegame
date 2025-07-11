@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, FactionId, GameEvent, AssetSnapshot } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
@@ -12,6 +11,7 @@ import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
 import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
+import { INITIAL_STOCKS } from '@/lib/stocks';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, syncActiveShipStats } from '@/lib/utils';
 import pako from 'pako';
@@ -80,10 +80,13 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     taxiMissions: [],
     escortMissions: [],
     militaryMissions: [],
+    diplomaticMissions: [],
     usedPromoCodes: [],
     negotiationCooldowns: {},
     lastFacebookShare: 0,
     lastWhatsappShare: 0,
+    portfolio: [],
+    stocks: INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -150,8 +153,11 @@ export function useGameState() {
                         taxiMissions: [],
                         warehouses: [],
                         militaryMissions: [],
+                        diplomaticMissions: [],
                         usedPromoCodes: [],
                         negotiationCooldowns: {},
+                        portfolio: [],
+                        stocks: INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
                     }
 
                     let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
@@ -275,6 +281,8 @@ export function useGameState() {
                     events: savedProgress.playerStats.events || [],
                     assetHistory: savedProgress.playerStats.assetHistory || [],
                     cashInHandHistory: savedProgress.playerStats.cashInHandHistory || [savedProgress.playerStats.netWorth],
+                    portfolio: savedProgress.playerStats.portfolio || [],
+                    stocks: savedProgress.playerStats.stocks || INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
@@ -381,6 +389,19 @@ export function useGameState() {
                     newToast = { variant: "destructive", title: "Bankruptcy!", description: "Your overwhelming debt has forced you into bankruptcy. Game Over." };
                 }
                 
+                // Stock market updates
+                const newStocks: Stock[] = newPlayerStats.stocks.map(stock => {
+                    if (now > (stock.lastUpdated || 0) + (5000 + Math.random() * 3595000)) { // 5s to 1hr
+                        const microFluctuation = (Math.random() - 0.5) * 0.01; // -0.5% to +0.5%
+                        const newPrice = Math.max(1, Math.round(stock.price * (1 + microFluctuation)));
+                        const changePercent = ((newPrice - stock.history[0]) / stock.history[0]) * 100;
+                        const newHistory = [...stock.history, newPrice].slice(-50);
+                        return { ...stock, price: newPrice, history: newHistory, changePercent, lastUpdated: now };
+                    }
+                    return stock;
+                });
+                newPlayerStats.stocks = newStocks;
+                
                 if (newToast) {
                     setTimeout(() => toast(newToast!), 0);
                 }
@@ -391,7 +412,7 @@ export function useGameState() {
 
                 return { ...prev, playerStats: newPlayerStats };
             });
-        }, 30000);
+        }, 5000); // Check every 5 seconds
 
         return () => clearInterval(financialInterval);
     }, [setGameState, toast]);

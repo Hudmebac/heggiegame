@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard, BankAccount, SystemEconomy } from '@/lib/types';
+import type { GameState, PartnershipOffer, PlayerStats, Loan, CreditCard, BankAccount, SystemEconomy, Stock } from '@/lib/types';
 import { bankThemes } from '@/lib/bank-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
@@ -13,6 +13,7 @@ const TOTAL_BANK_SHARES = 10000;
 export function useBank(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
+    handleAddStock: (name: string, price: number) => void
 ) {
   const { toast } = useToast();
   const bankData = businessData.find(b => b.id === 'bank');
@@ -276,6 +277,16 @@ export function useBank(
   
   const handleAcceptBankPartnerOffer = useCallback((offer: PartnershipOffer) => { /* ... */ }, []);
   
+  const handleFloatShare = useCallback((name: string, price: number) => {
+    if (!name || price <= 0) {
+        toast({ variant: 'destructive', title: 'Invalid Share', description: 'Please provide a valid name and starting price.' });
+        return;
+    }
+    handleAddStock(name, price);
+    toast({ title: 'IPO Successful!', description: `${name} is now listed on the HEGGIE Stock Exchange.` });
+  }, [handleAddStock, toast]);
+
+
   // Timer for share price fluctuation and interest
   useEffect(() => {
     const interval = setInterval(() => {
@@ -362,5 +373,6 @@ export function useBank(
     handleUpgradeBank,
     handleUpgradeBankAutoClicker,
     handleAcceptBankPartnerOffer,
+    handleFloatShare,
   };
 }

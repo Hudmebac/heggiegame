@@ -6,7 +6,7 @@ import { useGame } from '@/app/components/game-provider';
 import BankClicker from './bank-clicker';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, Martini, Home, Factory, Building2, Ticket, TrendingUp, Percent, ChevronsUp, ChevronsDown } from 'lucide-react';
+import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, Martini, Home, Factory, Building2, Ticket, TrendingUp, Percent, ChevronsUp, ChevronsDown, FileSignature } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -117,10 +117,38 @@ const LoanDialog = ({ onConfirm, netWorth }: { onConfirm: (amount: number) => vo
     )
 }
 
+const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: number) => void }) => {
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState(100);
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Float New Share on the Market</DialogTitle>
+                <DialogDescription>As the owner of the Galactic Bank, you can issue new tradable shares for custom ventures.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div>
+                    <Label htmlFor="share-name">Share/Company Name</Label>
+                    <Input id="share-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Orion Mining Guild"/>
+                </div>
+                <div>
+                    <Label htmlFor="share-price">Starting Price (¢)</Label>
+                    <Input id="share-price" type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <DialogClose asChild><Button onClick={() => onConfirm(name, price)} disabled={!name || price <= 0}>Confirm IPO</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    );
+}
+
 
 export default function BankPageComponent() {
-    const { gameState, handleOpenAccount, handleDeposit, handleWithdraw, handlePurchaseShare, handleSellShare, handleAcquireBank, handleSetInterestRate, handleTakeLoan } = useGame();
-    const [dialog, setDialog] = useState<'deposit' | 'withdraw' | 'buy_shares' | 'sell_shares' | 'loan' | null>(null);
+    const { gameState, handleOpenAccount, handleDeposit, handleWithdraw, handlePurchaseShare, handleSellShare, handleAcquireBank, handleSetInterestRate, handleTakeLoan, handleFloatShare } = useGame();
+    const [dialog, setDialog] = useState<'deposit' | 'withdraw' | 'buy_shares' | 'sell_shares' | 'loan' | 'float_share' | null>(null);
     const [newInterestRate, setNewInterestRate] = useState(gameState?.playerStats.bankAccount?.interestRate || 0.1);
 
     if (!gameState) return null;
@@ -256,11 +284,15 @@ export default function BankPageComponent() {
                          <Card className="lg:col-span-3 border-primary">
                             <CardHeader>
                                 <CardTitle className="font-headline text-lg flex items-center gap-2"><Landmark className="text-primary"/> Full Ownership</CardTitle>
-                                <CardDescription>You own all outstanding shares of the Galactic Bank. You can now nationalize it as your own private enterprise for a final fee.</CardDescription>
+                                <CardDescription>You own all outstanding shares of the Galactic Bank. You can now nationalize it as your own private enterprise for a final fee, or use its infrastructure to float new public shares for your other ventures.</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Button variant="destructive" className="w-full" onClick={handleAcquireBank} disabled={!canAffordAcquisition}>
                                     Acquire Bank and Convert to Private Business ({acquisitionCost.toLocaleString()}¢)
+                                </Button>
+                                 <Button variant="secondary" className="w-full" onClick={() => setDialog('float_share')}>
+                                    <FileSignature className="mr-2"/>
+                                    Float New Share
                                 </Button>
                             </CardContent>
                         </Card>
@@ -305,6 +337,9 @@ export default function BankPageComponent() {
                  )}
                  {dialog === 'loan' && (
                     <LoanDialog onConfirm={handleTakeLoan} netWorth={playerStats.netWorth}/>
+                 )}
+                 {dialog === 'float_share' && (
+                    <FloatShareDialog onConfirm={handleFloatShare} />
                  )}
             </Dialog>
         </div>
