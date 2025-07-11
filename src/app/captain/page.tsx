@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText, Edit } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -30,6 +30,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AVATARS } from '@/lib/avatars';
 import ShareProgressDialog from '@/app/components/share-progress-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -60,6 +62,7 @@ function PlayerProfile() {
     const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
     const [isFBConsentOpen, setIsFBConsentOpen] = useState(false);
+    const { toast } = useToast();
 
     if (!gameState) return null;
 
@@ -79,8 +82,19 @@ function PlayerProfile() {
         handleSetAvatar(avatarUrl);
         setIsAvatarDialogOpen(false);
     };
+    
+    const shareText = `I'm playing HEGGIE - Space Game 🪐 I'm a ${playerStats.career}, and my net worth’s already a cosmic-sized ${playerStats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
 
-    const fbShareText = `I'm playing HEGGIE - Space Game 🪐 I'm a ${playerStats.career}, and my net worth’s already a cosmic-sized ${playerStats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
+    const handleCopyToClipboard = () => {
+        navigator.clipboard.writeText(shareText);
+        toast({ title: 'Copied to Clipboard!', description: 'You can now paste this message into your post.' });
+    };
+
+    const handleShareToWhatsapp = () => {
+        const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(shareText)}`;
+        window.open(whatsappUrl, '_blank');
+        handleShareToFacebook(); // Re-use the token reward logic
+    };
 
     return (
         <Card className="h-full">
@@ -153,30 +167,33 @@ function PlayerProfile() {
                         </AlertDialogContent>
                     </AlertDialog>
                 </div>
-                 <div className="grid grid-cols-2 gap-2">
+                 <div className="grid grid-cols-3 gap-2">
                     <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
-                        <Share2 className="mr-2" /> Sync &amp; Share
+                        <Share2 className="mr-2" /> Sync
                     </Button>
                      <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
                         <AlertDialogTrigger asChild>
                             <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700">
-                                Share for Tokens
+                                Share for 1M¢
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Share to Facebook</AlertDialogTitle>
-                                <AlertDialogDescription>This will open a new tab to share the following message. You will receive 1,000,000 tokens for sharing.</AlertDialogDescription>
+                                <AlertDialogDescription>Copy the message below and paste it into your Facebook post to receive 1,000,000 tokens!</AlertDialogDescription>
                             </AlertDialogHeader>
                             <div className="p-4 bg-muted rounded-md text-sm italic border">
-                                {fbShareText}
+                                {shareText}
                             </div>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Share</AlertDialogAction>
+                            <AlertDialogFooter className="w-full grid grid-cols-2 gap-2">
+                                <Button onClick={handleCopyToClipboard}><Copy className="mr-2" /> Copy Text</Button>
+                                <AlertDialogAction onClick={handleShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
+                    <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={handleShareToWhatsapp}>
+                        <WhatsAppIcon className="mr-2" /> Share for 1M¢
+                    </Button>
                 </div>
                  <div className="grid grid-cols-1">
                     <Button asChild variant="outline">
