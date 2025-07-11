@@ -10,23 +10,31 @@ import { format } from 'date-fns';
 
 interface NetWorthChartProps {
   events: GameEvent[];
+  startingNetWorth: number;
 }
 
-export default function NetWorthChart({ events }: NetWorthChartProps) {
-    // We assume a starting net worth for the mock data or fetch from GameState in a real scenario
-    const startingNetWorth = 50000;
-  
+export default function NetWorthChart({ events, startingNetWorth }: NetWorthChartProps) {
     const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
     
     let currentNetWorth = startingNetWorth;
     const chartData = sortedEvents.map(event => {
+        // We only want to accumulate the value for the chart data.
+        // The player's actual net worth is calculated elsewhere.
+        // We do this to show the trajectory based on logged events.
+        const previousNetWorth = currentNetWorth;
         currentNetWorth += event.value;
         return {
             date: format(new Date(event.timestamp), 'MMM d'),
-            netWorth: currentNetWorth,
+            netWorth: previousNetWorth + event.value, // The value at the time of the event
             label: `${event.description} (${event.value > 0 ? '+' : ''}${event.value.toLocaleString()}¢)`
         }
     });
+    
+    // Add an initial point for the chart to start from
+    const displayData = [
+        { date: 'Start', netWorth: startingNetWorth, label: 'Career Start' },
+        ...chartData
+    ];
 
     const chartConfig = {
         netWorth: {
@@ -45,9 +53,9 @@ export default function NetWorthChart({ events }: NetWorthChartProps) {
                 <CardDescription>An overview of your financial journey over time.</CardDescription>
             </CardHeader>
             <CardContent>
-                {chartData.length > 1 ? (
+                {displayData.length > 1 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                    <LineChart data={displayData} margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.5)" />
                     <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={{stroke: 'hsl(var(--muted-foreground))'}} />
                     <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${Number(value).toLocaleString(undefined, {notation: 'compact'})}`} />
@@ -78,4 +86,3 @@ export default function NetWorthChart({ events }: NetWorthChartProps) {
         </Card>
     );
 }
-

@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from '@/lib/utils';
 import { useGame } from '@/app/components/game-provider';
 import { EventIconMap } from '@/lib/events';
+import { CAREER_DATA } from '@/lib/careers';
 
 const groupEventsByDay = (events: GameEvent[]) => {
     return events.reduce((acc, event) => {
@@ -31,7 +32,13 @@ export default function HistoryEventsPage() {
     const [timeRange, setTimeRange] = useState('all');
     const [eventType, setEventType] = useState<GameEventType | 'all'>('all');
 
-    const ALL_EVENTS = gameState?.playerStats.events || [];
+    if (!gameState) {
+        return null;
+    }
+
+    const ALL_EVENTS = gameState.playerStats.events || [];
+    const careerData = CAREER_DATA.find(c => c.id === gameState.playerStats.career);
+    const startingNetWorth = careerData?.startingNetWorth || 50000;
 
     const filteredEvents = ALL_EVENTS.filter(event => {
         const eventDate = new Date(event.timestamp);
@@ -100,7 +107,7 @@ export default function HistoryEventsPage() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <NetWorthChart events={ALL_EVENTS} />
+                <NetWorthChart events={ALL_EVENTS} startingNetWorth={startingNetWorth} />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
 
