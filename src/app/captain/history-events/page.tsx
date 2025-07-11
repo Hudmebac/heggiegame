@@ -90,12 +90,6 @@ export default function HistoryEventsPage() {
                 currentNetWorth={gameState.playerStats.netWorth}
             />
 
-            <div className="grid grid-cols-1 gap-6">
-                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
-                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
-                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
-            </div>
-
             <Card className="bg-card/50">
                 <CardHeader>
                     <CardTitle className="font-headline text-lg">Event Log</CardTitle>
@@ -180,6 +174,12 @@ export default function HistoryEventsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <div className="grid grid-cols-1 gap-6">
+                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
+                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
+            </div>
         </div>
     );
 }
