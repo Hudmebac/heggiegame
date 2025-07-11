@@ -20,20 +20,20 @@ export interface BusinessData {
 
 /**
  * Calculates the compounding cost for a given level.
- * @param level - The current level of the item (1-indexed). The calculation will be for this level's cost.
+ * @param level - The current level of the item (0-indexed).
  * @param starterPrice - The base cost at level 1.
  * @param growth - The percentage increase per level (e.g., 0.15 for 15%).
  * @param modifier - An additional multiplier for difficulty, planet, etc.
- * @returns The cost to upgrade TO this `level`.
+ * @returns The cost to upgrade from `level` to `level + 1`.
  */
 export const calculateCost = (level: number, starterPrice: number, growth: number, modifier: number = 1): number => {
     let cost = starterPrice * modifier;
-    // Loop up to 'level - 1' because level 1 is the starter price
-    for (let i = 1; i < level; i++) {
+    for (let i = 0; i < level; i++) {
         cost *= (1 + growth);
     }
     return Math.round(cost);
 };
+
 
 export const businessData: BusinessData[] = [
     {

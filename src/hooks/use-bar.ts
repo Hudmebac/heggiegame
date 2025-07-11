@@ -6,7 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { barThemes } from '@/lib/bar-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export function useBar(
     gameState: GameState | null,
@@ -48,14 +48,6 @@ export function useBar(
         }, 0);
     }
   }, [setGameState, updateObjectiveProgress, toast]);
-  
-  const calculateCost = (level: number, config: { starterPrice: number, growth: number }, difficultyModifier: number, costModifier: number) => {
-      let cost = config.starterPrice;
-      for (let i = 1; i < level; i++) {
-        cost *= (1 + config.growth);
-      }
-      return Math.round(cost * difficultyModifier * costModifier);
-  };
 
   const handleUpgradeBar = useCallback(() => {
     setGameState(prev => {
@@ -75,7 +67,7 @@ export function useBar(
         return prev;
       }
       
-      const upgradeCost = calculateCost(playerStats.barLevel + 1, upgradeConfig, difficultyModifier, costModifier);
+      const upgradeCost = calculateCost(playerStats.barLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -106,7 +98,7 @@ export function useBar(
         return prev;
       }
 
-      const botCost = calculateCost(playerStats.autoClickerBots + 1, botConfig, difficultyModifier, costModifier);
+      const botCost = calculateCost(playerStats.autoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -169,8 +161,7 @@ export function useBar(
              return prev;
         }
         
-        const expansionBaseCost = calculateCost(playerStats.establishmentLevel + 1, establishmentConfig, 1, 1);
-        const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
+        const cost = calculateCost(playerStats.establishmentLevel, establishmentConfig.starterPrice, establishmentConfig.growth, difficultyModifier * costModifier);
 
         if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
