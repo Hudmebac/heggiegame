@@ -48,7 +48,8 @@ export function useStocks(
             
             const stock = { ...prev.playerStats.stocks[stockIndex] };
 
-            if (stock.totalShares > 0 && amount > (stock.sharesAvailable || 0)) {
+            // Robust check for share availability
+            if (stock.totalShares > 0 && amount > (stock.sharesAvailable ?? 0)) {
                  setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
@@ -69,7 +70,7 @@ export function useStocks(
             }
             
             if (stock.totalShares > 0) {
-              stock.sharesAvailable = (stock.sharesAvailable || 0) - amount;
+              stock.sharesAvailable = (stock.sharesAvailable ?? 0) - amount;
             }
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
@@ -114,7 +115,7 @@ export function useStocks(
             newPortfolio[holdingIndex] = { ...newPortfolio[holdingIndex], shares: newPortfolio[holdingIndex].shares - amount };
 
             if (stock.totalShares > 0) {
-              stock.sharesAvailable = (stock.sharesAvailable || 0) + amount;
+              stock.sharesAvailable = (stock.sharesAvailable ?? 0) + amount;
             }
             const newStocks = [...prev.playerStats.stocks];
             newStocks[stockIndex] = stock;
