@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import type { GameState, MarketItem } from '@/lib/types';
+import type { GameState, MarketItem, Stock } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';

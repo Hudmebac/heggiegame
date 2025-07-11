@@ -53,8 +53,10 @@ export function useStocks(
                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Insufficient funds.' }), 0);
                 return prev;
             }
-
-            if (stock.totalShares > 0 && amount > (stock.sharesAvailable ?? 0)) {
+            
+            // This is the critical, hardened check.
+            const isLimited = stock.totalShares > 0;
+            if (isLimited && amount > (stock.sharesAvailable ?? 0)) {
                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
@@ -68,7 +70,7 @@ export function useStocks(
                 newPortfolio.push({ id: stockId, shares: amount });
             }
             
-            if (stock.totalShares > 0) {
+            if (isLimited) {
               stock.sharesAvailable = (stock.sharesAvailable ?? 0) - amount;
             }
             const newStocks = [...prev.playerStats.stocks];

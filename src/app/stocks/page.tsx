@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useGame } from '@/app/components/game-provider';
 import { useState } from 'react';
@@ -55,12 +56,13 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
     const [tradeAmount, setTradeAmount] = useState(1);
     
     const maxAffordable = stock.price > 0 ? Math.floor(netWorth / stock.price) : Infinity;
-    const maxCanBuy = stock.totalShares > 0 ? Math.min(maxAffordable, stock.sharesAvailable ?? 0) : maxAffordable;
+    const isLimitedStock = stock.totalShares > 0;
+    const maxCanBuy = isLimitedStock ? Math.min(maxAffordable, stock.sharesAvailable ?? 0) : maxAffordable;
 
     const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
 
     const handleAmountChange = (newAmount: number) => {
-        const sanitizedAmount = Math.max(1, newAmount);
+        const sanitizedAmount = Math.max(1, newAmount || 1);
         setTradeAmount(Math.min(sanitizedAmount, maxCanBuy));
     }
     
@@ -89,11 +91,11 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="text-sm flex justify-between">
                         <span>Available:</span>
-                        <span className="font-mono">{stock.totalShares <= 0 ? 'Unlimited' : (stock.sharesAvailable ?? 0).toLocaleString()}</span>
+                        <span className="font-mono">{!isLimitedStock ? 'Unlimited' : (stock.sharesAvailable ?? 0).toLocaleString()}</span>
                     </div>
                      <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
-                        <Input type="number" value={tradeAmount} onChange={e => handleAmountChange(Number(e.target.value))} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
+                        <Input type="number" value={tradeAmount} onChange={e => handleAmountChange(Number(e.target.value))} max={maxCanBuy} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.min(maxCanBuy, prev + 1))}>+</Button>
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
@@ -174,7 +176,7 @@ export default function StocksPage() {
     };
     
     const selectedStock = selectedStockId ? gameState.playerStats.stocks.find(s => s.id === selectedStockId) : null;
-    const ownedShares = portfolio.find(s => s.id === selectedStock?.id)?.shares || 0;
+    const ownedShares = selectedStock ? portfolio.find(s => s.id === selectedStock.id)?.shares || 0 : 0;
 
     return (
         <div className="space-y-6">
