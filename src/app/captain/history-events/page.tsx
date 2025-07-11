@@ -112,7 +112,7 @@ export default function HistoryEventsPage() {
                 currentNetWorth={gameState.playerStats.netWorth}
             />
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="flex flex-col gap-6">
                 <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
