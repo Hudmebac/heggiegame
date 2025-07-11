@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback } from 'react';
@@ -18,13 +19,13 @@ export function useTrader(
             if (!prev) return null;
             const systemName = prev.currentSystem;
             if (prev.playerStats.warehouses.some(w => w.systemName === systemName)) {
-                toast({ variant: 'destructive', title: 'Action Failed', description: 'You already own a warehouse in this system.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Action Failed', description: 'You already own a warehouse in this system.' }), 0);
                 return prev;
             }
             
             const cost = 25000; // Initial build cost
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: 'destructive', title: 'Construction Failed', description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Construction Failed', description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
                 return prev;
             }
 
@@ -35,7 +36,7 @@ export function useTrader(
                 storage: [],
             };
             
-            toast({ title: 'Warehouse Built!', description: `You have established a new warehouse in the ${systemName} system.` });
+            setTimeout(() => toast({ title: 'Warehouse Built!', description: `You have established a new warehouse in the ${systemName} system.` }), 0);
             
             return {
                 ...prev,
@@ -58,7 +59,7 @@ export function useTrader(
             const warehouse = { ...warehouses[warehouseIndex] };
 
             if (warehouse.level >= warehouseUpgrades.length) {
-                toast({ variant: 'destructive', title: 'Max Level', description: 'This warehouse is already at maximum level.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Max Level', description: 'This warehouse is already at maximum level.' }), 0);
                 return prev;
             }
 
@@ -67,7 +68,7 @@ export function useTrader(
             const cost = upgradeData.cost - (warehouseUpgrades[warehouse.level - 1]?.cost || 0);
 
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: 'destructive', title: 'Upgrade Failed', description: `Not enough credits. You need ${cost.toLocaleString()}¢.` });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Upgrade Failed', description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
                 return prev;
             }
 
@@ -75,7 +76,7 @@ export function useTrader(
             warehouse.capacity = upgradeData.capacity;
             warehouses[warehouseIndex] = warehouse;
 
-            toast({ title: 'Warehouse Upgraded!', description: `Your warehouse in ${systemName} is now Level ${nextLevel}.` });
+            setTimeout(() => toast({ title: 'Warehouse Upgraded!', description: `Your warehouse in ${systemName} is now Level ${nextLevel}.` }), 0);
 
             return {
                 ...prev,
@@ -97,7 +98,7 @@ export function useTrader(
 
             const inventoryItemIndex = prev.inventory.findIndex(i => i.name === itemName);
             if (inventoryItemIndex === -1 || prev.inventory[inventoryItemIndex].owned < amount) {
-                toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Not enough items in ship cargo.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Not enough items in ship cargo.' }), 0);
                 return prev;
             }
 
@@ -111,7 +112,7 @@ export function useTrader(
             const transferLoad = staticItem.cargoSpace * amount;
 
             if (currentWarehouseLoad + transferLoad > warehouse.capacity) {
-                toast({ variant: 'destructive', title: 'Transfer Failed', description: `Not enough warehouse space. Available: ${(warehouse.capacity - currentWarehouseLoad).toFixed(2)}t.` });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transfer Failed', description: `Not enough warehouse space. Available: ${(warehouse.capacity - currentWarehouseLoad).toFixed(2)}t.` }), 0);
                 return prev;
             }
 
@@ -154,7 +155,7 @@ export function useTrader(
 
             const storageItemIndex = warehouse.storage.findIndex(i => i.name === itemName);
             if (storageItemIndex === -1 || warehouse.storage[storageItemIndex].owned < amount) {
-                 toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Not enough items in warehouse.' });
+                 setTimeout(() => toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Not enough items in warehouse.' }), 0);
                 return prev;
             }
             
@@ -165,7 +166,7 @@ export function useTrader(
             const transferLoad = staticItem.cargoSpace * amount;
 
             if (currentShipLoad + transferLoad > prev.playerStats.maxCargo) {
-                 toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Not enough ship cargo space.' });
+                 setTimeout(() => toast({ variant: 'destructive', title: 'Transfer Failed', description: 'Not enough ship cargo space.' }), 0);
                 return prev;
             }
             

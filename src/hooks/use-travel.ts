@@ -74,11 +74,13 @@ export function useTravel(
         );
 
         if (!routeExists) {
-            toast({
-                variant: "destructive",
-                title: "No Route Available",
-                description: `You must negotiate a trade route to ${systemName} first.`
-            });
+            setTimeout(() => {
+                toast({
+                    variant: "destructive",
+                    title: "No Route Available",
+                    description: `You must negotiate a trade route to ${systemName} first.`
+                });
+            }, 0);
             return;
         }
 
