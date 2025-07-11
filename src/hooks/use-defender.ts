@@ -2,11 +2,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
-import type { GameState, Pirate, EscortMission } from '@/lib/types';
+import type { GameState, Pirate, EscortMission, PlayerShip } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
 import { STATIC_ESCORT_MISSIONS } from '@/lib/escort-missions';
 import { ROUTES } from '@/lib/systems';
+import { hullUpgrades } from '@/lib/upgrades';
 
 
 const getConnectedSystems = (systemName: string): string[] => {

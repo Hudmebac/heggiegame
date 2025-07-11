@@ -38,13 +38,13 @@ export function useStocks(
 
             const stock = prev.playerStats.stocks.find(s => s.id === stockId);
             if (!stock) {
-                toast({ variant: 'destructive', title: 'Error', description: 'Stock not found.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Error', description: 'Stock not found.' }), 0);
                 return prev;
             }
 
             const cost = stock.price * amount;
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Insufficient funds.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Insufficient funds.' }), 0);
                 return prev;
             }
 
@@ -57,7 +57,7 @@ export function useStocks(
                 newPortfolio.push({ id: stockId, shares: amount });
             }
             
-            toast({ title: 'Purchase Successful', description: `Bought ${amount} share(s) of ${stock.name}.` });
+            setTimeout(() => toast({ title: 'Purchase Successful', description: `Bought ${amount} share(s) of ${stock.name}.` }), 0);
             
             return {
                 ...prev,
@@ -78,7 +78,7 @@ export function useStocks(
             const holding = prev.playerStats.portfolio.find(h => h.id === stockId);
 
             if (!stock || !holding || holding.shares < amount) {
-                toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares to sell.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares to sell.' }), 0);
                 return prev;
             }
 
@@ -87,7 +87,7 @@ export function useStocks(
             const holdingIndex = newPortfolio.findIndex(h => h.id === stockId);
             newPortfolio[holdingIndex].shares -= amount;
 
-            toast({ title: 'Sale Successful', description: `Sold ${amount} share(s) of ${stock.name}.` });
+            setTimeout(() => toast({ title: 'Sale Successful', description: `Sold ${amount} share(s) of ${stock.name}.` }), 0);
 
             return {
                 ...prev,
