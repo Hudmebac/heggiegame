@@ -76,10 +76,14 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </ResponsiveContainer>
                 </div>
                 <div className="space-y-4 p-4 rounded-lg bg-background/50 border">
-                    <p className="text-sm flex justify-between">
+                    <div className="text-sm flex justify-between">
                         <span>You own:</span>
                         <span className="font-mono">{ownedShares.toLocaleString()} shares</span>
-                    </p>
+                    </div>
+                     <div className="text-sm flex justify-between">
+                        <span>Available:</span>
+                        <span className="font-mono">{stock.totalShares <= 0 ? 'Unlimited' : stock.sharesAvailable.toLocaleString()}</span>
+                    </div>
                      <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
                         <Input type="number" value={tradeAmount} onChange={e => setTradeAmount(Number(e.target.value) || 1)} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
@@ -87,7 +91,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
                         <div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford}>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford || tradeAmount > stock.sharesAvailable}>
                                 <ArrowUp className="mr-2"/> Buy
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
