@@ -392,8 +392,9 @@ export function useGameState() {
                 
                 // Stock market updates
                 const newStocks: Stock[] = newPlayerStats.stocks.map(stock => {
-                    if (now > (stock.lastUpdated || 0) + (5000 + Math.random() * 3595000)) { // 5s to 1hr
-                        const microFluctuation = (Math.random() - 0.5) * 0.01; // -0.5% to +0.5%
+                    // Update every 5-15 seconds for more visible changes
+                    if (now > (stock.lastUpdated || 0) + (5000 + Math.random() * 10000)) { 
+                        const microFluctuation = (Math.random() - 0.5) * 0.02; // -1% to +1%
                         const newPrice = Math.max(1, Math.round(stock.price * (1 + microFluctuation)));
                         const changePercent = ((newPrice - stock.history[0]) / stock.history[0]) * 100;
                         const newHistory = [...stock.history, newPrice].slice(-50);
