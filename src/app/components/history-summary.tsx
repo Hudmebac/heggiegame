@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import type { GameEvent } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, Package, Rocket, Star, TrendingDown, TrendingUp } from 'lucide-react';
+import { formatCompactNumber } from '@/lib/utils';
 
 interface HistorySummaryProps {
   events: GameEvent[];
@@ -57,13 +58,13 @@ export default function HistorySummary({ events, initialNetWorth, currentNetWort
                 Career Highlights
             </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatCard icon={Briefcase} label="Missions" value={stats.missionsCompleted} />
             <StatCard icon={Package} label="Trades" value={stats.tradesMade} />
             <StatCard icon={Rocket} label="Ships Purchased" value={stats.shipsPurchased} />
-            <StatCard icon={TrendingUp} label="Highest Cash" value={`¢${stats.highestNetWorth.toLocaleString()}`} />
-            <StatCard icon={TrendingUp} label="Total Profit" value={`¢${stats.totalProfit.toLocaleString()}`} />
-            <StatCard icon={TrendingDown} label="Total Spending" value={`¢${stats.totalSpending.toLocaleString()}`} />
+            <StatCard icon={TrendingUp} label="Highest Cash" value={`¢${formatCompactNumber(stats.highestNetWorth)}`} />
+            <StatCard icon={TrendingUp} label="Total Profit" value={`¢${formatCompactNumber(stats.totalProfit)}`} />
+            <StatCard icon={TrendingDown} label="Total Spending" value={`${formatCompactNumber(stats.totalSpending)}¢`} />
         </CardContent>
     </Card>
   );
