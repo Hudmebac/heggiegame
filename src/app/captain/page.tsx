@@ -54,7 +54,7 @@ function getReputationTier(score: number) {
 }
 
 function PlayerProfile() {
-    const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, setPlayerBio, handleSetAvatar, handleResetGame, handleShareToFacebook } = useGame();
+    const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, setPlayerBio, handleSetAvatar, handleResetGame, handleShareToFacebook, handleShareToWhatsapp } = useGame();
     const [isEditingName, setIsEditingName] = useState(false);
     const [name, setName] = useState(gameState?.playerStats.name || '');
     const [isEditingBio, setIsEditingBio] = useState(false);
@@ -90,10 +90,10 @@ function PlayerProfile() {
         toast({ title: 'Copied to Clipboard!', description: 'You can now paste this message into your post.' });
     };
 
-    const handleShareToWhatsapp = () => {
+    const onShareToWhatsapp = () => {
         const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(shareText)}`;
         window.open(whatsappUrl, '_blank');
-        handleShareToFacebook(); // Re-use the token reward logic
+        handleShareToWhatsapp();
     };
 
     return (
@@ -191,7 +191,7 @@ function PlayerProfile() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={handleShareToWhatsapp}>
+                    <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={onShareToWhatsapp}>
                         <WhatsAppIcon className="mr-2" /> Share for 1M¢
                     </Button>
                 </div>

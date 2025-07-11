@@ -245,6 +245,7 @@ export interface PlayerStats {
   usedPromoCodes: string[];
   negotiationCooldowns: Record<string, number>;
   lastFacebookShare?: number;
+  lastWhatsappShare?: number;
   cargoValueHistory: number[];
   cashInHandHistory: number[];
   stardate: string;
@@ -325,8 +326,7 @@ export interface PlayerStats {
   tradeContracts: TradeRouteContract[];
   taxiMissions: TaxiMission[];
   escortMissions: EscortMission[];
-  militaryMissions: MilitaryMission[];
-  diplomaticMissions: DiplomaticMission[];
+  militaryMissions: DiplomaticMission[];
 }
 
 export interface PriceHistory {

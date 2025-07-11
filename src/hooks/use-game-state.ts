@@ -82,6 +82,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     usedPromoCodes: [],
     negotiationCooldowns: {},
     lastFacebookShare: 0,
+    lastWhatsappShare: 0,
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -266,6 +267,7 @@ export function useGameState() {
                     usedPromoCodes: savedProgress.playerStats.usedPromoCodes || [], 
                     negotiationCooldowns: savedProgress.playerStats.negotiationCooldowns || {},
                     lastFacebookShare: savedProgress.playerStats.lastFacebookShare || 0,
+                    lastWhatsappShare: savedProgress.playerStats.lastWhatsappShare || 0,
                     faction: savedProgress.playerStats.faction || 'Independent',
                     factionReputation: savedProgress.playerStats.factionReputation || initialGameState.playerStats.factionReputation,
                     pirateEncounter: null, // Don't persist pirate encounters

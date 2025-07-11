@@ -742,6 +742,43 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleShareToWhatsapp = useCallback(() => {
+        setGameState(prev => {
+            if (!prev) return null;
+
+            const now = Date.now();
+            const lastShare = prev.playerStats.lastWhatsappShare || 0;
+            const cooldown = 5 * 60 * 1000; // 5 minutes
+
+            if (now - lastShare < cooldown) {
+                const remaining = Math.ceil((cooldown - (now - lastShare)) / 1000);
+                setTimeout(() => toast({
+                    variant: "destructive",
+                    title: "Share Cooldown",
+                    description: `You can share on WhatsApp again in ${Math.floor(remaining / 60)}m ${remaining % 60}s.`
+                }), 0);
+                return prev;
+            }
+            
+            const reward = 1000000;
+            const newCash = prev.playerStats.netWorth + reward;
+            const newPlayerStats: PlayerStats = {
+                ...prev.playerStats,
+                netWorth: newCash,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
+                lastWhatsappShare: now,
+            };
+
+            setTimeout(() => toast({
+                title: "Thanks for sharing!",
+                description: `You've received ${reward.toLocaleString()} tokens!`
+            }), 0);
+
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            return { ...prev, playerStats: playerStatsWithSnapshot };
+        });
+    }, [setGameState, toast]);
+
     const handleMachinistMinigameScore = useCallback((points: number) => {
         setGameState(prev => {
           if (!prev) return null;
@@ -885,6 +922,7 @@ export function usePlayerActions(
         handleChangeCareer,
         handleJoinFaction,
         handleShareToFacebook,
+        handleShareToWhatsapp,
         handleMachinistMinigameScore,
         handleVaultBreachMinigameScore,
         handleBlueprintScrambleScore,
