@@ -248,6 +248,9 @@ export default function CaptainPage() {
   const activeShip = playerStats.fleet[0];
   const shipValue = activeShip ? calculateShipValue(activeShip) : 0;
   const cargoValue = calculateCargoValue(inventory, marketItems);
+  const bankAccountValue = playerStats.bankAccount?.balance || 0;
+  
+  const totalNetWorth = playerStats.netWorth + shipValue + cargoValue + bankAccountValue;
 
   const insurancePolicies = {
     health: { 
@@ -296,9 +299,13 @@ export default function CaptainPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Net Worth</span>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Cash on Hand</span>
                                 <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
+                            </div>
+                            <div className="flex justify-between items-center font-semibold pt-2 border-t mt-2">
+                                <span className="text-foreground">Total Net Worth</span>
+                                <span className="font-mono text-primary">{totalNetWorth.toLocaleString()} ¢</span>
                             </div>
                             <Link href="/bank" passHref>
                                 <Button className="w-full mt-2" variant="outline">
