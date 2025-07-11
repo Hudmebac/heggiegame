@@ -127,6 +127,7 @@ export function useMilitary(
         const now = Date.now();
         const updatedMissions = [...(prev.playerStats.militaryMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
+        let newEvents = [...prev.playerStats.events];
         const index = updatedMissions.findIndex(m => m.id === activeMission.id);
 
         const elapsed = (now - (activeMission.startTime || now)) / 1000;
@@ -139,8 +140,21 @@ export function useMilitary(
         
         if (progress >= 100) {
             updatedMissions[index].status = 'Completed';
+            
+            const repChange = 5;
             newPlayerStats.netWorth += activeMission.payout;
-            newPlayerStats.reputation += 5; // Fighters get more rep
+            newPlayerStats.reputation += repChange;
+
+            newEvents.push({
+                id: `evt_${Date.now()}_${activeMission.id}`,
+                timestamp: Date.now(),
+                type: 'Mission',
+                description: `Completed Military mission: ${activeMission.title}.`,
+                value: activeMission.payout,
+                reputationChange: repChange,
+                isMilestone: true,
+            });
+
             setTimeout(() => toast({ title: "Mission Success!", description: `Target neutralized. You earned ${activeMission.payout.toLocaleString()}¢ and gained reputation.` }), 0);
         } else {
             const riskValue = { 'Low': 0.003, 'Medium': 0.008, 'High': 0.015, 'Critical': 0.03 }[activeMission.riskLevel];
@@ -156,7 +170,7 @@ export function useMilitary(
         }
 
         if (stateChanged) {
-          return { ...prev, playerStats: { ...newPlayerStats, militaryMissions: updatedMissions }};
+          return { ...prev, playerStats: { ...newPlayerStats, militaryMissions: updatedMissions, events: newEvents }};
         }
 
         return prev;

@@ -204,6 +204,15 @@ export function useEncounters(
                         missions[missionIndex] = { ...missions[missionIndex], status: 'Failed', assignedShipInstanceId: null };
                         (newPlayerStats as any)[missionsKey] = missions;
                         newPlayerStats.reputation = Math.max(0, newPlayerStats.reputation - 5);
+                        newPlayerStats.events.push({
+                            id: `evt_${Date.now()}_mission_fail`,
+                            timestamp: Date.now(),
+                            type: 'Mission',
+                            description: `Failed mission to ${missions[missionIndex].toSystem}.`,
+                            value: 0,
+                            reputationChange: -5,
+                            isMilestone: false,
+                        });
                     }
                 }
 

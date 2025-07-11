@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
@@ -93,6 +94,7 @@ export function useOfficial(
         const now = Date.now();
         const updatedMissions = [...(prev.playerStats.diplomaticMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
+        let newEvents = [...prev.playerStats.events];
         const index = updatedMissions.findIndex(m => m.id === activeMission.id);
 
         const elapsed = (now - (activeMission.startTime || now)) / 1000;
@@ -105,14 +107,27 @@ export function useOfficial(
         
         if (progress >= 100) {
             updatedMissions[index].status = 'Completed';
+            
+            const repChange = 3;
             newPlayerStats.netWorth += activeMission.payoutCredits;
             newPlayerStats.influence = (newPlayerStats.influence || 0) + activeMission.payoutInfluence;
-            newPlayerStats.reputation += 3;
+            newPlayerStats.reputation += repChange;
+
+            newEvents.push({
+                id: `evt_${Date.now()}_${activeMission.id}`,
+                timestamp: Date.now(),
+                type: 'Mission',
+                description: `Resolved diplomatic mission: ${activeMission.title}.`,
+                value: activeMission.payoutCredits,
+                reputationChange: repChange,
+                isMilestone: true,
+            });
+
             setTimeout(() => toast({ title: "Mission Success!", description: `"${activeMission.title}" has been successfully resolved. You gained ${activeMission.payoutInfluence} influence.` }), 0);
         }
 
         if (stateChanged) {
-          return { ...prev, playerStats: { ...newPlayerStats, diplomaticMissions: updatedMissions }};
+          return { ...prev, playerStats: { ...newPlayerStats, diplomaticMissions: updatedMissions, events: newEvents }};
         }
 
         return prev;

@@ -149,6 +149,7 @@ export function useDefender(
         const now = Date.now();
         const updatedMissions = [...(prev.playerStats.escortMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
+        let newEvents = [...prev.playerStats.events];
 
         activeMissions.forEach(mission => {
           const index = updatedMissions.findIndex(m => m.id === mission.id);
@@ -165,8 +166,21 @@ export function useDefender(
           if (progress >= 100) {
             updatedMissions[index].status = 'Completed';
             updatedMissions[index].assignedShipInstanceId = null;
+            
+            const repChange = 2;
             newPlayerStats.netWorth += mission.payout;
-            newPlayerStats.reputation += 2; // Defenders get more rep
+            newPlayerStats.reputation += repChange;
+
+            newEvents.push({
+                id: `evt_${Date.now()}_${mission.id}`,
+                timestamp: Date.now(),
+                type: 'Mission',
+                description: `Completed Escort mission to ${mission.toSystem}.`,
+                value: mission.payout,
+                reputationChange: repChange,
+                isMilestone: false,
+            });
+
             setTimeout(() => toast({ title: "Escort Complete!", description: `Safely escorted ${mission.clientName} to ${mission.toSystem}. You earned ${mission.payout.toLocaleString()}¢.` }), 0);
           } else {
             // Pirate risk check - higher for defenders
@@ -184,7 +198,7 @@ export function useDefender(
         });
 
         if (stateChanged) {
-          return { ...prev, playerStats: { ...newPlayerStats, escortMissions: updatedMissions }};
+          return { ...prev, playerStats: { ...newPlayerStats, escortMissions: updatedMissions, events: newEvents }};
         }
 
         return prev;

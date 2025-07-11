@@ -142,6 +142,7 @@ export function useHauler(
         const now = Date.now();
         const updatedContracts = [...(prev.playerStats.tradeContracts || [])];
         let newPlayerStats = { ...prev.playerStats };
+        let newEvents = [...prev.playerStats.events];
 
         activeContracts.forEach(contract => {
           const index = updatedContracts.findIndex(c => c.id === contract.id);
@@ -161,14 +162,28 @@ export function useHauler(
 
             let payout = contract.payout;
             let toastDescription = `Delivered ${contract.quantity} units of ${contract.cargo} to ${contract.toSystem}. You earned ${payout.toLocaleString()}¢.`;
+            let repChange = 1;
             
-            if (elapsed > contract.duration) {
-                const penalty = Math.round(payout * 0.2); // 20% penalty for being late
+            if (elapsed > contract.duration * 1.2) { // 20% over time
+                const penalty = Math.round(payout * 0.2);
                 payout -= penalty;
                 toastDescription = `Delivered ${contract.quantity} units of ${contract.cargo} to ${contract.toSystem}. You earned ${payout.toLocaleString()}¢ after a ${penalty.toLocaleString()}¢ penalty for a delay.`;
+                repChange = 0;
             }
 
             newPlayerStats.netWorth += payout;
+            newPlayerStats.reputation += repChange;
+
+            newEvents.push({
+                id: `evt_${Date.now()}_${contract.id}`,
+                timestamp: Date.now(),
+                type: 'Mission',
+                description: `Completed Hauler contract to ${contract.toSystem}.`,
+                value: payout,
+                reputationChange: repChange,
+                isMilestone: false,
+            });
+
             setTimeout(() => toast({ title: "Contract Complete!", description: toastDescription }), 0);
           } else {
             const riskValue = { 'Low': 0.005, 'Medium': 0.01, 'High': 0.02, 'Critical': 0.05 }[contract.riskLevel];
@@ -179,7 +194,6 @@ export function useHauler(
                     missionType: 'trade',
                 };
                 
-                // Add delay to mission
                 const delay = 60; // 60 second delay
                 updatedContracts[index].duration += delay;
                 stateChanged = true;
@@ -190,7 +204,7 @@ export function useHauler(
         });
 
         if (stateChanged) {
-          return { ...prev, playerStats: { ...newPlayerStats, tradeContracts: updatedContracts }};
+          return { ...prev, playerStats: { ...newPlayerStats, tradeContracts: updatedContracts, events: newEvents }};
         }
 
         return prev;

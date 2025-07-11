@@ -553,12 +553,26 @@ export function usePlayerActions(
             for (const [alliedFaction, repChange] of Object.entries(newFactionData.alliances)) {
                 newFactionReputation[alliedFaction as FactionId] = (newFactionReputation[alliedFaction as FactionId] || 0) + repChange;
             }
-    
+            
+            const repChange = 10;
             const newPlayerStats: PlayerStats = {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth - cost,
                 faction: factionId,
                 factionReputation: newFactionReputation,
+                reputation: prev.playerStats.reputation + repChange,
+                events: [
+                    ...prev.playerStats.events,
+                    {
+                        id: `evt_${Date.now()}_faction_join`,
+                        timestamp: Date.now(),
+                        type: 'Faction',
+                        description: `Pledged allegiance to ${newFactionData.name}.`,
+                        value: -cost,
+                        reputationChange: repChange,
+                        isMilestone: true,
+                    },
+                ],
             };
     
             setTimeout(() => toast({ title: "Allegiance Pledged!", description: `You are now aligned with ${newFactionData.name}.` }), 0);

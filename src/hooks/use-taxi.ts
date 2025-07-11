@@ -107,6 +107,7 @@ export function useTaxi(
         const now = Date.now();
         const updatedMissions = [...(prev.playerStats.taxiMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
+        let newEvents = [...prev.playerStats.events];
 
         activeMissions.forEach(mission => {
           const index = updatedMissions.findIndex(m => m.id === mission.id);
@@ -120,14 +121,26 @@ export function useTaxi(
           if (progress >= 100) {
             updatedMissions[index].status = 'Completed';
             const totalPayout = mission.fare + mission.bonus;
+            const repChange = 1;
             newPlayerStats.netWorth += totalPayout;
-            newPlayerStats.reputation += 1; // Base reputation gain
+            newPlayerStats.reputation += repChange;
+
+            newEvents.push({
+                id: `evt_${Date.now()}_${mission.id}`,
+                timestamp: Date.now(),
+                type: 'Mission',
+                description: `Completed Taxi fare for ${mission.passengerName}.`,
+                value: totalPayout,
+                reputationChange: repChange,
+                isMilestone: false,
+            });
+
             setTimeout(() => toast({ title: "Fare Complete!", description: `Dropped off ${mission.passengerName} in ${mission.toSystem}. You earned ${totalPayout.toLocaleString()}¢.` }), 0);
           }
         });
 
         if (stateChanged) {
-          return { ...prev, playerStats: { ...newPlayerStats, taxiMissions: updatedMissions }};
+          return { ...prev, playerStats: { ...newPlayerStats, taxiMissions: updatedMissions, events: newEvents }};
         }
 
         return prev;
