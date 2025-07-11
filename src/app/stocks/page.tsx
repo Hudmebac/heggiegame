@@ -39,7 +39,7 @@ const PortfolioCard = ({ portfolio, stocks, onSelectStock, selectedStockId }: { 
                             >
                                 <div>
                                     <p className="font-semibold">{stock.name}</p>
-                                    <p className="text-xs text-muted-foreground">{holding.shares} shares</p>
+                                    <p className="text-xs text-muted-foreground">{holding.shares.toLocaleString()} shares</p>
                                 </div>
                                 <p className="font-mono text-amber-300">{(stock.price * holding.shares).toLocaleString()}¢</p>
                             </div>
@@ -54,6 +54,8 @@ const PortfolioCard = ({ portfolio, stocks, onSelectStock, selectedStockId }: { 
 const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: Stock, ownedShares: number, netWorth: number, onBuy: (id: string, amount: number) => void, onSell: (id: string, amount: number) => void }) => {
     const [tradeAmount, setTradeAmount] = useState(1);
     const canAfford = netWorth >= stock.price * tradeAmount;
+
+    const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
     
     return (
         <Card className="sticky top-6">
@@ -98,6 +100,31 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                         </div>
                     </div>
                     {!canAfford && tradeAmount > 0 && <p className="text-destructive text-xs text-center">Insufficient funds.</p>}
+
+                    <div className="space-y-2 pt-4 border-t">
+                        <p className="text-xs text-center text-muted-foreground">Quick Buy</p>
+                        <div className="grid grid-cols-4 gap-1">
+                             {quickTradeAmounts.map(amount => (
+                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onBuy(stock.id, amount)} disabled={netWorth < stock.price * amount || stock.sharesAvailable < amount}>
+                                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <p className="text-xs text-center text-muted-foreground">Quick Sell</p>
+                         <div className="grid grid-cols-4 gap-1">
+                            {quickTradeAmounts.map(amount => (
+                                <Button key={`sell-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onSell(stock.id, amount)} disabled={ownedShares < amount}>
+                                    {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
+                                </Button>
+                            ))}
+                            <Button variant="destructive" size="sm" className="h-auto px-1 text-xs" onClick={() => onSell(stock.id, ownedShares)} disabled={ownedShares === 0}>
+                                All
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </CardContent>
         </Card>
