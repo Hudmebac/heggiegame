@@ -6,7 +6,7 @@ export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'R
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
 export type FactionId = 'Independent' | 'Federation of Sol' | 'Corporate Hegemony' | 'Veritas Concord' | 'Frontier Alliance' | 'Independent Miners Guild';
 
-export type GameEventType = 'Trade' | 'Combat' | 'Upgrade' | 'Mission' | 'System' | 'Career' | 'Faction';
+export type GameEventType = 'Trade' | 'Combat' | 'Upgrade' | 'Mission' | 'System' | 'Career' | 'Faction' | 'Purchase';
 
 export interface GameEvent {
   id: string;
@@ -142,7 +142,7 @@ export interface TradeRouteContract {
   startTime?: number; // To calculate progress
   duration: number; // in seconds
   assignedShipInstanceId?: number | null;
-  assignedShipName?: string;
+  assignedShipName?: string
 }
 
 export interface TaxiMission {

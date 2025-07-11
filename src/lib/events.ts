@@ -1,7 +1,7 @@
 
 import type { GameEvent, GameEventType } from './types';
 import type { LucideIcon } from 'lucide-react';
-import { Package, Shield, Rocket, Briefcase, Route, Star, Handshake } from "lucide-react";
+import { Package, Shield, Rocket, Briefcase, Route, Star, Handshake, ShoppingCart } from "lucide-react";
 
 export const EventIconMap: Record<GameEventType, LucideIcon> = {
     Trade: Package,
@@ -11,6 +11,7 @@ export const EventIconMap: Record<GameEventType, LucideIcon> = {
     System: Route,
     Career: Star,
     Faction: Handshake,
+    Purchase: ShoppingCart,
 };
 
 export const MOCK_EVENTS: GameEvent[] = [

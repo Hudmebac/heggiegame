@@ -9,6 +9,7 @@ import { format, formatRelative, subDays } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
 import NetWorthChart from "@/app/components/net-worth-chart";
 import ReputationChart from "@/app/components/reputation-chart";
+import HistorySummary from '@/app/components/history-summary';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
@@ -67,7 +68,7 @@ export default function HistoryEventsPage() {
         }
     }
 
-    const eventTypes: Array<'all' | GameEventType> = ['all', 'Trade', 'Combat', 'Upgrade', 'Mission', 'System', 'Career', 'Faction'];
+    const eventTypes: Array<'all' | GameEventType> = ['all', 'Trade', 'Combat', 'Upgrade', 'Mission', 'System', 'Career', 'Faction', 'Purchase'];
 
     return (
         <div className="space-y-6">
@@ -105,6 +106,8 @@ export default function HistoryEventsPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <HistorySummary events={ALL_EVENTS} initialNetWorth={startingNetWorth} />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <NetWorthChart events={ALL_EVENTS} startingNetWorth={startingNetWorth} />

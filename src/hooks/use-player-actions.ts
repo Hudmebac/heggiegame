@@ -211,7 +211,20 @@ export function usePlayerActions(
                 health: hullUpgrades[0].health,
                 status: 'operational',
             };
-            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - ship.cost, fleet: [...prev.playerStats.fleet, newShip] };
+            const newPlayerStats = { 
+                ...prev.playerStats, 
+                netWorth: prev.playerStats.netWorth - ship.cost, 
+                fleet: [...prev.playerStats.fleet, newShip],
+                events: [...prev.playerStats.events, {
+                    id: `evt_purchase_${Date.now()}`,
+                    timestamp: Date.now(),
+                    type: 'Purchase',
+                    description: `Purchased a new ship: ${ship.name}.`,
+                    value: -ship.cost,
+                    reputationChange: 1,
+                    isMilestone: true,
+                }],
+            };
             setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);
             return { ...prev, playerStats: newPlayerStats };
         });
@@ -684,9 +697,11 @@ export function usePlayerActions(
     const handleMixAndMatchMinigameScore = useCallback((points: number) => {
         setGameState(prev => {
             if (!prev) return null;
+            
             if (points > 0) {
                 toast({ title: "Shift Complete!", description: `You earned ${points.toLocaleString()}¢ in tips for your excellent service.`});
             }
+
             return {
                 ...prev,
                 playerStats: {
