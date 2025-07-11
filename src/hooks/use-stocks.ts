@@ -47,16 +47,15 @@ export function useStocks(
             }
             
             const stock = { ...prev.playerStats.stocks[stockIndex] };
+            const cost = stock.price * amount;
 
-            // Robust check for share availability
-            if (stock.totalShares > 0 && amount > (stock.sharesAvailable ?? 0)) {
-                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
+            if (prev.playerStats.netWorth < cost) {
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Insufficient funds.' }), 0);
                 return prev;
             }
 
-            const cost = stock.price * amount;
-            if (prev.playerStats.netWorth < cost) {
-                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Insufficient funds.' }), 0);
+            if (stock.totalShares > 0 && amount > (stock.sharesAvailable ?? 0)) {
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
 

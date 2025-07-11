@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { GameState, MarketItem } from '@/lib/types';
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +17,7 @@ export function useMarket(
     const [chartItem, setChartItem] = useState<string>(STATIC_ITEMS[0].name);
     const [tradeDetails, setTradeDetails] = useState<{ item: MarketItem, type: 'buy' | 'sell' } | null>(null);
     const [selectedStockId, setSelectedStockId] = useState<string | null>(null);
-
+    
     const handleTrade = useCallback((itemName: string, type: 'buy' | 'sell', amount: number) => {
         setGameState(prev => {
             if (!prev) return null;

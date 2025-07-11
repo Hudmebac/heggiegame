@@ -53,9 +53,16 @@ const PortfolioCard = ({ portfolio, stocks, onSelectStock, selectedStockId }: { 
 
 const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: Stock, ownedShares: number, netWorth: number, onBuy: (id: string, amount: number) => void, onSell: (id: string, amount: number) => void }) => {
     const [tradeAmount, setTradeAmount] = useState(1);
-    const canAfford = netWorth >= stock.price * tradeAmount;
+    
+    const maxAffordable = stock.price > 0 ? Math.floor(netWorth / stock.price) : Infinity;
+    const maxCanBuy = stock.totalShares > 0 ? Math.min(maxAffordable, stock.sharesAvailable ?? 0) : maxAffordable;
 
     const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
+
+    const handleAmountChange = (newAmount: number) => {
+        const sanitizedAmount = Math.max(1, newAmount);
+        setTradeAmount(Math.min(sanitizedAmount, maxCanBuy));
+    }
     
     return (
         <Card className="sticky top-6">
@@ -86,12 +93,12 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
-                        <Input type="number" value={tradeAmount} onChange={e => setTradeAmount(Number(e.target.value) || 1)} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => prev + 1)}>+</Button>
+                        <Input type="number" value={tradeAmount} onChange={e => handleAmountChange(Number(e.target.value))} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.min(maxCanBuy, prev + 1))}>+</Button>
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
                         <div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford || (stock.totalShares > 0 && tradeAmount > (stock.sharesAvailable ?? 0))}>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={tradeAmount <= 0 || tradeAmount > maxCanBuy}>
                                 <ArrowUp className="mr-2"/> Buy
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
@@ -103,13 +110,13 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                              <p className="text-xs text-muted-foreground mt-1">Value: {(stock.price * tradeAmount).toLocaleString()}¢</p>
                         </div>
                     </div>
-                    {!canAfford && tradeAmount > 0 && <p className="text-destructive text-xs text-center">Insufficient funds.</p>}
+                    {tradeAmount > maxCanBuy && <p className="text-destructive text-xs text-center">Not enough shares available or insufficient funds.</p>}
 
                     <div className="space-y-2 pt-4 border-t">
                         <p className="text-xs text-center text-muted-foreground">Quick Buy</p>
                         <div className="grid grid-cols-4 gap-1">
                              {quickTradeAmounts.map(amount => (
-                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onBuy(stock.id, amount)} disabled={netWorth < stock.price * amount || (stock.totalShares > 0 && amount > (stock.sharesAvailable ?? 0))}>
+                                <Button key={`buy-${amount}`} variant="outline" size="sm" className="h-auto px-1 text-xs" onClick={() => onBuy(stock.id, amount)} disabled={amount > maxCanBuy}>
                                     {Intl.NumberFormat('en-US', { notation: 'compact' }).format(amount)}
                                 </Button>
                             ))}
@@ -166,7 +173,7 @@ export default function StocksPage() {
         }
     };
     
-    const selectedStock = gameState.playerStats.stocks.find(s => s.id === selectedStockId) ?? null;
+    const selectedStock = selectedStockId ? gameState.playerStats.stocks.find(s => s.id === selectedStockId) : null;
     const ownedShares = portfolio.find(s => s.id === selectedStock?.id)?.shares || 0;
 
     return (
@@ -245,4 +252,3 @@ export default function StocksPage() {
         </div>
     );
 }
-
