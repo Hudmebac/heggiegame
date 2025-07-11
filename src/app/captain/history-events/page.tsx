@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { MOCK_EVENTS } from "@/lib/events";
 import { format, formatRelative, isSameDay } from 'date-fns';
 import { GameEventType, GameEvent } from "@/lib/types";
+import NetWorthChart from "@/app/components/net-worth-chart";
 
 const EventIconMap: Record<GameEventType, LucideIcon> = {
     Trade: Package,
@@ -54,7 +55,12 @@ export default function HistoryEventsPage() {
                 </CardHeader>
             </Card>
 
+            <NetWorthChart events={MOCK_EVENTS} />
+
             <Card className="bg-card/50">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg">Event Log</CardTitle>
+                </CardHeader>
                 <CardContent className="p-4 md:p-6">
                     {Object.keys(groupedEvents).length > 0 ? (
                         <Accordion type="single" collapsible defaultValue={Object.keys(groupedEvents)[0]}>
