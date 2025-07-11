@@ -82,7 +82,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="text-sm flex justify-between">
                         <span>Available:</span>
-                        <span className="font-mono">{stock.totalShares <= 0 ? 'Unlimited' : stock.sharesAvailable.toLocaleString()}</span>
+                        <span className="font-mono">{stock.totalShares <= 0 ? 'Unlimited' : stock.sharesAvailable?.toLocaleString() ?? 'N/A'}</span>
                     </div>
                      <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
