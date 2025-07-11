@@ -3,7 +3,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career } from '@/lib/types';
+import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career, Stock } from '@/lib/types';
 import { useGameState } from '@/hooks/use-game-state';
 import { useQuests } from '@/hooks/use-quests';
 import { useMarket } from '@/hooks/use-market';
@@ -24,6 +24,7 @@ import { useTrader } from '@/hooks/use-trader';
 import { useDefender } from '@/hooks/use-defender';
 import { useMilitary } from '@/hooks/use-military';
 import { useOfficial } from '@/hooks/use-official';
+import { useStocks } from '@/hooks/use-stocks';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -43,6 +44,7 @@ import type { useTrader as useTraderType } from '@/hooks/use-trader';
 import type { useDefender as useDefenderType } from '@/hooks/use-defender';
 import type { useMilitary as useMilitaryType } from '@/hooks/use-military';
 import type { useOfficial as useOfficialType } from '@/hooks/use-official';
+import type { useStocks as useStocksType } from '@/hooks/use-stocks';
 import AppLayout from '@/app/components/app-layout';
 
 
@@ -72,7 +74,8 @@ type GameContextType = {
   ReturnType<typeof useTraderType> &
   ReturnType<typeof useDefenderType> &
   ReturnType<typeof useMilitaryType> &
-  ReturnType<typeof useOfficialType>;
+  ReturnType<typeof useOfficialType> &
+  ReturnType<typeof useStocksType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -98,6 +101,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const defenderLogic = useDefender(gameState, setGameState);
     const militaryLogic = useMilitary(gameState, setGameState);
     const officialLogic = useOfficial(gameState, setGameState);
+    const stocksLogic = useStocks(gameState, setGameState);
 
     // Business Logic Hooks
     const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
@@ -107,7 +111,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const constructionLogic = useConstruction(gameState, setGameState, updateObjectiveProgress);
     const recreationLogic = useRecreation(gameState, setGameState, updateObjectiveProgress);
     const casinoLogic = useCasino(gameState, setGameState);
-    const bankLogic = useBank(gameState, setGameState);
+    const bankLogic = useBank(gameState, setGameState, stocksLogic.handleAddStock);
 
     // Page-specific Hooks (that still need to be available globally)
     const marketLogic = useMarket(gameState, setGameState);
@@ -140,6 +144,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...defenderLogic,
         ...militaryLogic,
         ...officialLogic,
+        ...stocksLogic,
     };
     
     return (

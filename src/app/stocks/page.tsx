@@ -31,7 +31,7 @@ export default function StocksPage() {
         const aVal = a[sortKey];
         const bVal = b[sortKey];
         if (typeof aVal === 'string' && typeof bVal === 'string') {
-            return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            return sortDirection === 'asc' ? aVal.localeCompare(aVal) : bVal.localeCompare(aVal);
         }
         if (typeof aVal === 'number' && typeof bVal === 'number') {
             return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
