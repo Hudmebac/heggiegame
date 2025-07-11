@@ -6,18 +6,49 @@ import type { PlayerStats, PartnershipOffer } from '@/lib/types';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Handshake, TrendingUp, Loader2 } from 'lucide-react';
+import { Briefcase, Handshake, TrendingUp, Loader2, FileSignature } from 'lucide-react';
 import BankValueChart from './bank-value-chart';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { runBankPartnershipOfferGeneration } from '@/app/actions';
 import { useToast } from "@/hooks/use-toast";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: number) => void }) => {
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState(100);
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Float New Share on the Market</DialogTitle>
+                <DialogDescription>As the owner of the Galactic Bank, you can issue new tradable shares for custom ventures.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div>
+                    <Label htmlFor="share-name">Share/Company Name</Label>
+                    <Input id="share-name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Orion Mining Guild"/>
+                </div>
+                <div>
+                    <Label htmlFor="share-price">Starting Price (¢)</Label>
+                    <Input id="share-price" type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <DialogClose asChild><Button onClick={() => onConfirm(name, price)} disabled={!name || price <= 0}>Confirm IPO</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    );
+}
 
 export default function BankContracts() {
-    const { gameState, handleAcceptBankPartnerOffer } = useGame();
+    const { gameState, handleAcceptBankPartnerOffer, handleFloatShare } = useGame();
     const { toast } = useToast();
     const [offers, setOffers] = useState<PartnershipOffer[]>([]);
     const [isFetchingOffers, setIsFetchingOffers] = useState(false);
     const [isOffersDialogOpen, setIsOffersDialogOpen] = useState(false);
+    const [isFloatShareDialogOpen, setIsFloatShareDialogOpen] = useState(false);
 
     if (!gameState || !gameState.playerStats.bankContract) return null;
     
@@ -26,6 +57,7 @@ export default function BankContracts() {
 
     const totalPartnerShare = bankContract.partners.reduce((acc, p) => acc + p.percentage, 0);
     const canAcceptMorePartners = totalPartnerShare < 1.0;
+    const isSoleProprietor = bankContract.partners.length === 0;
 
     const handleFetchOffers = async () => {
         setIsFetchingOffers(true);
@@ -49,6 +81,11 @@ export default function BankContracts() {
         handleAcceptBankPartnerOffer(offer);
         setIsOffersDialogOpen(false);
     };
+
+    const handleConfirmFloatShare = (name: string, price: number) => {
+        handleFloatShare(name, price);
+        setIsFloatShareDialogOpen(false);
+    }
 
     return (
         <Card>
@@ -121,8 +158,18 @@ export default function BankContracts() {
                             </DialogContent>
                         </Dialog>
                     )}
+                    {isSoleProprietor && (
+                        <Dialog open={isFloatShareDialogOpen} onOpenChange={setIsFloatShareDialogOpen}>
+                            <DialogTrigger asChild>
+                                 <Button variant="secondary" className="w-full mt-2">
+                                    <FileSignature className="mr-2"/>
+                                    Float New Share
+                                </Button>
+                            </DialogTrigger>
+                            <FloatShareDialog onConfirm={handleConfirmFloatShare} />
+                        </Dialog>
+                    )}
                  </div>
-
             </CardContent>
         </Card>
     );
