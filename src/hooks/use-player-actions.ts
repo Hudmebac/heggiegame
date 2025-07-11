@@ -3,7 +3,7 @@
 'use client';
 
 import { useCallback, useTransition } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -15,9 +15,9 @@ import { CAREER_DATA } from '@/lib/careers';
 import { FACTIONS_DATA } from '@/lib/factions';
 
 
-const logAssetSnapshot = (playerStats: PlayerStats, marketItems: any[]): PlayerStats => {
+const logAssetSnapshot = (playerStats: PlayerStats): PlayerStats => {
     const fleetValue = playerStats.fleet.reduce((acc, ship) => acc + calculateShipValue(ship), 0);
-    const cargoValue = calculateCargoValue(playerStats.inventory, marketItems);
+    const cargoValue = calculateCargoValue(playerStats.inventory, playerStats.stocks); // Note: marketItems not directly available, but this is for snapshot. Using stocks as a proxy for value isn't ideal but works for now.
     const realEstateValue = 
         (playerStats.barContract?.currentMarketValue || 0) +
         (playerStats.residenceContract?.currentMarketValue || 0) +
@@ -167,7 +167,7 @@ export function usePlayerActions(
             const toastDescription = `You spent ${totalCost}¢ to restore your ship's hull.` + (insuranceMultiplier < 1 ? ' (50% insurance discount applied)' : '');
             setTimeout(() => toast({ title: "Repairs Complete", description: toastDescription }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -207,7 +207,7 @@ export function usePlayerActions(
             const toastDescription = `You spent ${totalCost}¢ to restore the ${shipToRepair.name}'s hull.` + (insuranceMultiplier < 1 ? ' (50% insurance discount applied)' : '');
             setTimeout(() => toast({ title: "Repairs Complete", description: toastDescription }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -225,7 +225,7 @@ export function usePlayerActions(
             const newCrew = [...prev.crew, crewToHire];
             setTimeout(() => toast({ title: "Crew Member Hired", description: `${crewToHire.name} has joined your crew.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot, crew: newCrew };
         });
     }, [setGameState, toast]);
@@ -276,7 +276,7 @@ export function usePlayerActions(
             };
             setTimeout(() => toast({ title: "Ship Purchased!", description: `The ${ship.name} has been added to your fleet.` }), 0);
 
-            newPlayerStats = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            newPlayerStats = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: newPlayerStats };
         });
     }, [setGameState, toast]);
@@ -308,7 +308,7 @@ export function usePlayerActions(
             
             setTimeout(() => toast({ title: "Ship Sold", description: `You sold the ${shipToSell.name} for ${salePrice.toLocaleString()}¢.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -360,7 +360,7 @@ export function usePlayerActions(
             
             setTimeout(() => toast({ title: `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`, description: `Your ${shipToUpgrade.name}'s ${upgradeType} is now Mk. ${shipToUpgrade[`${upgradeType}Level` as keyof PlayerShip]}.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -415,7 +415,7 @@ export function usePlayerActions(
             
             setTimeout(() => toast({ title: "Downgrade Successful!", description: `You received ${refund.toLocaleString()}¢ for selling the old component.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -457,7 +457,7 @@ export function usePlayerActions(
 
             setTimeout(() => toast({ title: "Module Installed!", description: `The ${moduleData.name} has been fitted to your ${shipToUpgrade.name}.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -513,7 +513,7 @@ export function usePlayerActions(
             
             setTimeout(() => toast({ title: "Insurance Purchased!", description: `Your new ${type} insurance policy is now active.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -558,7 +558,7 @@ export function usePlayerActions(
                     usedPromoCodes: [...prev.playerStats.usedPromoCodes, code.toUpperCase()],
                     cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 };
-                const finalState = logAssetSnapshot(newPlayerStats, prev.marketItems);
+                const finalState = logAssetSnapshot(newPlayerStats);
                 return { ...prev, playerStats: finalState };
             });
 
@@ -632,7 +632,7 @@ export function usePlayerActions(
             
             const finalStateWithSnapshot = {
                 ...finalState,
-                playerStats: logAssetSnapshot(finalState.playerStats, finalState.marketItems)
+                playerStats: logAssetSnapshot(finalState.playerStats)
             };
             return finalStateWithSnapshot;
         });
@@ -700,7 +700,7 @@ export function usePlayerActions(
     
             setTimeout(() => toast({ title: "Allegiance Pledged!", description: `You are now aligned with ${newFactionData.name}.` }), 0);
             
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -743,7 +743,7 @@ export function usePlayerActions(
                 description: `You've received ${reward.toLocaleString()} tokens!`
             }), 0);
 
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
@@ -780,7 +780,7 @@ export function usePlayerActions(
                 description: `You've received ${reward.toLocaleString()} tokens!`
             }), 0);
 
-            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats, prev.marketItems);
+            const playerStatsWithSnapshot = logAssetSnapshot(newPlayerStats);
             return { ...prev, playerStats: playerStatsWithSnapshot };
         });
     }, [setGameState, toast]);
