@@ -31,7 +31,7 @@ export default function StocksPage() {
         const aVal = a[sortKey];
         const bVal = b[sortKey];
         if (typeof aVal === 'string' && typeof bVal === 'string') {
-            return sortDirection === 'asc' ? aVal.localeCompare(aVal) : bVal.localeCompare(aVal);
+            return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         }
         if (typeof aVal === 'number' && typeof bVal === 'number') {
             return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
@@ -77,7 +77,11 @@ export default function StocksPage() {
                                 const stock = stocks.find(s => s.id === holding.id);
                                 if (!stock) return null;
                                 return (
-                                    <div key={holding.id} className="flex justify-between items-center p-2 rounded bg-card/50">
+                                    <div 
+                                        key={holding.id} 
+                                        className="flex justify-between items-center p-2 rounded bg-card/50 cursor-pointer hover:bg-muted transition-colors"
+                                        onClick={() => handleSelectStock(stock)}
+                                    >
                                         <div>
                                             <p className="font-semibold">{stock.name}</p>
                                             <p className="text-xs text-muted-foreground">{holding.shares} shares</p>
@@ -158,3 +162,4 @@ export default function StocksPage() {
         </div>
     );
 }
+
