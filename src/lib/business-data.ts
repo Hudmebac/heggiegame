@@ -21,16 +21,14 @@ export interface BusinessData {
 /**
  * Calculates the compounding cost for a given level.
  * @param level - The current level of the item (e.g., pass level 1 to get cost to upgrade to level 2).
- * @param config - The cost configuration for the upgrade.
+ * @param starterPrice - The base cost of the upgrade.
+ * @param growth - The compounding growth factor for the upgrade.
  * @param modifier - An additional multiplier for difficulty, planet, etc.
  * @returns The cost to upgrade from the given `level` to the next.
  */
-export const calculateCost = (level: number, config: { starterPrice: number, growth: number }, modifier: number = 1): number => {
-    // The cost to get to the *next* level is based on the current level.
-    // So for level 1, you're buying level 2. The cost is base * (1+growth)^0.
-    // For level 2, you're buying level 3. The cost is base * (1+growth)^1.
+export const calculateCost = (level: number, starterPrice: number, growth: number, modifier: number = 1): number => {
     const effectiveLevel = Math.max(0, level);
-    const cost = config.starterPrice * Math.pow(1 + config.growth, effectiveLevel);
+    const cost = starterPrice * Math.pow(1 + growth, effectiveLevel);
     return Math.round(cost * modifier);
 };
 
