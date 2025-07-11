@@ -301,11 +301,11 @@ export function useBank(
   
   const handleFloatShare = useCallback((name: string, price: number) => {
     if (!name || price <= 0) {
-        toast({ variant: 'destructive', title: 'Invalid Share', description: 'Please provide a valid name and starting price.' });
+        setTimeout(() => toast({ variant: 'destructive', title: 'Invalid Share', description: 'Please provide a valid name and starting price.' }), 0);
         return;
     }
     handleAddStock(name, price);
-    toast({ title: 'IPO Successful!', description: `${name} is now listed on the HEGGIE Stock Exchange.` });
+    setTimeout(() => toast({ title: 'IPO Successful!', description: `${name} is now listed on the HEGGIE Stock Exchange.` }), 0);
   }, [handleAddStock, toast]);
 
 

@@ -339,7 +339,10 @@ export default function BankPageComponent() {
                     <LoanDialog onConfirm={handleTakeLoan} netWorth={playerStats.netWorth}/>
                  )}
                  {dialog === 'float_share' && (
-                    <FloatShareDialog onConfirm={handleFloatShare} />
+                    <FloatShareDialog onConfirm={(name, price) => {
+                        handleFloatShare(name, price);
+                        setDialog(null);
+                    }} />
                  )}
             </Dialog>
         </div>
