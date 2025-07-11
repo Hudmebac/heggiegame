@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -8,32 +9,35 @@ import { Ship, Package, Briefcase, TrendingUp, TrendingDown, Star } from 'lucide
 interface HistorySummaryProps {
   events: GameEvent[];
   initialNetWorth: number;
+  currentNetWorth: number;
 }
 
-export default function HistorySummary({ events, initialNetWorth }: HistorySummaryProps) {
+export default function HistorySummary({ events, initialNetWorth, currentNetWorth: actualCurrentNetWorth }: HistorySummaryProps) {
   const stats = useMemo(() => {
     let missionsCompleted = 0;
     let tradesMade = 0;
     let shipsPurchased = 0;
-    let highestNetWorth = initialNetWorth;
-    let currentNetWorth = initialNetWorth;
+    let highestNetWorthFromEvents = initialNetWorth;
+    let runningTotal = initialNetWorth;
 
     events.forEach(event => {
       if (event.type === 'Mission') missionsCompleted++;
       if (event.type === 'Trade') tradesMade++;
       if (event.type === 'Purchase' && event.description.includes('ship')) shipsPurchased++;
       
-      currentNetWorth += event.value;
-      if (currentNetWorth > highestNetWorth) {
-        highestNetWorth = currentNetWorth;
+      runningTotal += event.value;
+      if (runningTotal > highestNetWorthFromEvents) {
+        highestNetWorthFromEvents = runningTotal;
       }
     });
+
+    const highestNetWorth = Math.max(highestNetWorthFromEvents, actualCurrentNetWorth);
 
     const totalProfit = events.filter(e => e.value > 0).reduce((sum, e) => sum + e.value, 0);
     const totalSpending = events.filter(e => e.value < 0).reduce((sum, e) => sum + e.value, 0);
 
     return { missionsCompleted, tradesMade, shipsPurchased, highestNetWorth, totalProfit, totalSpending };
-  }, [events, initialNetWorth]);
+  }, [events, initialNetWorth, actualCurrentNetWorth]);
 
   const StatCard = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
     <div className="flex items-center gap-4 rounded-lg bg-background/50 p-3 border">

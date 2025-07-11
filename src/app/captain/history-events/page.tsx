@@ -107,7 +107,11 @@ export default function HistoryEventsPage() {
                 </CardContent>
             </Card>
 
-            <HistorySummary events={ALL_EVENTS} initialNetWorth={startingNetWorth} />
+            <HistorySummary 
+                events={ALL_EVENTS} 
+                initialNetWorth={startingNetWorth} 
+                currentNetWorth={gameState.playerStats.netWorth}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <NetWorthChart events={ALL_EVENTS} startingNetWorth={startingNetWorth} />
