@@ -163,8 +163,7 @@ export function useResidence(
              return prev;
         }
         
-        const expansionBaseCost = calculateCost(playerStats.residenceEstablishmentLevel, establishmentConfig, 1, 1);
-        const cost = Math.round(expansionBaseCost * costModifier * landlordDiscount * difficultyModifier);
+        const cost = calculateCost(playerStats.residenceEstablishmentLevel, establishmentConfig, difficultyModifier * landlordDiscount * costModifier);
 
         if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);

@@ -6,7 +6,7 @@ import type { GameState, PartnershipOffer, PlayerStats, QuestTask, ActiveObjecti
 import { recreationThemes } from '@/lib/recreation-themes';
 import { useToast } from '@/hooks/use-toast';
 import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
-import { businessData } from '@/lib/business-data';
+import { businessData, calculateCost } from '@/lib/business-data';
 
 export function useRecreation(
     gameState: GameState | null,
@@ -47,14 +47,6 @@ export function useRecreation(
     }
   }, [setGameState, updateObjectiveProgress, toast]);
 
-  const calculateCost = (level: number, config: { starterPrice: number, growth: number }, difficultyModifier: number, costModifier: number) => {
-      let cost = config.starterPrice;
-      for (let i = 1; i < level; i++) {
-        cost *= (1 + config.growth);
-      }
-      return Math.round(cost * difficultyModifier * costModifier);
-  };
-
   const handleUpgradeRecreation = useCallback(() => {
     setGameState(prev => {
       if (!prev) return null;
@@ -73,7 +65,7 @@ export function useRecreation(
         return prev;
       }
       
-      const upgradeCost = calculateCost(playerStats.recreationLevel + 1, upgradeConfig, difficultyModifier, costModifier);
+      const upgradeCost = calculateCost(playerStats.recreationLevel, upgradeConfig, difficultyModifier, costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -104,7 +96,7 @@ export function useRecreation(
         return prev;
       }
       
-      const botCost = calculateCost(playerStats.recreationAutoClickerBots + 1, botConfig, difficultyModifier, costModifier);
+      const botCost = calculateCost(playerStats.recreationAutoClickerBots, botConfig, difficultyModifier, costModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
@@ -167,8 +159,7 @@ export function useRecreation(
              return prev;
         }
         
-        const expansionBaseCost = calculateCost(playerStats.recreationEstablishmentLevel + 1, establishmentConfig, 1, 1);
-        const cost = Math.round(expansionBaseCost * costModifier * difficultyModifier);
+        const cost = calculateCost(playerStats.recreationEstablishmentLevel, establishmentConfig, difficultyModifier * costModifier);
 
         if (playerStats.netWorth < cost) {
             setTimeout(() => toast({ variant: "destructive", title: "Expansion Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
