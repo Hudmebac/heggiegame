@@ -58,12 +58,10 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
     const quickTradeAmounts = [10, 100, 1000, 10000, 100000, 1000000, 1000000000];
     
     const handleQuickBuy = (amount: number) => {
-        setTradeAmount(amount);
         onBuy(stock.id, amount);
     };
 
     const handleQuickSell = (amount: number) => {
-        setTradeAmount(amount);
         onSell(stock.id, amount);
     };
 
@@ -101,13 +99,13 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-center">
                         <div>
-                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford || (stock.sharesAvailable > 0 && tradeAmount > stock.sharesAvailable)}>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleBuyStock(stock.id, tradeAmount)} disabled={!canAfford || (stock.sharesAvailable > 0 && tradeAmount > stock.sharesAvailable)}>
                                 <ArrowUp className="mr-2"/> Buy
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
                         </div>
                          <div>
-                            <Button variant="destructive" className="w-full" onClick={() => onSell(stock.id, tradeAmount)} disabled={ownedShares < tradeAmount}>
+                            <Button variant="destructive" className="w-full" onClick={() => handleSellStock(stock.id, tradeAmount)} disabled={ownedShares < tradeAmount}>
                                 <ArrowDown className="mr-2"/> Sell
                             </Button>
                              <p className="text-xs text-muted-foreground mt-1">Value: {(stock.price * tradeAmount).toLocaleString()}¢</p>
@@ -146,7 +144,7 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
 }
 
 export default function StocksPage() {
-    const { gameState, handleBuyStock, handleSellStock, selectedStock, setSelectedStock } = useGame();
+    const { gameState, handleBuyStock, handleSellStock, selectedStockId, setSelectedStockId } = useGame();
     const [sortKey, setSortKey] = useState<keyof Stock>('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -176,6 +174,7 @@ export default function StocksPage() {
         }
     };
     
+    const selectedStock = stocks.find(s => s.id === selectedStockId) ?? null;
     const ownedShares = portfolio.find(s => s.id === selectedStock?.id)?.shares || 0;
 
     return (
@@ -189,7 +188,7 @@ export default function StocksPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <div className="xl:col-span-3">
-                    <PortfolioCard portfolio={portfolio} stocks={stocks} onSelectStock={setSelectedStock} selectedStockId={selectedStock?.id || null} />
+                    <PortfolioCard portfolio={portfolio} stocks={stocks} onSelectStock={(stock) => setSelectedStockId(stock.id)} selectedStockId={selectedStock?.id || null} />
                 </div>
 
                 <div className="xl:col-span-5">
@@ -215,7 +214,7 @@ export default function StocksPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {sortedStocks.map(stock => (
-                                        <TableRow key={stock.id} onClick={() => setSelectedStock(stock)} className="cursor-pointer" data-state={selectedStock?.id === stock.id ? 'selected' : ''}>
+                                        <TableRow key={stock.id} onClick={() => setSelectedStockId(stock.id)} className="cursor-pointer" data-state={selectedStock?.id === stock.id ? 'selected' : ''}>
                                             <TableCell className="font-medium">{stock.name}</TableCell>
                                             <TableCell className="font-mono text-amber-300">{stock.price.toLocaleString()}</TableCell>
                                             <TableCell className={cn(stock.changePercent >= 0 ? 'text-green-400' : 'text-destructive')}>
