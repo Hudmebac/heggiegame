@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2 } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -22,10 +22,10 @@ import FactionDialog from '../components/faction-dialog';
 import { FACTIONS_DATA } from '@/lib/factions';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { AVATARS } from '@/lib/avatars';
 import ShareProgressDialog from '@/app/components/share-progress-dialog';
@@ -134,7 +134,7 @@ function PlayerProfile() {
                 </div>
                  <div className="grid grid-cols-2 gap-2">
                     <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
-                        <Share2 className="mr-2" /> Sync & Share
+                        <Share2 className="mr-2" /> Sync &amp; Share
                     </Button>
                      <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
                         <AlertDialogTrigger asChild>
@@ -156,6 +156,14 @@ function PlayerProfile() {
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
+                </div>
+                 <div className="grid grid-cols-1">
+                    <Button asChild variant="outline">
+                        <Link href="/captain/history-events">
+                            <ScrollText className="mr-2" />
+                            History &amp; Progress
+                        </Link>
+                    </Button>
                 </div>
             </CardContent>
              <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
@@ -186,7 +194,7 @@ function PlayerProfile() {
 
 
 export default function CaptainPage() {
-  const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, handleSetAvatar, handleResetGame, handlePurchaseInsurance, handleShareToFacebook } = useGame();
+  const { gameState, handlePurchaseInsurance } = useGame();
   const [isCareerChangeOpen, setIsCareerChangeOpen] = useState(false);
   const [isFactionDialogOpen, setIsFactionDialogOpen] = useState(false);
 
