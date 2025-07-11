@@ -69,31 +69,30 @@ export function useTaxi(
   }, [gameState, setGameState, toast]);
   
   const handleAcceptTaxiMission = useCallback((missionId: string) => {
-    if (!gameState) return;
-      
-    const mission = gameState.playerStats.taxiMissions.find(m => m.id === missionId);
-    if (!mission) {
-      toast({ variant: "destructive", title: "Mission Not Found", description: "This fare is no longer available." });
-      return;
-    }
-
     setGameState(prev => {
-      if(!prev) return null;
-      const updatedMissions = prev.playerStats.taxiMissions.map(m => 
-          m.id === missionId ? { ...m, status: 'Active' as const, startTime: Date.now(), progress: 0 } : m
-      );
-      return {
-          ...prev,
-          playerStats: {
-            ...prev.playerStats,
-            taxiMissions: updatedMissions,
-          }
-      };
+        if(!prev) return null;
+        
+        const mission = prev.playerStats.taxiMissions.find(m => m.id === missionId);
+        if (!mission) {
+            setTimeout(() => toast({ variant: "destructive", title: "Mission Not Found", description: "This fare is no longer available." }), 0);
+            return prev;
+        }
+
+        const updatedMissions = prev.playerStats.taxiMissions.map(m => 
+            m.id === missionId ? { ...m, status: 'Active' as const, startTime: Date.now(), progress: 0 } : m
+        );
+
+        setTimeout(() => toast({ title: "Fare Accepted!", description: `Route to ${mission.toSystem} for ${mission.passengerName} is now active.` }), 0);
+
+        return {
+            ...prev,
+            playerStats: {
+              ...prev.playerStats,
+              taxiMissions: updatedMissions,
+            }
+        };
     });
-
-    toast({ title: "Fare Accepted!", description: `Route to ${mission.toSystem} for ${mission.passengerName} is now active.` });
-
-  }, [gameState, setGameState, toast]);
+  }, [setGameState, toast]);
 
   useEffect(() => {
     const interval = setInterval(() => {

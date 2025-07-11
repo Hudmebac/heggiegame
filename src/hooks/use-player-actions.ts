@@ -692,7 +692,7 @@ export function usePlayerActions(
         setGameState(prev => {
           if (!prev) return null;
           if (points > 0) {
-            toast({ title: "Calibration Successful", description: `You earned ${points.toLocaleString()}¢ for improving factory efficiency.`});
+            setTimeout(() => toast({ title: "Calibration Successful", description: `You earned ${points.toLocaleString()}¢ for improving factory efficiency.`}), 0);
           }
           return {
             ...prev,
@@ -708,7 +708,7 @@ export function usePlayerActions(
         setGameState(prev => {
             if (!prev) return null;
             if (points > 0) {
-                toast({ title: "Vault Secured", description: `You earned ${points.toLocaleString()}¢ for repelling the breach.`});
+                setTimeout(() => toast({ title: "Vault Secured", description: `You earned ${points.toLocaleString()}¢ for repelling the breach.`}), 0);
             }
             return {
                 ...prev,
@@ -724,7 +724,7 @@ export function usePlayerActions(
         setGameState(prev => {
             if (!prev) return null;
             if (points > 0) {
-                toast({ title: "Blueprint Assembled", description: `You earned ${points.toLocaleString()}¢ for your design prowess.`});
+                setTimeout(() => toast({ title: "Blueprint Assembled", description: `You earned ${points.toLocaleString()}¢ for your design prowess.`}), 0);
             }
             return {
                 ...prev,
@@ -741,7 +741,7 @@ export function usePlayerActions(
             if (!prev) return null;
             
             if (points > 0) {
-                toast({ title: "Shift Complete!", description: `You earned ${points.toLocaleString()}¢ in tips for your excellent service.`});
+                setTimeout(() => toast({ title: "Shift Complete!", description: `You earned ${points.toLocaleString()}¢ in tips for your excellent service.`}), 0);
             }
 
             return {
@@ -778,7 +778,7 @@ export function usePlayerActions(
         setGameState(prev => {
             if (!prev) return null;
             if (points > 0) {
-                toast({ title: "Simulation Complete", description: `You earned ${points.toLocaleString()}¢ for your performance.`});
+                setTimeout(() => toast({ title: "Simulation Complete", description: `You earned ${points.toLocaleString()}¢ for your performance.`}), 0);
             }
             return {
                 ...prev,
@@ -794,7 +794,7 @@ export function usePlayerActions(
         setGameState(prev => {
             if (!prev) return null;
             if (points > 0) {
-                toast({ title: "System Bypassed", description: `You earned ${points.toLocaleString()}¢ for your quick thinking.`});
+                setTimeout(() => toast({ title: "System Bypassed", description: `You earned ${points.toLocaleString()}¢ for your quick thinking.`}), 0);
             }
             return {
                 ...prev,

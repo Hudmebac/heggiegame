@@ -103,7 +103,7 @@ export function useMilitary(
     setGameState(prev => {
       if (!prev) return null;
       if (points > 0) {
-        toast({ title: "Simulation Successful", description: `You earned ${points.toLocaleString()}¢ for your performance.`});
+        setTimeout(() => toast({ title: "Simulation Successful", description: `You earned ${points.toLocaleString()}¢ for your performance.`}), 0);
       }
       return {
         ...prev,
