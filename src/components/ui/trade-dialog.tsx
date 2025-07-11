@@ -29,56 +29,55 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
     setErrorMessage(null);
   }, [item, tradeType]);
 
-  useEffect(() => {
-    if (!item || !playerStats) return;
+  const staticItemData = item ? STATIC_ITEMS.find(i => i.name === item.name) : null;
+  const isTrader = playerStats?.career === 'Trader';
+  const effectivePrice = item && isTrader && tradeType === 'buy' ? item.currentPrice * 0.8 : item?.currentPrice || 0;
+  
+  const currentOwned = item ? inventory.find(i => i.name === item.name)?.owned ?? 0 : 0;
+  
+  const maxBuyableByCredits = playerStats && effectivePrice > 0 ? Math.floor(playerStats.netWorth / effectivePrice) : Infinity;
+  const maxBuyableByCargo = playerStats && staticItemData && staticItemData.cargoSpace > 0 ? Math.floor((playerStats.maxCargo - playerStats.cargo) / staticItemData.cargoSpace) : Infinity;
+  const maxBuyableBySupply = item?.supply || 0;
 
-    const staticItemData = STATIC_ITEMS.find(i => i.name === item.name);
-    if (!staticItemData) return;
+  const maxBuy = Math.min(maxBuyableByCredits, maxBuyableByCargo, maxBuyableBySupply);
+  const maxSell = currentOwned;
+  
+  const maxAmount = tradeType === 'buy' ? maxBuy : maxSell;
+  
+  useEffect(() => {
+    if (!item || !playerStats || !staticItemData) {
+      setErrorMessage(null);
+      return;
+    };
     
-    const isTrader = playerStats.career === 'Trader';
-    const effectivePrice = (tradeType === 'buy' && isTrader) ? item.currentPrice * 0.8 : item.currentPrice;
     const totalCost = effectivePrice * amount;
     const totalCargo = staticItemData.cargoSpace * amount;
-    const currentOwned = inventory.find(i => i.name === item.name)?.owned ?? 0;
 
     let error = null;
-    if (amount <= 0) {
+    if (isNaN(amount) || amount <= 0) {
         error = "Amount must be greater than zero.";
     } else if (tradeType === 'buy') {
-        if (totalCost > playerStats.netWorth) error = `Insufficient funds. You need ${totalCost.toLocaleString()}¢.`;
+        if (amount > item.supply) error = `Not enough supply. Available: ${item.supply}.`;
+        else if (totalCost > playerStats.netWorth) error = `Insufficient funds. You need ${totalCost.toLocaleString()}¢.`;
         else if (totalCargo > (playerStats.maxCargo - playerStats.cargo)) error = `Not enough cargo space. Required: ${totalCargo.toFixed(2)}t.`;
-        else if (amount > item.supply) error = `Not enough supply. Available: ${item.supply}.`;
     } else { // sell
         if (amount > currentOwned) error = `Not enough items to sell. You have: ${currentOwned}.`;
     }
     
     setErrorMessage(error);
+  }, [amount, item, tradeType, playerStats, inventory, effectivePrice, currentOwned, staticItemData]);
 
-  }, [amount, item, tradeType, playerStats, inventory]);
 
-  if (!item || !playerStats) return null;
-
-  const staticItemData = STATIC_ITEMS.find(i => i.name === item.name);
-  if (!staticItemData) return null;
-
-  const isTrader = playerStats.career === 'Trader';
-  const effectivePrice = (tradeType === 'buy' && isTrader) ? item.currentPrice * 0.8 : item.currentPrice;
-
+  if (!item || !playerStats || !staticItemData) {
+      return null;
+  }
+  
   const handleAmountChange = (newAmount: number) => {
     if (newAmount >= 0) {
       setAmount(newAmount);
     }
   };
-  
-  const currentOwned = inventory.find(i => i.name === item.name)?.owned ?? 0;
-  
-  const maxBuyableByCredits = effectivePrice > 0 ? Math.floor(playerStats.netWorth / effectivePrice) : Infinity;
-  const maxBuyableByCargo = staticItemData.cargoSpace > 0 ? Math.floor((playerStats.maxCargo - playerStats.cargo) / staticItemData.cargoSpace) : Infinity;
-  const maxBuyableBySupply = item.supply;
-  const maxBuy = Math.min(maxBuyableByCredits, maxBuyableByCargo, maxBuyableBySupply);
-  const maxSell = currentOwned;
-  
-  const maxAmount = tradeType === 'buy' ? maxBuy : maxSell;
+
   const totalPrice = amount * effectivePrice;
   const totalCargo = staticItemData.cargoSpace * amount;
   
@@ -94,7 +93,7 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="capitalize text-primary">{tradeType} {item.name}</DialogTitle>
-          {isTrader && tradeType === 'buy' && <DialogDescription>As a Trader, you get a 20% discount on purchases.</DialogDescription>}
+           {isTrader && tradeType === 'buy' && <DialogDescription>As a Trader, you get a 20% discount on purchases.</DialogDescription>}
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
