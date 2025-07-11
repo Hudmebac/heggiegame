@@ -11,9 +11,10 @@ export function useStocks(
 ) {
     const { toast } = useToast();
 
-    const handleAddStock = useCallback((name: string, price: number) => {
+    const handleAddStock = useCallback((name: string, price: number, shares: number) => {
         setGameState(prev => {
             if (!prev) return null;
+            const totalShares = shares > 0 ? shares : 1_000_000_000_000;
             const newStock: Stock = {
                 id: name.toLowerCase().replace(/\s/g, '-'),
                 name,
@@ -21,6 +22,8 @@ export function useStocks(
                 history: Array(50).fill(price),
                 changePercent: 0,
                 lastUpdated: Date.now(),
+                totalShares: totalShares,
+                sharesAvailable: totalShares,
             };
             return {
                 ...prev,
@@ -36,9 +39,16 @@ export function useStocks(
         setGameState(prev => {
             if (!prev) return null;
 
-            const stock = prev.playerStats.stocks.find(s => s.id === stockId);
-            if (!stock) {
+            const stockIndex = prev.playerStats.stocks.findIndex(s => s.id === stockId);
+            if (stockIndex === -1) {
                 setTimeout(() => toast({ variant: 'destructive', title: 'Error', description: 'Stock not found.' }), 0);
+                return prev;
+            }
+            
+            const stock = { ...prev.playerStats.stocks[stockIndex] };
+
+            if (amount > stock.sharesAvailable) {
+                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
 
@@ -57,6 +67,10 @@ export function useStocks(
                 newPortfolio.push({ id: stockId, shares: amount });
             }
             
+            stock.sharesAvailable -= amount;
+            const newStocks = [...prev.playerStats.stocks];
+            newStocks[stockIndex] = stock;
+
             setTimeout(() => toast({ title: 'Purchase Successful', description: `Bought ${amount} share(s) of ${stock.name}.` }), 0);
             
             return {
@@ -65,6 +79,7 @@ export function useStocks(
                     ...prev.playerStats,
                     netWorth: prev.playerStats.netWorth - cost,
                     portfolio: newPortfolio,
+                    stocks: newStocks,
                 }
             };
         });
@@ -74,18 +89,24 @@ export function useStocks(
         setGameState(prev => {
             if (!prev) return null;
             
-            const stock = prev.playerStats.stocks.find(s => s.id === stockId);
+            const stockIndex = prev.playerStats.stocks.findIndex(s => s.id === stockId);
             const holding = prev.playerStats.portfolio.find(h => h.id === stockId);
-
-            if (!stock || !holding || holding.shares < amount) {
+            
+            if (stockIndex === -1 || !holding || holding.shares < amount) {
                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares to sell.' }), 0);
                 return prev;
             }
+            
+            const stock = { ...prev.playerStats.stocks[stockIndex] };
 
             const income = stock.price * amount;
             const newPortfolio = [...prev.playerStats.portfolio];
             const holdingIndex = newPortfolio.findIndex(h => h.id === stockId);
             newPortfolio[holdingIndex].shares -= amount;
+
+            stock.sharesAvailable += amount;
+            const newStocks = [...prev.playerStats.stocks];
+            newStocks[stockIndex] = stock;
 
             setTimeout(() => toast({ title: 'Sale Successful', description: `Sold ${amount} share(s) of ${stock.name}.` }), 0);
 
@@ -95,6 +116,7 @@ export function useStocks(
                     ...prev.playerStats,
                     netWorth: prev.playerStats.netWorth + income,
                     portfolio: newPortfolio.filter(h => h.shares > 0),
+                    stocks: newStocks,
                 }
             };
         });

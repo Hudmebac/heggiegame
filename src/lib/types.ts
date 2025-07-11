@@ -60,6 +60,8 @@ export interface Stock {
   history: number[];
   changePercent: number;
   lastUpdated: number;
+  totalShares: number;
+  sharesAvailable: number;
 }
 
 export interface PortfolioItem {

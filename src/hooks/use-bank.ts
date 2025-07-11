@@ -13,7 +13,7 @@ const TOTAL_BANK_SHARES = 10000;
 export function useBank(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>,
-    handleAddStock: (name: string, price: number) => void
+    handleAddStock: (name: string, price: number, shares: number) => void
 ) {
   const { toast } = useToast();
   const bankData = businessData.find(b => b.id === 'bank');
@@ -299,12 +299,12 @@ export function useBank(
     });
   }, [setGameState, toast]);
   
-  const handleFloatShare = useCallback((name: string, price: number) => {
+  const handleFloatShare = useCallback((name: string, price: number, shares: number) => {
     if (!name || price <= 0) {
         setTimeout(() => toast({ variant: 'destructive', title: 'Invalid Share', description: 'Please provide a valid name and starting price.' }), 0);
         return;
     }
-    handleAddStock(name, price);
+    handleAddStock(name, price, shares);
     setTimeout(() => toast({ title: 'IPO Successful!', description: `${name} is now listed on the HEGGIE Stock Exchange.` }), 0);
   }, [handleAddStock, toast]);
 

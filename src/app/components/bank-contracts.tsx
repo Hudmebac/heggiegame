@@ -13,11 +13,20 @@ import { runBankPartnershipOfferGeneration } from '@/app/actions';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
-const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: number) => void }) => {
+const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: number, shares: number) => void }) => {
     const [name, setName] = useState('');
     const [price, setPrice] = useState(100);
+    const [shares, setShares] = useState<string | number>(10000);
 
+    const shareOptions = [10000, 100000, 1000000, 1000000000];
+
+    const handleConfirmIPO = () => {
+        const numShares = shares === 'custom' ? 0 : Number(shares);
+        onConfirm(name, price, numShares);
+    }
+    
     return (
         <DialogContent>
             <DialogHeader>
@@ -33,10 +42,22 @@ const FloatShareDialog = ({ onConfirm }: { onConfirm: (name: string, price: numb
                     <Label htmlFor="share-price">Starting Price (¢)</Label>
                     <Input id="share-price" type="number" value={price} onChange={e => setPrice(Number(e.target.value))} />
                 </div>
+                 <div>
+                    <Label htmlFor="share-amount">Number of Shares</Label>
+                    <Select onValueChange={(value) => setShares(value === 'custom' ? value : Number(value))} defaultValue={"10000"}>
+                        <SelectTrigger id="share-amount">
+                            <SelectValue placeholder="Select number of shares" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {shareOptions.map(opt => <SelectItem key={opt} value={String(opt)}>{opt.toLocaleString()} shares</SelectItem>)}
+                            <SelectItem value="custom">Custom (Unlimited)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <DialogClose asChild><Button onClick={() => onConfirm(name, price)} disabled={!name || price <= 0}>Confirm IPO</Button></DialogClose>
+                <DialogClose asChild><Button onClick={handleConfirmIPO} disabled={!name || price <= 0}>Confirm IPO</Button></DialogClose>
             </DialogFooter>
         </DialogContent>
     );
@@ -82,8 +103,8 @@ export default function BankContracts() {
         setIsOffersDialogOpen(false);
     };
 
-    const handleConfirmFloatShare = (name: string, price: number) => {
-        handleFloatShare(name, price);
+    const handleConfirmFloatShare = (name: string, price: number, shares: number) => {
+        handleFloatShare(name, price, shares);
         setIsFloatShareDialogOpen(false);
     }
 
