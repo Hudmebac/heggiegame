@@ -57,7 +57,7 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
             <CardContent>
                 <div className="h-[300px] w-full">
                     <ChartContainer config={chartConfig}>
-                        <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
+                        <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.5)" />
                             <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={{stroke: 'hsl(var(--muted-foreground))'}} />
                             <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${Number(value).toLocaleString(undefined, {notation: 'compact'})}`} />
