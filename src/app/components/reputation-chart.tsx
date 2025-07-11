@@ -26,6 +26,12 @@ export default function ReputationChart({ events, initialReputation }: Reputatio
         }
     });
 
+    // Add an initial point for the chart to start from
+    const displayData = [
+        { date: 'Start', reputation: initialReputation, label: 'Career Start' },
+        ...chartData
+    ];
+
     const chartConfig = {
         reputation: {
             label: "Reputation",
@@ -43,9 +49,9 @@ export default function ReputationChart({ events, initialReputation }: Reputatio
                 <CardDescription>Your standing in the galaxy over time.</CardDescription>
             </CardHeader>
             <CardContent>
-                {chartData.length > 1 ? (
+                {displayData.length > 1 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                    <AreaChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
+                    <AreaChart data={displayData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorRep" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
