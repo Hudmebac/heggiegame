@@ -16,7 +16,7 @@ export function useStocks(
             if (!prev) return null;
             const totalShares = shares > 0 ? shares : 1_000_000_000_000;
             const newStock: Stock = {
-                id: name.toLowerCase().replace(/\s/g, '-'),
+                id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
                 name,
                 price,
                 history: Array(50).fill(price),
@@ -47,7 +47,7 @@ export function useStocks(
             
             const stock = { ...prev.playerStats.stocks[stockIndex] };
 
-            if (amount > stock.sharesAvailable) {
+            if (stock.sharesAvailable > 0 && amount > stock.sharesAvailable) {
                  setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares available on the market.' }), 0);
                 return prev;
             }
@@ -62,7 +62,7 @@ export function useStocks(
             const holdingIndex = newPortfolio.findIndex(h => h.id === stockId);
 
             if (holdingIndex > -1) {
-                newPortfolio[holdingIndex].shares += amount;
+                newPortfolio[holdingIndex] = { ...newPortfolio[holdingIndex], shares: newPortfolio[holdingIndex].shares + amount };
             } else {
                 newPortfolio.push({ id: stockId, shares: amount });
             }
@@ -90,10 +90,17 @@ export function useStocks(
             if (!prev) return null;
             
             const stockIndex = prev.playerStats.stocks.findIndex(s => s.id === stockId);
-            const holding = prev.playerStats.portfolio.find(h => h.id === stockId);
+            const holdingIndex = prev.playerStats.portfolio.findIndex(h => h.id === stockId);
             
-            if (stockIndex === -1 || !holding || holding.shares < amount || amount <= 0) {
-                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Not enough shares to sell.' }), 0);
+            if (stockIndex === -1 || holdingIndex === -1) {
+                setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'You do not own these shares.' }), 0);
+                return prev;
+            }
+            
+            const holding = prev.playerStats.portfolio[holdingIndex];
+            
+            if (holding.shares < amount || amount <= 0) {
+                 setTimeout(() => toast({ variant: 'destructive', title: 'Transaction Failed', description: 'Invalid amount to sell.' }), 0);
                 return prev;
             }
             
@@ -101,8 +108,7 @@ export function useStocks(
 
             const income = stock.price * amount;
             const newPortfolio = [...prev.playerStats.portfolio];
-            const holdingIndex = newPortfolio.findIndex(h => h.id === stockId);
-            newPortfolio[holdingIndex].shares -= amount;
+            newPortfolio[holdingIndex] = { ...newPortfolio[holdingIndex], shares: newPortfolio[holdingIndex].shares - amount };
 
             stock.sharesAvailable += amount;
             const newStocks = [...prev.playerStats.stocks];
