@@ -82,8 +82,26 @@ export default function HistoryEventsPage() {
                         A chronological record of your accomplishments, trades, and significant events throughout your career.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-background/50 border">
+            </Card>
+
+            <HistorySummary 
+                events={ALL_EVENTS} 
+                initialNetWorth={startingNetWorth} 
+                currentNetWorth={gameState.playerStats.netWorth}
+            />
+
+            <div className="grid grid-cols-1 gap-6">
+                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
+                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
+            </div>
+
+            <Card className="bg-card/50">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg">Event Log</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 md:p-6 space-y-4">
+                     <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-background/50 border">
                         <div className="flex items-center gap-2">
                             <Filter className="h-5 w-5 text-muted-foreground" />
                             <span className="text-sm font-semibold">Filters:</span>
@@ -104,26 +122,6 @@ export default function HistoryEventsPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                </CardContent>
-            </Card>
-
-            <HistorySummary 
-                events={ALL_EVENTS} 
-                initialNetWorth={startingNetWorth} 
-                currentNetWorth={gameState.playerStats.netWorth}
-            />
-
-            <div className="grid grid-cols-1 gap-6">
-                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
-                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
-                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
-            </div>
-
-            <Card className="bg-card/50">
-                <CardHeader>
-                    <CardTitle className="font-headline text-lg">Event Log</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 md:p-6">
                     {Object.keys(groupedEvents).length > 0 ? (
                         <Accordion type="single" collapsible defaultValue={Object.keys(groupedEvents)[0]}>
                             {Object.entries(groupedEvents).map(([date, events]) => (
