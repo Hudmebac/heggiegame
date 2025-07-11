@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import type { AssetSnapshot } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark } from 'lucide-react';
+import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -22,12 +23,13 @@ const chartConfig = {
     fleetValue: { label: "Fleet Value", color: "hsl(var(--chart-3))", icon: Ship },
     cargoValue: { label: "Cargo Value", color: "hsl(var(--chart-4))", icon: Package },
     realEstateValue: { label: "Real Estate Value", color: "hsl(var(--chart-5))", icon: LandPlot },
+    sharePortfolioValue: { label: "Share Portfolio", color: "hsl(var(--chart-2))", icon: CandlestickChart },
 } satisfies ChartConfig;
 
 type ActiveKeys = keyof typeof chartConfig;
 
 export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartProps) {
-    const [activeKeys, setActiveKeys] = useState<ActiveKeys[]>(['totalNetWorth']);
+    const [activeKeys, setActiveKeys] = useState<ActiveKeys[]>(['sharePortfolioValue']);
     
     const chartData = assetHistory.map(snapshot => ({
         ...snapshot,

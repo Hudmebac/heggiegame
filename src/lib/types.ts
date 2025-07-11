@@ -1,4 +1,5 @@
 
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Heggie Contractor' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -25,6 +26,7 @@ export interface AssetSnapshot {
   fleetValue: number;
   cargoValue: number;
   realEstateValue: number;
+  sharePortfolioValue: number;
 }
 
 
@@ -423,77 +425,6 @@ export interface CrewMember {
     description: string;
     salary: number;
     hiringFee: number;
-}
-
-export interface GameState {
-  playerStats: PlayerStats;
-  inventory: InventoryItem[];
-  marketItems: MarketItem[];
-  priceHistory: PriceHistory;
-  leaderboard: LeaderboardEntry[];
-  pirateEncounter: Pirate | null;
-  systems: System[];
-  routes: Route[];
-  currentSystem: string;
-  currentPlanet: string;
-  quests: Quest[];
-  activeObjectives: ActiveObjective[];
-  crew: CrewMember[];
-  difficulty: Difficulty;
-  isGameOver?: boolean;
-}
-
-export interface EncounterResult {
-  outcome: 'success' | 'failure' | 'partial_success';
-  narrative: string;
-  cargoLost: number;
-  creditsLost: number;
-  damageTaken: number;
-}
-
-export interface CargoUpgrade {
-  level: number;
-  name: string;
-  capacity: number;
-  cost: number;
-}
-
-export interface WeaponUpgrade {
-  level: number;
-  name: string;
-  cost: number;
-}
-
-export interface ShieldUpgrade {
-  level: number;
-  name: string;
-  cost: number;
-}
-
-export interface HullUpgrade {
-  level: number;
-  name: string;
-  health: number;
-  cost: number;
-}
-
-export interface FuelUpgrade {
-    level: number;
-    name: string;
-    capacity: number;
-    cost: number;
-}
-
-export interface SensorUpgrade {
-    level: number;
-    name: string;
-    cost: number;
-}
-
-export interface DroneUpgrade {
-    level: number;
-    name: string;
-    cost: number;
 }
 
 export interface ShipUpgradeSlots {

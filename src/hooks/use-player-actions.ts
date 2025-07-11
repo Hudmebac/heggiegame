@@ -27,14 +27,20 @@ const logAssetSnapshot = (playerStats: PlayerStats, marketItems: any[]): PlayerS
         (playerStats.recreationContract?.currentMarketValue || 0) +
         (playerStats.bankContract?.currentMarketValue || 0);
 
+    const sharePortfolioValue = playerStats.portfolio.reduce((acc, holding) => {
+        const currentStock = playerStats.stocks.find(s => s.id === holding.id);
+        return acc + (currentStock ? currentStock.price * holding.shares : 0);
+    }, 0);
+
     const snapshot: AssetSnapshot = {
         timestamp: Date.now(),
-        totalNetWorth: playerStats.netWorth + (playerStats.bankAccount?.balance || 0) + fleetValue + cargoValue + realEstateValue,
+        totalNetWorth: playerStats.netWorth + (playerStats.bankAccount?.balance || 0) + fleetValue + cargoValue + realEstateValue + sharePortfolioValue,
         cash: playerStats.netWorth,
         bankBalance: playerStats.bankAccount?.balance || 0,
         fleetValue,
         cargoValue,
-        realEstateValue
+        realEstateValue,
+        sharePortfolioValue,
     };
 
     return {
