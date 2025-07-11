@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -17,6 +16,7 @@ import { useGame } from '@/app/components/game-provider';
 import { EventIconMap } from '@/lib/events';
 import { CAREER_DATA } from '@/lib/careers';
 import CashFlowChart from '@/app/components/cash-flow-chart';
+import CargoValueChart from '@/app/components/cargo-value-chart';
 
 const groupEventsByDay = (events: GameEvent[]) => {
     return events.reduce((acc, event) => {
@@ -180,6 +180,7 @@ export default function HistoryEventsPage() {
                 <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
                 <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
+                <CargoValueChart valueHistory={gameState.playerStats.cargoValueHistory || []} />
             </div>
         </div>
     );
