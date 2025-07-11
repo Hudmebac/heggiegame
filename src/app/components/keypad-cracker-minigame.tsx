@@ -57,8 +57,7 @@ export default function KeypadCrackerMinigame() {
           timerRef.current = null;
       }
       setGameState(GameState.Finished);
-      handleKeypadCrackerMinigameScore(score);
-  }, [handleKeypadCrackerMinigameScore, score]);
+  }, []);
 
   useEffect(() => {
     if (gameState === GameState.Playing) {
@@ -78,7 +77,15 @@ export default function KeypadCrackerMinigame() {
   }, [gameState, stopGame]);
 
   useEffect(() => {
-    if (gameState === GameState.Playing && userInput === targetCode) {
+      if (gameState === GameState.Finished) {
+          handleKeypadCrackerMinigameScore(score);
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState]);
+
+
+  useEffect(() => {
+    if (gameState === GameState.Playing && userInput === targetCode && targetCode !== '') {
         const roundScore = 100 + (targetCode.length * 25);
         setScore(prev => prev + roundScore);
         setCorrectSequences(prev => prev + 1);
