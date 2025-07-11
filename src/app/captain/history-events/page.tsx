@@ -1,23 +1,17 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ScrollText, Hourglass, Star, Coins, Shield, Package, LucideIcon, Rocket, Briefcase, Handshake, Route } from "lucide-react";
+import { ScrollText, Hourglass, Star, LucideIcon, Filter } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MOCK_EVENTS } from "@/lib/events";
-import { format, formatRelative, isSameDay } from 'date-fns';
-import { GameEventType, GameEvent } from "@/lib/types";
+import { MOCK_EVENTS, EventIconMap } from "@/lib/events";
+import { format, formatRelative, subDays } from 'date-fns';
+import type { GameEventType, GameEvent } from "@/lib/types";
 import NetWorthChart from "@/app/components/net-worth-chart";
-
-const EventIconMap: Record<GameEventType, LucideIcon> = {
-    Trade: Package,
-    Combat: Shield,
-    Upgrade: Rocket,
-    Mission: Briefcase,
-    System: Route,
-    Career: Star,
-    Faction: Handshake,
-};
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from '@/lib/utils';
 
 const groupEventsByDay = (events: GameEvent[]) => {
     return events.reduce((acc, event) => {
@@ -30,9 +24,25 @@ const groupEventsByDay = (events: GameEvent[]) => {
     }, {} as Record<string, GameEvent[]>);
 };
 
-
 export default function HistoryEventsPage() {
-    const sortedEvents = MOCK_EVENTS.sort((a, b) => b.timestamp - a.timestamp);
+    const [timeRange, setTimeRange] = useState('all');
+    const [eventType, setEventType] = useState('all');
+
+    const filteredEvents = MOCK_EVENTS.filter(event => {
+        const eventDate = new Date(event.timestamp);
+        let dateCondition = true;
+        if (timeRange === '7d') {
+            dateCondition = eventDate > subDays(new Date(), 7);
+        } else if (timeRange === '30d') {
+            dateCondition = eventDate > subDays(new Date(), 30);
+        }
+
+        const typeCondition = eventType === 'all' || event.type === eventType;
+
+        return dateCondition && typeCondition;
+    });
+
+    const sortedEvents = filteredEvents.sort((a, b) => b.timestamp - a.timestamp);
     const groupedEvents = groupEventsByDay(sortedEvents);
     const today = new Date();
 
@@ -40,6 +50,8 @@ export default function HistoryEventsPage() {
         const d = new Date(date);
         return formatRelative(d, today);
     }
+
+    const eventTypes: Array<'all' | GameEventType> = ['all', 'Trade', 'Combat', 'Upgrade', 'Mission', 'System', 'Career', 'Faction'];
 
     return (
         <div className="space-y-6">
@@ -53,9 +65,32 @@ export default function HistoryEventsPage() {
                         A chronological record of your accomplishments, trades, and significant events throughout your career.
                     </CardDescription>
                 </CardHeader>
+                <CardContent>
+                    <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-background/50 border">
+                        <div className="flex items-center gap-2">
+                            <Filter className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-sm font-semibold">Filters:</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant={timeRange === '7d' ? 'default' : 'outline'} onClick={() => setTimeRange('7d')}>Last 7 Days</Button>
+                            <Button variant={timeRange === '30d' ? 'default' : 'outline'} onClick={() => setTimeRange('30d')}>Last 30 Days</Button>
+                            <Button variant={timeRange === 'all' ? 'default' : 'outline'} onClick={() => setTimeRange('all')}>All Time</Button>
+                        </div>
+                        <Select value={eventType} onValueChange={setEventType}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter by event type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {eventTypes.map(type => (
+                                    <SelectItem key={type} value={type} className="capitalize">{type === 'all' ? 'All Event Types' : type}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardContent>
             </Card>
 
-            <NetWorthChart events={MOCK_EVENTS} />
+            <NetWorthChart events={filteredEvents} />
 
             <Card className="bg-card/50">
                 <CardHeader>
@@ -102,13 +137,11 @@ export default function HistoryEventsPage() {
                             ))}
                         </Accordion>
                     ) : (
-                         <div className="min-h-[400px] flex flex-col items-center justify-center text-center p-8">
-                            <Hourglass className="h-16 w-16 text-muted-foreground animate-pulse" />
-                            <h3 className="mt-4 text-xl font-semibold">Event Logging Initialized</h3>
-                            <p className="mt-2 text-muted-foreground">
-                                Your journey has just begun. Significant events will be recorded here.
-                                <br />
-                                Check back soon to visualize your path to becoming a galactic legend.
+                         <div className="min-h-[200px] flex flex-col items-center justify-center text-center p-8">
+                            <Hourglass className="h-12 w-12 text-muted-foreground animate-pulse" />
+                            <h3 className="mt-4 text-lg font-semibold">No Events Found</h3>
+                            <p className="mt-1 text-muted-foreground text-sm">
+                                No events match your current filter criteria.
                             </p>
                         </div>
                     )}

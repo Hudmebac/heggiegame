@@ -1,10 +1,22 @@
 
-import type { GameEvent } from './types';
+import type { GameEvent, GameEventType } from './types';
+import type { LucideIcon } from 'lucide-react';
+import { Package, Shield, Rocket, Briefcase, Route, Star, Handshake } from "lucide-react";
+
+export const EventIconMap: Record<GameEventType, LucideIcon> = {
+    Trade: Package,
+    Combat: Shield,
+    Upgrade: Rocket,
+    Mission: Briefcase,
+    System: Route,
+    Career: Star,
+    Faction: Handshake,
+};
 
 export const MOCK_EVENTS: GameEvent[] = [
     {
         id: 'evt_1',
-        timestamp: Date.now() - 86400000,
+        timestamp: Date.now() - 86400000 * 2, // 2 days ago
         type: 'Career',
         description: 'Began career as a Hauler.',
         value: 0,
@@ -12,7 +24,7 @@ export const MOCK_EVENTS: GameEvent[] = [
     },
     {
         id: 'evt_2',
-        timestamp: Date.now() - 86000000,
+        timestamp: Date.now() - 86000000 * 2,
         type: 'Trade',
         description: 'Sold 50 units of Silicon Nuggets for a profit of 15,000¢.',
         value: 15000,
@@ -20,7 +32,7 @@ export const MOCK_EVENTS: GameEvent[] = [
     },
     {
         id: 'evt_3',
-        timestamp: Date.now() - 85000000,
+        timestamp: Date.now() - 85000000 * 2,
         type: 'Upgrade',
         description: 'Upgraded Cargo Hold to Mk. II.',
         value: -25000,
@@ -28,7 +40,7 @@ export const MOCK_EVENTS: GameEvent[] = [
     },
     {
         id: 'evt_4',
-        timestamp: Date.now() - 84000000,
+        timestamp: Date.now() - 84000000 * 2,
         type: 'Combat',
         description: 'Defeated pirate vessel "The Rustbucket". Gained 10 reputation.',
         value: 10,
@@ -36,7 +48,7 @@ export const MOCK_EVENTS: GameEvent[] = [
     },
     {
         id: 'evt_5',
-        timestamp: Date.now() - 76400000,
+        timestamp: Date.now() - 76400000 * 1.5,
         type: 'Mission',
         description: 'Completed contract: Urgent Fuel Delivery to Sirius.',
         value: 50000,
@@ -44,7 +56,7 @@ export const MOCK_EVENTS: GameEvent[] = [
     },
     {
         id: 'evt_6',
-        timestamp: Date.now() - 66400000,
+        timestamp: Date.now() - 66400000 * 1.2,
         type: 'System',
         description: 'Traveled from Sol to Sirius.',
         value: 0,

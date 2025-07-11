@@ -7,7 +7,7 @@ import { CAREER_DATA } from "@/lib/careers";
 import type { LucideIcon } from 'lucide-react';
 import { Briefcase, Zap, AlertTriangle, Video, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle as DialogTitleComponent, DialogDescription as DialogDescriptionComponent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import type { Career } from '@/lib/types';
 
 const careerAvatars: Record<Career, string> = {
@@ -99,8 +99,8 @@ export default function CareerCodex() {
                                 </CardContent>
                                 <DialogContent className="max-w-4xl p-0">
                                      <DialogHeader className="sr-only">
-                                        <DialogTitleComponent>Gameplay Preview: {career.name}</DialogTitleComponent>
-                                        <DialogDescriptionComponent>A video showcasing the gameplay for the {career.name} career.</DialogDescriptionComponent>
+                                        <DialogTitle>Gameplay Preview: {career.name}</DialogTitle>
+                                        <DialogDescription>A video showcasing the gameplay for the {career.name} career.</DialogDescription>
                                     </DialogHeader>
                                     {selectedVideo === videoSrc && (
                                         <video
