@@ -51,7 +51,7 @@ export default function ReputationChart({ events, initialReputation }: Reputatio
             <CardContent>
                 {displayData.length > 1 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] w-full">
-                    <AreaChart data={displayData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
+                    <AreaChart data={displayData} margin={{ top: 5, right: 20, left: 20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorRep" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
