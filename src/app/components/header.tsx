@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -69,6 +70,7 @@ const NavLink = ({ href, label, icon: Icon, career: itemCareer, playerCareer, on
 export default function Header({ playerStats, onLinkClick }: {playerStats: PlayerStats | null; onLinkClick?: () => void}) {
   const career = playerStats?.career ?? 'Unselected';
   const netWorth = playerStats?.netWorth ?? 0;
+  const stardate = playerStats?.stardate ?? '4525.01.01';
   
   const coreItems = allNavItems.filter(item => !item.section);
   const gameDetailsItems = allNavItems.filter(item => item.section === 'Game Details');
@@ -78,9 +80,12 @@ export default function Header({ playerStats, onLinkClick }: {playerStats: Playe
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-b">
           <div className="flex items-center gap-3">
             <HeggieIcon />
-            <h1 className="text-xl md:text-2xl font-bold text-slate-200 font-headline tracking-wider">
-              HEGGIE
-            </h1>
+            <div>
+                <h1 className="text-xl md:text-2xl font-bold text-slate-200 font-headline tracking-wider">
+                HEGGIE
+                </h1>
+                <p className="text-xs font-mono text-muted-foreground">Stardate: {stardate}</p>
+            </div>
           </div>
           <div className="flex items-center gap-4 sm:gap-6 p-2 rounded-lg bg-card/50 border border-border">
             <div className="flex items-center gap-2 font-mono">

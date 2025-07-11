@@ -16,6 +16,12 @@ import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, syncActiveShipStats } from '@/lib/utils';
 import pako from 'pako';
 
+const formatStardate = (date: Date): string => {
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `45${year}.${month}.${day}`;
+};
 
 const initialCasinoState: CasinoState = {
     lastPlayed: {},
@@ -33,6 +39,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     name: 'You',
     bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
     netWorth: 10000,
+    stardate: formatStardate(new Date()),
     avatarUrl: '/images/avatars/avatar_01.png',
     faction: 'Independent',
     factionReputation: {
@@ -129,6 +136,7 @@ export function useGameState() {
                     let newPlayerStats = {
                         ...initialGameState.playerStats,
                         career,
+                        stardate: formatStardate(new Date()),
                         faction: 'Independent',
                         factionReputation: { ...initialGameState.playerStats.factionReputation },
                         fleet: careerData.startingFleet,
@@ -252,6 +260,7 @@ export function useGameState() {
                 let mergedPlayerStats = { 
                     ...initialGameState.playerStats, 
                     ...savedProgress.playerStats, 
+                    stardate: savedProgress.playerStats.stardate || formatStardate(new Date()),
                     casino: { ...initialCasinoState, ...(savedProgress.playerStats.casino || {}) }, 
                     insurance: { ...initialInsuranceState, ...(savedProgress.playerStats.insurance || {}) }, 
                     usedPromoCodes: savedProgress.playerStats.usedPromoCodes || [], 

@@ -235,6 +235,7 @@ export interface PlayerStats {
   lastFacebookShare?: number;
   cargoValueHistory: number[];
   cashInHandHistory: number[];
+  stardate: string;
 
   fleet: PlayerShip[];
 
