@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import type { GameEvent } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Ship, Package, Briefcase, TrendingUp, TrendingDown, Star } from 'lucide-react';
+import { Briefcase, Package, Rocket, Star, TrendingDown, TrendingUp } from 'lucide-react';
 
 interface HistorySummaryProps {
   events: GameEvent[];
@@ -57,11 +57,11 @@ export default function HistorySummary({ events, initialNetWorth, currentNetWort
                 Career Highlights
             </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <StatCard icon={Briefcase} label="Missions" value={stats.missionsCompleted} />
             <StatCard icon={Package} label="Trades" value={stats.tradesMade} />
-            <StatCard icon={Ship} label="Ships Purchased" value={stats.shipsPurchased} />
-            <StatCard icon={TrendingUp} label="Highest Net Worth" value={`¢${stats.highestNetWorth.toLocaleString()}`} />
+            <StatCard icon={Rocket} label="Ships Purchased" value={stats.shipsPurchased} />
+            <StatCard icon={TrendingUp} label="Highest Cash" value={`¢${stats.highestNetWorth.toLocaleString()}`} />
             <StatCard icon={TrendingUp} label="Total Profit" value={`¢${stats.totalProfit.toLocaleString()}`} />
             <StatCard icon={TrendingDown} label="Total Spending" value={`¢${stats.totalSpending.toLocaleString()}`} />
         </CardContent>
