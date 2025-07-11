@@ -134,11 +134,11 @@ export default function HistoryEventsPage() {
                                                                 </span>
                                                                 </>
                                                             )}
-                                                            {event.reputationChange != 0 && event.reputationChange != null && (
+                                                            {(event.reputationChange ?? 0) !== 0 && (
                                                                 <>
                                                                 <span>&bull;</span>
-                                                                <span className={event.reputationChange > 0 ? 'text-sky-400' : 'text-orange-400'}>
-                                                                    {event.reputationChange > 0 ? '+' : ''}{event.reputationChange} Rep
+                                                                <span className={(event.reputationChange ?? 0) > 0 ? 'text-sky-400' : 'text-orange-400'}>
+                                                                    {event.reputationChange! > 0 ? '+' : ''}{event.reputationChange} Rep
                                                                 </span>
                                                                 </>
                                                             )}
