@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, FactionId } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, FactionId, GameEvent } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
@@ -54,6 +54,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     casino: initialCasinoState,
     insurance: initialInsuranceState,
     warehouses: [],
+    events: [],
     cargoValueHistory: [0],
     bankAccount: undefined,
     bankShares: 0,
@@ -257,6 +258,7 @@ export function useGameState() {
                     faction: savedProgress.playerStats.faction || 'Independent',
                     factionReputation: savedProgress.playerStats.factionReputation || initialGameState.playerStats.factionReputation,
                     pirateEncounter: null, // Don't persist pirate encounters
+                    events: savedProgress.playerStats.events || [],
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {

@@ -228,6 +228,7 @@ export interface PlayerStats {
   reputation: number;
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
+  events: GameEvent[];
   usedPromoCodes: string[];
   negotiationCooldowns: Record<string, number>;
   lastFacebookShare?: number;

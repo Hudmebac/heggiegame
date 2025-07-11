@@ -5,13 +5,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollText, Hourglass, Star, LucideIcon, Filter } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { MOCK_EVENTS, EventIconMap } from "@/lib/events";
 import { format, formatRelative, subDays } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
 import NetWorthChart from "@/app/components/net-worth-chart";
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
+import { useGame } from '@/app/components/game-provider';
+import { EventIconMap } from '@/lib/events';
 
 const groupEventsByDay = (events: GameEvent[]) => {
     return events.reduce((acc, event) => {
@@ -25,8 +26,11 @@ const groupEventsByDay = (events: GameEvent[]) => {
 };
 
 export default function HistoryEventsPage() {
+    const { gameState } = useGame();
     const [timeRange, setTimeRange] = useState('all');
-    const [eventType, setEventType] = useState('all');
+    const [eventType, setEventType] = useState<GameEventType | 'all'>('all');
+
+    const MOCK_EVENTS = gameState?.playerStats.events || [];
 
     const filteredEvents = MOCK_EVENTS.filter(event => {
         const eventDate = new Date(event.timestamp);
@@ -76,7 +80,7 @@ export default function HistoryEventsPage() {
                             <Button variant={timeRange === '30d' ? 'default' : 'outline'} onClick={() => setTimeRange('30d')}>Last 30 Days</Button>
                             <Button variant={timeRange === 'all' ? 'default' : 'outline'} onClick={() => setTimeRange('all')}>All Time</Button>
                         </div>
-                        <Select value={eventType} onValueChange={setEventType}>
+                        <Select value={eventType} onValueChange={(value) => setEventType(value as any)}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Filter by event type" />
                             </SelectTrigger>
@@ -141,7 +145,7 @@ export default function HistoryEventsPage() {
                             <Hourglass className="h-12 w-12 text-muted-foreground animate-pulse" />
                             <h3 className="mt-4 text-lg font-semibold">No Events Found</h3>
                             <p className="mt-1 text-muted-foreground text-sm">
-                                No events match your current filter criteria.
+                                Your journey is just beginning, or no events match your current filter criteria.
                             </p>
                         </div>
                     )}
