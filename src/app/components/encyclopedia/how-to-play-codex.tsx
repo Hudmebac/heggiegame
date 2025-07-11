@@ -150,6 +150,23 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        title="Stock Exchange"
+                        icon={CandlestickChart}
+                        summary="Engage in high-stakes trading by buying and selling shares in galactic corporations. A volatile but potentially lucrative venture."
+                        link="/stocks"
+                    >
+                        <h4>The Galactic Stock Market</h4>
+                        <p>The Stock Exchange allows you to invest in the biggest names in the galaxy, from ship manufacturers like Lakon Spaceways to your own business ventures.</p>
+                        <ul>
+                            <li><strong>Your Portfolio:</strong> This shows all the shares you currently own and their total current value. This is the quickest way to see how your investments are performing.</li>
+                            <li><strong>Market Listing:</strong> View all tradable stocks, their current price, and their recent performance. Use the search and category filters to find specific companies.</li>
+                            <li><strong>Dynamic Prices:</strong> Stock prices are not static. They fluctuate every few seconds and are subject to random market events like spikes and crashes. A shrewd investor watches the trends closely.</li>
+                            <li><strong>Trading Panel:</strong> When you select a stock, the trading panel will appear. Here you can view its price history chart and use the "Buy" and "Sell" buttons to execute trades. Use the quick-trade buttons for rapid transactions.</li>
+                            <li><strong>Floating Shares:</strong> If you manage to acquire full ownership of the Galactic Bank, you unlock the ability to float new shares on the market, creating your own publicly traded companies for other traders to invest in.</li>
+                        </ul>
+                    </Section>
+
+                    <Section
                         title="Galaxy & Travel"
                         icon={Map}
                         summary="Navigate the stars. Travel between systems to find new markets, missions, and opportunities."
