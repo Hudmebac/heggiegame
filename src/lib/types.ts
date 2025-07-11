@@ -6,6 +6,17 @@ export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'R
 export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | 'Quantum' | 'Singularity';
 export type FactionId = 'Independent' | 'Federation of Sol' | 'Corporate Hegemony' | 'Veritas Concord' | 'Frontier Alliance' | 'Independent Miners Guild';
 
+export type GameEventType = 'Trade' | 'Combat' | 'Upgrade' | 'Mission' | 'System' | 'Career' | 'Faction';
+
+export interface GameEvent {
+  id: string;
+  timestamp: number;
+  type: GameEventType;
+  description: string;
+  value: number; // e.g., trade profit, mission reward, upgrade cost
+  isMilestone: boolean;
+}
+
 export interface StaticItem {
   category: ItemCategory;
   name: string;
