@@ -231,7 +231,7 @@ export interface PlayerStats {
   usedPromoCodes: string[];
   negotiationCooldowns: Record<string, number>;
   lastFacebookShare?: number;
-  cargoValueHistory?: number[];
+  cargoValueHistory: number[];
 
   fleet: PlayerShip[];
 
