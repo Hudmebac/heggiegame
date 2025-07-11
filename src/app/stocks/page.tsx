@@ -11,7 +11,7 @@ import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContai
 import type { Stock } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 
-const PortfolioCard = ({ portfolio, stocks, onSelectStock }: { portfolio: any[], stocks: Stock[], onSelectStock: (stock: Stock) => void }) => {
+const PortfolioCard = ({ portfolio, stocks, onSelectStock, selectedStockId }: { portfolio: any[], stocks: Stock[], onSelectStock: (stock: Stock) => void, selectedStockId: string | null }) => {
     const portfolioValue = portfolio.reduce((acc, holding) => {
         const currentStock = stocks.find(s => s.id === holding.id);
         return acc + (currentStock ? currentStock.price * holding.shares : 0);
@@ -21,7 +21,7 @@ const PortfolioCard = ({ portfolio, stocks, onSelectStock }: { portfolio: any[],
         <Card className="h-full">
             <CardHeader>
                 <CardTitle className="font-headline text-lg">Your Portfolio</CardTitle>
-                <CardDescription>Total Value: {portfolioValue.toLocaleString()}¢</CardDescription>
+                <CardDescription>Value: {portfolioValue.toLocaleString()}¢</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-2 text-sm">
@@ -31,7 +31,10 @@ const PortfolioCard = ({ portfolio, stocks, onSelectStock }: { portfolio: any[],
                         return (
                             <div 
                                 key={holding.id} 
-                                className="flex justify-between items-center p-2 rounded bg-card/50 cursor-pointer hover:bg-muted transition-colors"
+                                className={cn(
+                                    "flex justify-between items-center p-2 rounded bg-card/50 cursor-pointer hover:bg-muted transition-colors",
+                                    selectedStockId === stock.id && "bg-primary/10 ring-1 ring-primary"
+                                )}
                                 onClick={() => onSelectStock(stock)}
                             >
                                 <div>
@@ -70,18 +73,31 @@ const TradePanel = ({ stock, ownedShares, netWorth, onBuy, onSell }: { stock: St
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="space-y-4">
-                    <p className="text-sm">You own: <span className="font-mono">{ownedShares}</span> shares</p>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
-                        <Input type="number" value={tradeAmount} onChange={e => setTradeAmount(Number(e.target.value))} className="w-20 text-center bg-background border border-input rounded-md"/>
-                        <Button variant="outline" onClick={() => setTradeAmount(prev => prev + 1)}>+</Button>
+                <div className="space-y-4 p-4 rounded-lg bg-background/50 border">
+                    <p className="text-sm flex justify-between">
+                        <span>You own:</span>
+                        <span className="font-mono">{ownedShares.toLocaleString()} shares</span>
+                    </p>
+                     <div className="flex items-center justify-center gap-2">
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => Math.max(1, prev - 1))}>-</Button>
+                        <Input type="number" value={tradeAmount} onChange={e => setTradeAmount(Number(e.target.value) || 1)} className="w-24 text-center bg-background/50 border border-input rounded-md h-8 text-lg font-mono"/>
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setTradeAmount(prev => prev + 1)}>+</Button>
                     </div>
-                    <div className="flex gap-2">
-                        <Button onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford}>Buy ({ (stock.price * tradeAmount).toLocaleString() }¢)</Button>
-                        <Button variant="destructive" onClick={() => onSell(stock.id, tradeAmount)} disabled={ownedShares < tradeAmount}>Sell ({ (stock.price * tradeAmount).toLocaleString() }¢)</Button>
+                     <div className="grid grid-cols-2 gap-2 text-center">
+                        <div>
+                            <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => onBuy(stock.id, tradeAmount)} disabled={!canAfford}>
+                                <ArrowUp className="mr-2"/> Buy
+                            </Button>
+                             <p className="text-xs text-muted-foreground mt-1">Cost: {(stock.price * tradeAmount).toLocaleString()}¢</p>
+                        </div>
+                         <div>
+                            <Button variant="destructive" className="w-full" onClick={() => onSell(stock.id, tradeAmount)} disabled={ownedShares < tradeAmount}>
+                                <ArrowDown className="mr-2"/> Sell
+                            </Button>
+                             <p className="text-xs text-muted-foreground mt-1">Value: {(stock.price * tradeAmount).toLocaleString()}¢</p>
+                        </div>
                     </div>
-                    {!canAfford && <p className="text-destructive text-xs">Insufficient funds.</p>}
+                    {!canAfford && tradeAmount > 0 && <p className="text-destructive text-xs text-center">Insufficient funds.</p>}
                 </div>
             </CardContent>
         </Card>
@@ -133,10 +149,10 @@ export default function StocksPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
                 <div className="xl:col-span-3">
-                    <PortfolioCard portfolio={portfolio} stocks={stocks} onSelectStock={setSelectedStock} />
+                    <PortfolioCard portfolio={portfolio} stocks={stocks} onSelectStock={setSelectedStock} selectedStockId={selectedStock?.id || null} />
                 </div>
 
-                <div className="xl:col-span-6">
+                <div className="xl:col-span-5">
                      <Card>
                         <CardHeader>
                             <CardTitle className="font-headline text-lg">Galactic Market</CardTitle>
@@ -146,9 +162,15 @@ export default function StocksPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead onClick={() => handleSort('name')} className="cursor-pointer">Name {sortKey === 'name' && (sortDirection === 'asc' ? <ArrowUp className="inline h-4 w-4" /> : <ArrowDown className="inline h-4 w-4" />)}</TableHead>
-                                        <TableHead onClick={() => handleSort('price')} className="cursor-pointer">Price {sortKey === 'price' && (sortDirection === 'asc' ? <ArrowUp className="inline h-4 w-4" /> : <ArrowDown className="inline h-4 w-4" />)}</TableHead>
-                                        <TableHead onClick={() => handleSort('changePercent')} className="cursor-pointer">Change (24h) {sortKey === 'changePercent' && (sortDirection === 'asc' ? <ArrowUp className="inline h-4 w-4" /> : <ArrowDown className="inline h-4 w-4" />)}</TableHead>
+                                        <TableHead onClick={() => handleSort('name')} className="cursor-pointer">
+                                            <div className="flex items-center gap-1">Name {sortKey === 'name' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}</div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('price')} className="cursor-pointer">
+                                            <div className="flex items-center gap-1">Price {sortKey === 'price' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}</div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('changePercent')} className="cursor-pointer">
+                                            <div className="flex items-center gap-1">Change (24h) {sortKey === 'changePercent' && (sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />)}</div>
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -170,7 +192,7 @@ export default function StocksPage() {
                     </Card>
                 </div>
                 
-                <div className="xl:col-span-3">
+                <div className="xl:col-span-4">
                     {selectedStock ? (
                         <TradePanel 
                             stock={selectedStock}
@@ -192,3 +214,4 @@ export default function StocksPage() {
         </div>
     );
 }
+
