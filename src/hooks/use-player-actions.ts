@@ -211,10 +211,12 @@ export function usePlayerActions(
                 health: hullUpgrades[0].health,
                 status: 'operational',
             };
+            const newCash = prev.playerStats.netWorth - ship.cost;
             const newPlayerStats = { 
                 ...prev.playerStats, 
-                netWorth: prev.playerStats.netWorth - ship.cost, 
+                netWorth: newCash, 
                 fleet: [...prev.playerStats.fleet, newShip],
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 events: [...prev.playerStats.events, {
                     id: `evt_purchase_${Date.now()}`,
                     timestamp: Date.now(),
@@ -242,7 +244,13 @@ export function usePlayerActions(
             const shipToSell = prev.playerStats.fleet[shipIndex];
             const salePrice = Math.round(calculateShipValue(shipToSell) * 0.7);
             const newFleet = prev.playerStats.fleet.filter(s => s.instanceId !== shipInstanceId);
-            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + salePrice, fleet: newFleet };
+            const newCash = prev.playerStats.netWorth + salePrice;
+            let newPlayerStats = { 
+                ...prev.playerStats, 
+                netWorth: newCash, 
+                fleet: newFleet,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
+            };
             
             if (shipIndex === 0) {
                 newPlayerStats = syncActiveShipStats(newPlayerStats);
@@ -289,7 +297,13 @@ export function usePlayerActions(
 
             (shipToUpgrade as any)[`${upgradeType}Level`] += 1;
             fleet[shipIndex] = shipToUpgrade;
-            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - cost, fleet };
+            const newCash = prev.playerStats.netWorth - cost;
+            let newPlayerStats = { 
+                ...prev.playerStats, 
+                netWorth: newCash, 
+                fleet,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
+            };
 
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
@@ -337,7 +351,13 @@ export function usePlayerActions(
 
             (shipToDowngrade as any)[`${upgradeType}Level`] -= 1;
             fleet[shipIndex] = shipToDowngrade;
-            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth + refund, fleet };
+            const newCash = prev.playerStats.netWorth + refund;
+            let newPlayerStats = { 
+                ...prev.playerStats, 
+                netWorth: newCash, 
+                fleet,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
+            };
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
             setTimeout(() => toast({ title: "Downgrade Successful!", description: `You received ${refund.toLocaleString()}¢ for selling the old component.` }), 0);
@@ -370,7 +390,13 @@ export function usePlayerActions(
             
             shipToUpgrade[moduleId] = true;
             fleet[shipIndex] = shipToUpgrade;
-            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - moduleData.cost, fleet };
+            const newCash = prev.playerStats.netWorth - moduleData.cost;
+            let newPlayerStats = { 
+                ...prev.playerStats, 
+                netWorth: newCash, 
+                fleet,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
+            };
             
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
 
@@ -417,9 +443,11 @@ export function usePlayerActions(
                  return prev;
             }
 
+            const newCash = prev.playerStats.netWorth - cost;
             const newPlayerStats: PlayerStats = {
                 ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth - cost,
+                netWorth: newCash,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 insurance: {
                     ...prev.playerStats.insurance,
                     [type]: true,
@@ -464,10 +492,12 @@ export function usePlayerActions(
 
             setGameState(prev => {
                 if (!prev) return null;
+                const newCash = prev.playerStats.netWorth + result.tokens;
                 const newPlayerStats = {
                     ...prev.playerStats,
-                    netWorth: prev.playerStats.netWorth + result.tokens,
+                    netWorth: newCash,
                     usedPromoCodes: [...prev.playerStats.usedPromoCodes, code.toUpperCase()],
+                    cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 };
                 return { ...prev, playerStats: newPlayerStats };
             });
@@ -514,12 +544,13 @@ export function usePlayerActions(
                 setTimeout(() => toast({ variant: "destructive", title: "Cannot Afford Career Change", description: `You need ${cost.toLocaleString()}¢ to change your career.` }), 0);
                 return prev;
             }
-
+            const newCash = prev.playerStats.netWorth - cost;
             const stateWithCostDeducted = {
                 ...prev,
                 playerStats: {
                     ...prev.playerStats,
-                    netWorth: prev.playerStats.netWorth - cost,
+                    netWorth: newCash,
+                    cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                     events: [
                         ...prev.playerStats.events,
                         {
@@ -580,12 +611,14 @@ export function usePlayerActions(
             }
             
             const repChange = 10;
+            const newCash = prev.playerStats.netWorth - cost;
             const newPlayerStats: PlayerStats = {
                 ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth - cost,
+                netWorth: newCash,
                 faction: factionId,
                 factionReputation: newFactionReputation,
                 reputation: prev.playerStats.reputation + repChange,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 events: [
                     ...prev.playerStats.events,
                     {
@@ -625,9 +658,11 @@ export function usePlayerActions(
             }
 
             const reward = 1000000;
+            const newCash = prev.playerStats.netWorth + reward;
             const newPlayerStats: PlayerStats = {
                 ...prev.playerStats,
-                netWorth: prev.playerStats.netWorth + reward,
+                netWorth: newCash,
+                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 lastFacebookShare: now,
             };
 

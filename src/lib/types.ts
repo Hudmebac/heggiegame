@@ -234,6 +234,7 @@ export interface PlayerStats {
   negotiationCooldowns: Record<string, number>;
   lastFacebookShare?: number;
   cargoValueHistory: number[];
+  cashInHandHistory: number[];
 
   fleet: PlayerShip[];
 

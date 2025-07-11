@@ -3,11 +3,11 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ScrollText, Hourglass, Star, LucideIcon, Filter } from "lucide-react";
+import { ScrollText, Hourglass, Star, Filter, Coins } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { format, formatRelative, subDays } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
-import NetWorthChart from "@/app/components/net-worth-chart";
+import ValueHistoryChart from "@/app/components/value-history-chart";
 import ReputationChart from "@/app/components/reputation-chart";
 import HistorySummary from '@/app/components/history-summary';
 import { Button } from '@/components/ui/button';
@@ -114,7 +114,13 @@ export default function HistoryEventsPage() {
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <NetWorthChart events={ALL_EVENTS} startingNetWorth={startingNetWorth} />
+                <ValueHistoryChart
+                    history={gameState.playerStats.cashInHandHistory || [startingNetWorth]}
+                    initialValue={startingNetWorth}
+                    title="Cash on Hand"
+                    description="Your liquid assets over time."
+                    icon={Coins}
+                />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
 

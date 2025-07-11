@@ -56,6 +56,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     warehouses: [],
     events: [],
     cargoValueHistory: [0],
+    cashInHandHistory: [10000],
     bankAccount: undefined,
     bankShares: 0,
     bankLevel: 1,
@@ -132,6 +133,7 @@ export function useGameState() {
                         factionReputation: { ...initialGameState.playerStats.factionReputation },
                         fleet: careerData.startingFleet,
                         netWorth: careerData.startingNetWorth,
+                        cashInHandHistory: [careerData.startingNetWorth],
                         inspiration: careerData.id === 'Heggie Contractor' ? 0 : 0,
                         influence: careerData.startingInfluence || 0,
                         tradeContracts: [],
@@ -259,6 +261,7 @@ export function useGameState() {
                     factionReputation: savedProgress.playerStats.factionReputation || initialGameState.playerStats.factionReputation,
                     pirateEncounter: null, // Don't persist pirate encounters
                     events: savedProgress.playerStats.events || [],
+                    cashInHandHistory: savedProgress.playerStats.cashInHandHistory || [savedProgress.playerStats.netWorth],
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
