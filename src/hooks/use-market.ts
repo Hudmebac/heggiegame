@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -40,20 +39,13 @@ export function useMarket(
             const newMarketItems = [...prev.marketItems];
             let newMarketItem = { ...marketItem };
 
+            // These checks are now primarily for server-side safety, UI validation is handled in the dialog
             if (type === 'buy') {
-                if (newPlayerStats.netWorth < totalCost) {
-                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough credits." }), 0);
-                    return prev;
-                }
-                if (marketItem.supply < amount) {
-                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: `Not enough supply at this station. Available: ${marketItem.supply}.` }), 0);
-                    return prev;
-                }
+                if (newPlayerStats.netWorth < totalCost) return prev;
+                if (marketItem.supply < amount) return prev;
                 const currentCargo = calculateCurrentCargo(prev.inventory);
-                if (currentCargo + totalCargo > newPlayerStats.maxCargo) {
-                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: `Not enough cargo space. Available: ${(newPlayerStats.maxCargo - currentCargo).toFixed(2)}t. Needed: ${totalCargo.toFixed(2)}t.` }), 0);
-                    return prev;
-                }
+                if (currentCargo + totalCargo > newPlayerStats.maxCargo) return prev;
+
                 newPlayerStats.netWorth -= totalCost;
 
                 if (inventoryItem) {
@@ -62,19 +54,15 @@ export function useMarket(
                     newInventory.push({ name: itemName, owned: amount });
                 }
                 
-                // Update market
                 newMarketItem.supply -= amount;
                 newMarketItem.demand += Math.round(amount * 0.1);
 
             } else { // sell
-                if (!inventoryItem || inventoryItem.owned < amount) {
-                    setTimeout(() => toast({ variant: "destructive", title: "Transaction Failed", description: "Not enough items to sell." }), 0);
-                    return prev;
-                }
+                if (!inventoryItem || inventoryItem.owned < amount) return prev;
+
                 newPlayerStats.netWorth += marketItem.currentPrice * amount;
                 newInventory[inventoryItemIndex] = { ...inventoryItem, owned: inventoryItem.owned - amount };
 
-                // Update market
                 newMarketItem.supply += amount;
                 newMarketItem.demand = Math.max(1, newMarketItem.demand - Math.round(amount * 0.1));
             }
@@ -105,7 +93,7 @@ export function useMarket(
 
             return { ...prev, playerStats: newPlayerStats, inventory: updatedInventory, marketItems: newMarketItems };
         });
-    }, [setGameState, toast]);
+    }, [setGameState]);
 
     const handleInitiateTrade = (itemName: string, type: 'buy' | 'sell') => {
         if (!gameState) return;
