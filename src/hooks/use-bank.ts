@@ -275,7 +275,29 @@ export function useBank(
     });
   }, [setGameState, toast, bankData]);
   
-  const handleAcceptBankPartnerOffer = useCallback((offer: PartnershipOffer) => { /* ... */ }, []);
+  const handleAcceptBankPartnerOffer = useCallback((offer: PartnershipOffer) => {
+    setGameState(prev => {
+        if (!prev || !prev.playerStats.bankContract) return prev;
+        const contract = prev.playerStats.bankContract;
+        const newPartner = { name: offer.partnerName, percentage: offer.stakePercentage, investment: offer.cashOffer };
+        const updatedPartners = [...(contract.partners || []), newPartner];
+        const totalPartnerShare = updatedPartners.reduce((acc, p) => acc + p.percentage, 0);
+
+        if (totalPartnerShare > 1) {
+             setTimeout(() => toast({ variant: "destructive", title: "Ownership Limit Reached", description: "You cannot sell more than 100% of your bank." }), 0);
+             return prev;
+        }
+
+        const newPlayerStats = { 
+            ...prev.playerStats, 
+            netWorth: prev.playerStats.netWorth + offer.cashOffer,
+            bankContract: { ...contract, partners: updatedPartners }
+        };
+        
+        setTimeout(() => toast({ title: "Deal Struck!", description: `You sold a ${(offer.stakePercentage * 100).toFixed(0)}% stake to ${offer.partnerName} for ${offer.cashOffer.toLocaleString()}¢.` }), 0);
+        return { ...prev, playerStats: newPlayerStats };
+    });
+  }, [setGameState, toast]);
   
   const handleFloatShare = useCallback((name: string, price: number) => {
     if (!name || price <= 0) {
