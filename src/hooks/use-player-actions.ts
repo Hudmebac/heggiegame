@@ -507,6 +507,18 @@ export function usePlayerActions(
                 playerStats: {
                     ...prev.playerStats,
                     netWorth: prev.playerStats.netWorth - cost,
+                    events: [
+                        ...prev.playerStats.events,
+                        {
+                            id: `evt_${Date.now()}_career_change`,
+                            timestamp: Date.now(),
+                            type: 'Career',
+                            description: `Changed career to ${newCareer}.`,
+                            value: -cost,
+                            reputationChange: 0,
+                            isMilestone: true,
+                        },
+                    ],
                 }
             };
 

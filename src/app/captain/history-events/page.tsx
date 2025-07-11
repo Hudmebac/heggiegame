@@ -96,8 +96,8 @@ export default function HistoryEventsPage() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <NetWorthChart events={filteredEvents} />
-                <ReputationChart events={filteredEvents} initialReputation={0} />
+                <NetWorthChart events={ALL_EVENTS} />
+                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
 
             <Card className="bg-card/50">
@@ -131,6 +131,14 @@ export default function HistoryEventsPage() {
                                                                 <span>&bull;</span>
                                                                 <span className={event.value > 0 ? 'text-green-400' : 'text-destructive'}>
                                                                     {event.value > 0 ? '+' : ''}{event.value.toLocaleString()}¢
+                                                                </span>
+                                                                </>
+                                                            )}
+                                                            {event.reputationChange != 0 && event.reputationChange != null && (
+                                                                <>
+                                                                <span>&bull;</span>
+                                                                <span className={event.reputationChange > 0 ? 'text-sky-400' : 'text-orange-400'}>
+                                                                    {event.reputationChange > 0 ? '+' : ''}{event.reputationChange} Rep
                                                                 </span>
                                                                 </>
                                                             )}
