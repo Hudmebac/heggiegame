@@ -50,7 +50,7 @@ export default function NetWorthChart({ events, startingNetWorth }: NetWorthChar
                     <TrendingUp className="text-primary"/>
                     Net Worth Trajectory
                 </CardTitle>
-                <CardDescription>An overview of your financial journey over time.</CardDescription>
+                <CardDescription>Trajectory based on major events and transactions.</CardDescription>
             </CardHeader>
             <CardContent>
                 {displayData.length > 1 ? (
@@ -66,7 +66,7 @@ export default function NetWorthChart({ events, startingNetWorth }: NetWorthChar
                                 return (
                                 <div className="p-2 rounded-lg border bg-background/90 backdrop-blur-sm text-xs shadow-md">
                                     <p className="font-bold text-primary">{payload[0].payload.date}</p>
-                                    <p>Net Worth: <span className="font-mono">{payload[0].value?.toLocaleString()}¢</span></p>
+                                    <p>Event Value: <span className="font-mono">{payload[0].value?.toLocaleString()}¢</span></p>
                                     <p className="text-muted-foreground mt-1 max-w-xs">{payload[0].payload.label}</p>
                                 </div>
                                 );
