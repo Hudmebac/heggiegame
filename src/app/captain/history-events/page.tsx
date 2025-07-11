@@ -3,16 +3,15 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ScrollText, Hourglass, Star, Filter, Coins } from "lucide-react";
+import { ScrollText, Hourglass, Star, Filter } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { format, formatRelative, subDays } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
-import ValueHistoryChart from "@/app/components/value-history-chart";
 import ReputationChart from "@/app/components/reputation-chart";
 import HistorySummary from '@/app/components/history-summary';
+import AssetOverviewChart from '@/app/components/asset-overview-chart';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from '@/lib/utils';
 import { useGame } from '@/app/components/game-provider';
 import { EventIconMap } from '@/lib/events';
 import { CAREER_DATA } from '@/lib/careers';
@@ -113,14 +112,8 @@ export default function HistoryEventsPage() {
                 currentNetWorth={gameState.playerStats.netWorth}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ValueHistoryChart
-                    history={gameState.playerStats.cashInHandHistory || [startingNetWorth]}
-                    initialValue={startingNetWorth}
-                    title="Cash on Hand"
-                    description="Your liquid assets over time."
-                    icon={Coins}
-                />
+            <div className="grid grid-cols-1 gap-6">
+                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
                 <ReputationChart events={ALL_EVENTS} initialReputation={0} />
             </div>
 

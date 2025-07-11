@@ -18,6 +18,17 @@ export interface GameEvent {
   reputationChange?: number;
 }
 
+export interface AssetSnapshot {
+  timestamp: number;
+  totalNetWorth: number;
+  cash: number;
+  bankBalance: number;
+  fleetValue: number;
+  cargoValue: number;
+  realEstateValue: number;
+}
+
+
 export interface StaticItem {
   category: ItemCategory;
   name: string;
@@ -230,6 +241,7 @@ export interface PlayerStats {
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
   events: GameEvent[];
+  assetHistory: AssetSnapshot[];
   usedPromoCodes: string[];
   negotiationCooldowns: Record<string, number>;
   lastFacebookShare?: number;
