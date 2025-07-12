@@ -15,8 +15,7 @@ import ShipOutfittingDialog from '../components/ship-outfitting-dialog';
 import { useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { cargoUpgrades, hullUpgrades, weaponUpgrades, droneUpgrades, fuelUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, hullUpgrades, weaponUpgrades, droneUpgrades, fuelUpgrades, shieldUpgrades, advancedUpgrades } from '@/lib/upgrades';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -24,6 +23,12 @@ const riskColorMap = {
     'High': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
 };
+
+const missionTypeIcons: Record<string, React.ElementType> = {
+    'VIP Escort': ShieldCheck,
+    'Cargo Convoy': Truck,
+    'Data Runner': FileText,
+}
 
 const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: PlayerShip, onRename: (id: number, newName: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [newName, setNewName] = useState(ship.name);
@@ -54,21 +59,22 @@ const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: Play
 };
 
 interface FleetStatusProps {
-    fleet: PlayerShip[];
-    activeContracts: any[];
+    game: ReturnType<typeof useGame>;
     onOutfit: (instanceId: number) => void;
-    onRepair: (instanceId: number) => void;
-    onRefuel: (instanceId: number) => void;
     onRenameShip: (instanceId: number, newName: string) => void;
 }
 
-const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onRenameShip }: FleetStatusProps) => {
-    const { gameState } = useGame();
+const FleetStatus = ({ game, onOutfit, onRenameShip }: FleetStatusProps) => {
     const [renamingShip, setRenamingShip] = useState<PlayerShip | null>(null);
-    const assignedShipIds = new Set(activeContracts.map(m => m.assignedShipInstanceId));
-    
+    const { gameState, handleRepairFleetShip, handleRefuelFleetShip } = game;
+
     if (!gameState) return null;
 
+    const { playerStats } = gameState;
+    const { fleet, tradeContracts } = playerStats;
+    const activeContracts = tradeContracts.filter(c => c.status === 'Active');
+    const assignedShipIds = new Set(activeContracts.map(m => m.assignedShipInstanceId));
+    
     return (
         <>
             <Card>
@@ -87,14 +93,14 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onR
                         const hullUpgrade = hullUpgrades[ship.hullLevel - 1];
                         const maxHealth = hullUpgrade?.health || 100;
                         const shipDamage = maxHealth - ship.health;
-                        const shipRepairCost = Math.round(shipDamage * (gameState.playerStats.insurance.ship ? 25 : 50));
-                        const canAffordShipRepair = gameState.playerStats.netWorth >= shipRepairCost;
+                        const shipRepairCost = Math.round(shipDamage * (playerStats.insurance.ship ? 25 : 50));
+                        const canAffordShipRepair = playerStats.netWorth >= shipRepairCost;
 
                         const fuelUpgrade = fuelUpgrades[ship.fuelLevel - 1];
                         const maxFuel = fuelUpgrade?.capacity || 100;
                         const fuelNeeded = maxFuel - (ship.fuel || 0);
                         const shipRefuelCost = Math.round(fuelNeeded * 2);
-                        const canAffordRefuel = gameState.playerStats.netWorth >= shipRefuelCost;
+                        const canAffordRefuel = playerStats.netWorth >= shipRefuelCost;
                         const cargoInfo = cargoUpgrades[ship.cargoLevel - 1];
 
                         return (
@@ -132,8 +138,8 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onR
                                     <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                         <Wrench className="mr-2" /> Outfit
                                     </Button>
-                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
-                                    <Button size="sm" variant="secondary" onClick={() => onRefuel(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => handleRefuelFleetShip(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
                                 </div>
                             </div>
                         )
@@ -168,7 +174,7 @@ const checkRequirements = (ship: PlayerShip, contract: TradeRouteContract): { me
     if (contract.requiredAdvancedSystems) {
         for (const sysId of contract.requiredAdvancedSystems) {
             if (!ship[sysId]) {
-                 const sysName = sysId.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                 const sysName = advancedUpgrades.find(u => u.id === sysId)?.name || sysId;
                 reasons.push(`Requires ${sysName} module.`);
             }
         }
@@ -179,7 +185,8 @@ const checkRequirements = (ship: PlayerShip, contract: TradeRouteContract): { me
 
 
 export default function HaulerPage() {
-    const { gameState, handleGenerateContracts, handleAcceptContract, handleRepairFleetShip, handleRefuelFleetShip, handleRenameShip, isGeneratingContracts } = useGame();
+    const game = useGame();
+    const { gameState, handleGenerateContracts, handleAcceptContract, handleRenameShip, isGeneratingContracts } = game;
     const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
     if (!gameState) return null;
@@ -234,11 +241,8 @@ export default function HaulerPage() {
             </Card>
             
             <FleetStatus 
-                fleet={playerStats.fleet} 
-                activeContracts={activeContracts} 
+                game={game}
                 onOutfit={setOutfittingShipId}
-                onRepair={handleRepairFleetShip}
-                onRefuel={handleRefuelFleetShip}
                 onRenameShip={handleRenameShip}
             />
 
@@ -319,7 +323,7 @@ export default function HaulerPage() {
                                         {contract.minWeaponLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minWeaponLevel}+ Weapons</span>}
                                         {contract.minHullLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minHullLevel}+ Hull</span>}
                                         {contract.minDroneLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minDroneLevel}+ Drones</span>}
-                                        {contract.requiredAdvancedSystems && contract.requiredAdvancedSystems.map(sys => <span key={sys} className="flex items-center gap-1"><CheckCircle/> {sys.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>)}
+                                        {contract.requiredAdvancedSystems && contract.requiredAdvancedSystems.map(sys => <span key={sys} className="flex items-center gap-1"><CheckCircle/> {advancedUpgrades.find(u => u.id === sys)?.name || sys}</span>)}
                                     </div>
                                 </CardHeader>
                                 <CardContent className="flex justify-between items-center">
