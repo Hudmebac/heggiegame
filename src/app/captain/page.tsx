@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
 import CooldownTimer from '@/app/components/cooldown-timer';
+import AssetOverviewChartCompact from '../components/asset-overview-chart-compact';
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -214,6 +215,15 @@ function PlayerProfile() {
                         </Link>
                     </Button>
                 </div>
+
+                <div className="pt-4 border-t border-border/50">
+                    <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-muted-foreground">
+                        <TrendingUp className="h-4 w-4"/>
+                        Asset Overview
+                    </div>
+                    <AssetOverviewChartCompact assetHistory={playerStats.assetHistory || []} />
+                </div>
+
             </CardContent>
              <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
                 <DialogContent className="max-w-3xl">
