@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useState } from 'react';
@@ -9,8 +10,9 @@ import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart,
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { formatCompactNumber } from '@/lib/utils';
 
-interface AssetOverviewChartProps {
+interface AssetOverviewChartCompactProps {
   assetHistory: AssetSnapshot[];
 }
 
@@ -26,7 +28,7 @@ const chartConfig = {
 
 type ActiveKeys = keyof typeof chartConfig;
 
-export default function AssetOverviewChartCompact({ assetHistory }: AssetOverviewChartProps) {
+export default function AssetOverviewChartCompact({ assetHistory }: AssetOverviewChartCompactProps) {
     const [activeKeys, setActiveKeys] = useState<ActiveKeys[]>(['totalNetWorth']);
     const allKeys = Object.keys(chartConfig) as ActiveKeys[];
 
@@ -55,7 +57,7 @@ export default function AssetOverviewChartCompact({ assetHistory }: AssetOvervie
         <div className="space-y-4">
             <div className="h-[200px] w-full">
                 <ChartContainer config={chartConfig}>
-                    <AreaChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                    <AreaChart data={chartData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                         <defs>
                             {(Object.keys(chartConfig) as ActiveKeys[]).map(key => (
                                 <linearGradient key={key} id={`color-compact-${key}`} x1="0" y1="0" x2="0" y2="1">
@@ -65,7 +67,7 @@ export default function AssetOverviewChartCompact({ assetHistory }: AssetOvervie
                             ))}
                         </defs>
                         <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `${Number(value) / 1000000}M`} />
+                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatCompactNumber(Number(value))}`} />
                         <ChartTooltip
                             cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
                             content={<ChartTooltipContent indicator="dot" />}
@@ -124,3 +126,4 @@ export default function AssetOverviewChartCompact({ assetHistory }: AssetOvervie
         </div>
     );
 }
+

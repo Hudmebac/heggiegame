@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -91,6 +92,13 @@ export default function HistoryEventsPage() {
                 currentNetWorth={gameState.playerStats.netWorth}
             />
 
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
+                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
+                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
+                <CargoValueChart valueHistory={gameState.playerStats.cargoValueHistory || []} />
+            </div>
+
             <Card className="bg-card/50">
                 <CardHeader>
                     <CardTitle className="font-headline text-lg">Event Log</CardTitle>
@@ -120,7 +128,7 @@ export default function HistoryEventsPage() {
                     {Object.keys(groupedEvents).length > 0 ? (
                         <Accordion type="single" collapsible defaultValue={Object.keys(groupedEvents)[0]}>
                             {Object.entries(groupedEvents).map(([date, events]) => (
-                                <AccordionItem key={date} value={date}>
+                                <AccordionItem key={date} value={date} className='border-b'>
                                     <AccordionTrigger>
                                         <div className="text-left">
                                             <p className="font-semibold">{format(new Date(date), 'MMMM do, yyyy')}</p>
@@ -175,13 +183,7 @@ export default function HistoryEventsPage() {
                     )}
                 </CardContent>
             </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <CashFlowChart cashHistory={gameState.playerStats.cashInHandHistory || []} initialCash={startingNetWorth} />
-                <AssetOverviewChart assetHistory={gameState.playerStats.assetHistory || []} />
-                <ReputationChart events={ALL_EVENTS} initialReputation={0} />
-                <CargoValueChart valueHistory={gameState.playerStats.cargoValueHistory || []} />
-            </div>
         </div>
     );
 }
+

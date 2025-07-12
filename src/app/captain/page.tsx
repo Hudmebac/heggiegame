@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, Bot, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -31,9 +31,11 @@ import { AVATARS } from '@/lib/avatars';
 import ShareProgressDialog from '@/app/components/share-progress-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
 import CooldownTimer from '@/app/components/cooldown-timer';
-import AssetOverviewChartCompact from '../components/asset-overview-chart-compact';
+import AssetOverviewChart from '../components/asset-overview-chart';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
+
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
     Outcast: { label: 'Outcast', color: 'text-destructive', progressColor: 'from-red-600 to-destructive' },
@@ -114,9 +116,12 @@ function PlayerProfile() {
 
     const whatsAppExpiry = (playerStats.lastWhatsappShare || 0) + whatsAppCooldown;
     const isWhatsAppOnCooldown = now < whatsAppExpiry;
+    
+    const careerData = CAREER_DATA.find(c => c.id === gameState.playerStats.career);
+    const startingNetWorth = careerData?.startingNetWorth || 50000;
 
     return (
-        <Card className="h-full">
+        <Card className="h-full flex flex-col">
             <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -145,11 +150,11 @@ function PlayerProfile() {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 flex-grow flex flex-col">
                  <div className="p-4 bg-background/50 rounded-lg space-y-2">
                     {isEditingBio ? (
                         <div className="space-y-2">
-                            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="min-h-[7rem]" />
+                            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="min-h-0" />
                             <div className="flex justify-end gap-2">
                                 <Button variant="ghost" size="sm" onClick={() => setIsEditingBio(false)}>Cancel</Button>
                                 <Button size="sm" onClick={handleGenerateNewBioInEdit} disabled={isGeneratingBio}>
@@ -166,12 +171,12 @@ function PlayerProfile() {
                                     <PenSquare className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <p className="text-sm text-muted-foreground italic min-h-[7rem]">{playerStats.bio}</p>
+                            <p className="text-sm text-muted-foreground italic">{playerStats.bio}</p>
                         </div>
                     )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                     <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
+                    <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
                         <Share2 className="mr-2" /> Sync
                     </Button>
                      <AlertDialog>
@@ -227,12 +232,8 @@ function PlayerProfile() {
                     </Button>
                 </div>
 
-                <div className="pt-4 border-t border-border/50">
-                    <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-muted-foreground">
-                        <TrendingUp className="h-4 w-4"/>
-                        Asset Overview
-                    </div>
-                    <AssetOverviewChartCompact assetHistory={playerStats.assetHistory || []} />
+                <div className="pt-4 border-t border-border/50 flex-grow flex flex-col">
+                    <AssetOverviewChart assetHistory={playerStats.assetHistory || []} />
                 </div>
 
             </CardContent>
@@ -352,14 +353,13 @@ export default function CaptainPage() {
     },
   };
 
-
   return (
     <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-            <div className="xl:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div>
                 <PlayerProfile />
             </div>
-            <div className="space-y-6 xl:col-span-2">
+            <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
@@ -417,7 +417,7 @@ export default function CaptainPage() {
                             Reputation
                         </CardTitle>
                         <CardDescription>
-                            Your standing is influenced by successful trades, completing missions, and your business dealings. A higher reputation unlocks better opportunities.
+                            Your standing influences mission availability and rewards.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -435,34 +435,6 @@ export default function CaptainPage() {
                         </div>
                     </CardContent>
                 </Card>
-                 {careerInfo && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                {CareerIcon && <CareerIcon className="text-primary" />}
-                                Career: {careerInfo.name}
-                            </CardTitle>
-                            <CardDescription>{careerInfo.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <div>
-                                <h4 className="font-semibold text-sm">Perks:</h4>
-                                <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                    {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
-                                </ul>
-                            </div>
-                            <div>
-                                <h4 className="font-semibold text-sm">Risks:</h4>
-                                <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                    {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
-                                </ul>
-                            </div>
-                             <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
-                        </CardContent>
-                    </Card>
-                )}
-            </div>
-            <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -498,26 +470,54 @@ export default function CaptainPage() {
                 </Card>
             </div>
             <div className="lg:col-span-2">
-                 <Card>
-                    <CardHeader>
+                <Accordion type="single" collapsible className="space-y-6">
+                 {careerInfo && (
+                    <Card as={AccordionItem} value="career">
+                        <AccordionTrigger className="p-6">
+                            <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                {CareerIcon && <CareerIcon className="text-primary" />}
+                                Career: {careerInfo.name}
+                            </CardTitle>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6">
+                            <CardDescription className="mb-4">{careerInfo.description}</CardDescription>
+                            <div className="space-y-2">
+                                <div>
+                                    <h4 className="font-semibold text-sm">Perks:</h4>
+                                    <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                        {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-sm">Risks:</h4>
+                                    <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                        {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                                    </ul>
+                                </div>
+                                <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
+                            </div>
+                        </AccordionContent>
+                    </Card>
+                 )}
+                 <Card as={AccordionItem} value="insurance">
+                    <AccordionTrigger className="p-6">
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
                             <Shield className="text-primary"/>
                             Insurance Policies
                         </CardTitle>
-                        <CardDescription>
-                            Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {Object.values(insurancePolicies).map(policy => (
-                            <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
-                               <div className="flex items-start gap-3">
-                                    <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
-                                    <div>
-                                        <h4 className="font-semibold">{policy.name}</h4>
-                                        <p className="text-xs text-muted-foreground">{policy.description}</p>
-                                    </div>
-                               </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6">
+                        <CardDescription className="mb-4">Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.</CardDescription>
+                        <div className="space-y-4">
+                            {Object.values(insurancePolicies).map(policy => (
+                                <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
+                                <div className="flex items-start gap-3">
+                                        <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
+                                        <div>
+                                            <h4 className="font-semibold">{policy.name}</h4>
+                                            <p className="text-xs text-muted-foreground">{policy.description}</p>
+                                        </div>
+                                </div>
                                 {playerStats.insurance[policy.type] ? (
                                     <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
                                 ) : (
@@ -525,23 +525,20 @@ export default function CaptainPage() {
                                         Purchase ({policy.cost.toLocaleString()}¢)
                                     </Button>
                                 )}
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="xl:col-span-4">
-                <Card>
-                    <CardHeader>
+                                </div>
+                            ))}
+                        </div>
+                    </AccordionContent>
+                 </Card>
+                 <Card as={AccordionItem} value="portfolio">
+                    <AccordionTrigger className="p-6">
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
                             <Briefcase className="text-primary"/>
                             Business Portfolio
                         </CardTitle>
-                        <CardDescription>
-                            Overview of your income-generating assets across the galaxy.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
+                    </AccordionTrigger>
+                    <AccordionContent className="p-0 pb-6">
+                        <CardDescription className="px-6 mb-4">Overview of your income-generating assets across the galaxy.</CardDescription>
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
@@ -573,8 +570,9 @@ export default function CaptainPage() {
                                 </TableFooter>
                             </Table>
                         </div>
-                    </CardContent>
-                </Card>
+                    </AccordionContent>
+                 </Card>
+                </Accordion>
             </div>
         </div>
         <ChangeCareerDialog isOpen={isCareerChangeOpen} onOpenChange={setIsCareerChangeOpen} />
@@ -582,3 +580,4 @@ export default function CaptainPage() {
     </div>
   );
 }
+
