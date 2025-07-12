@@ -369,24 +369,30 @@ export function usePlayerActions(
                 
                 let stateChanged = false;
                 const newFleet = prev.playerStats.fleet.map(ship => {
-                    if (ship.status === 'upgrading' && ship.upgradeStartTime && ship.upgradeDuration && ship.upgradingComponent) {
-                        if (Date.now() > ship.upgradeStartTime + ship.upgradeDuration) {
+                    const newShip = {...ship}; // Create a mutable copy
+                    if (newShip.status === 'upgrading' && newShip.upgradeStartTime && newShip.upgradeDuration && newShip.upgradingComponent) {
+                        if (Date.now() > newShip.upgradeStartTime + newShip.upgradeDuration) {
                             stateChanged = true;
-                            const upgradeType = ship.upgradingComponent;
+                            const upgradeType = newShip.upgradingComponent;
                             const levelKey = `${upgradeType}Level` as keyof PlayerShip;
-                            (ship as any)[levelKey] += 1;
-                            ship.status = 'operational';
-                            ship.upgradeStartTime = undefined;
-                            ship.upgradeDuration = undefined;
-                            ship.upgradingComponent = undefined;
+                            
+                            const currentLevel = (newShip as any)[levelKey] as number;
+                            (newShip as any)[levelKey] = currentLevel + 1;
+                            
+                            newShip.status = 'operational';
+                            newShip.upgradeStartTime = undefined;
+                            newShip.upgradeDuration = undefined;
+                            newShip.upgradingComponent = undefined;
 
+                            const newLevelForToast = (newShip as any)[levelKey];
+                            
                             setTimeout(() => toast({
                                 title: "Upgrade Complete!",
-                                description: `Your ${ship.name}'s ${upgradeType} is now Mk. ${(ship as any)[levelKey]}.`
+                                description: `Your ${newShip.name}'s ${upgradeType} is now Mk. ${newLevelForToast}.`
                             }), 0);
                         }
                     }
-                    return ship;
+                    return newShip;
                 });
 
                 if (stateChanged) {
