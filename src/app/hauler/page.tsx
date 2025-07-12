@@ -113,8 +113,10 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                                     </div>
                                     {isAssigned ? (
                                         <Badge variant="outline" className="text-amber-400 border-amber-500/30">On Contract</Badge>
-                                    ) : ship.status === 'upgrading' ? (
-                                        <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">Upgrading...</Badge>
+                                    ) : ship.status === 'upgrading' && ship.upgradeStartTime && ship.upgradeDuration ? (
+                                        <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">
+                                            <CooldownTimer expiry={ship.upgradeStartTime + ship.upgradeDuration} />
+                                        </Badge>
                                     ) : ship.status === 'repair_needed' ? (
                                         <Badge variant="destructive">Repair Needed</Badge>
                                     ) : (

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -12,6 +13,7 @@ import {
     Handshake, GitCommit, Crosshair
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 
 interface ShipOutfittingDialogProps {
@@ -75,6 +77,8 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     const currentUpgrade = upgrades[level - 1];
     const nextUpgrade = level < upgrades.length ? upgrades[level] : null;
 
+    const isUpgradingThis = ship.status === 'upgrading' && ship.upgradingComponent === type;
+
     if (!currentUpgrade) {
         return null;
     }
@@ -95,8 +99,16 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
         </div>
         
         <div className="flex items-center gap-2 md:justify-end md:col-span-1">
-          {level > 1 && <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)}>Sell ({refund.toLocaleString()}¢)</Button>}
-          {nextUpgrade ? <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford}>{`Upgrade (${cost.toLocaleString()}¢)`}</Button> : <Button size="sm" disabled>Max</Button>}
+          {level > 1 && <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)} disabled={ship.status !== 'operational'}>Sell ({refund.toLocaleString()}¢)</Button>}
+          {isUpgradingThis && ship.upgradeStartTime && ship.upgradeDuration ? (
+            <div className="text-xs font-mono text-cyan-400 h-9 px-3 flex items-center">
+                <CooldownTimer expiry={ship.upgradeStartTime + ship.upgradeDuration} />
+            </div>
+          ) : nextUpgrade ? (
+            <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford || ship.status !== 'operational'}>{`Upgrade (${cost.toLocaleString()}¢)`}</Button>
+          ) : (
+            <Button size="sm" disabled>Max</Button>
+          )}
         </div>
       </div>
     );
