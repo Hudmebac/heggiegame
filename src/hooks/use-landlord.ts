@@ -55,12 +55,22 @@ export function useLandlord(
             
             setTimeout(() => toast({ title: 'Property Acquisition Started!', description: `Finalizing purchase of new ${type} property. ETA: 10 seconds.` }), 0);
 
+            const newEvent = {
+                id: `evt_prop_purchase_${Date.now()}`,
+                timestamp: Date.now(),
+                type: 'Purchase' as const,
+                description: `Purchased a new ${type} property in ${prev.currentSystem}.`,
+                value: -cost,
+                isMilestone: true,
+            };
+
             return {
                 ...prev,
                 playerStats: {
                     ...prev.playerStats,
                     netWorth: prev.playerStats.netWorth - cost,
                     properties: [...prev.playerStats.properties, newProperty],
+                    events: [...prev.playerStats.events, newEvent],
                 }
             };
         });
@@ -111,12 +121,22 @@ export function useLandlord(
             
             setTimeout(() => toast({ title: `Upgrading ${property.name}`, description: `ETA: 20 seconds.` }), 0);
 
+            const newEvent = {
+                id: `evt_prop_upgrade_${Date.now()}`,
+                timestamp: Date.now(),
+                type: 'Upgrade' as const,
+                description: `Upgraded "${property.name}" to Level ${currentLevel + 1}.`,
+                value: -cost,
+                isMilestone: false,
+            };
+
             return {
                 ...prev,
                 playerStats: {
                     ...prev.playerStats,
                     netWorth: prev.playerStats.netWorth - cost,
                     properties: newProperties,
+                    events: [...prev.playerStats.events, newEvent],
                 }
             };
         });

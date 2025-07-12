@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, Lease } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, PropertyType, Lease } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
+import { propertyUpgrades } from '@/lib/property-upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -13,7 +14,7 @@ import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { INITIAL_STOCKS } from '@/lib/stocks';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, RARITY_SUPPLY_RANGES, syncActiveShipStats } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, RARITY_SUPPLY_RANGES } from '@/lib/utils';
 import pako from 'pako';
 
 const formatStardate = (date: Date): string => {
@@ -108,7 +109,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
 const logAssetSnapshot = (playerStats: PlayerStats): PlayerStats => {
     const fleetValue = playerStats.fleet.reduce((acc, ship) => acc + calculateShipValue(ship), 0);
     const cargoValue = calculateCargoValue(playerStats.inventory, []); // Pass empty array as market items are not available here
-    const realEstateValue = 
+    const businessValue = 
         (playerStats.barContract?.currentMarketValue || 0) +
         (playerStats.residenceContract?.currentMarketValue || 0) +
         (playerStats.commerceContract?.currentMarketValue || 0) +
@@ -116,6 +117,26 @@ const logAssetSnapshot = (playerStats: PlayerStats): PlayerStats => {
         (playerStats.constructionContract?.currentMarketValue || 0) +
         (playerStats.recreationContract?.currentMarketValue || 0) +
         (playerStats.bankContract?.currentMarketValue || 0);
+
+    const propertyValue = playerStats.properties.reduce((acc, prop) => {
+        let value = 0;
+        const upgradeKey = `${prop.type.toLowerCase()}Level` as keyof Property;
+        const currentLevel = (prop[upgradeKey] as number) || 0;
+        const upgradeData = propertyUpgrades[prop.type.toLowerCase() as keyof typeof propertyUpgrades];
+        
+        if (upgradeData && currentLevel > 0) {
+            value += upgradeData.upgrades[currentLevel-1].cost;
+        }
+
+        const costMap: Record<PropertyType, number> = {
+            'Residential': 250000, 'Commercial': 1000000, 'Industrial': 1750000, 'Recreational': 2250000, 'Military': 5000000,
+        };
+        value += costMap[prop.type];
+        
+        return acc + value;
+    }, 0);
+    
+    const realEstateValue = businessValue + propertyValue;
 
     const sharePortfolioValue = playerStats.portfolio.reduce((acc, holding) => {
         const currentStock = playerStats.stocks.find(s => s.id === holding.id);
@@ -372,7 +393,6 @@ export function useGameState() {
                 }
 
                 mergedPlayerStats.inventory = savedProgress.inventory || initialGameState.inventory;
-                mergedPlayerStats = syncActiveShipStats(mergedPlayerStats as PlayerStats);
                 mergedPlayerStats.cargo = calculateCurrentCargo(mergedPlayerStats.inventory);
 
                 setGameState({
@@ -511,17 +531,25 @@ export function useGameState() {
                     }
 
                     const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                    const intervalsSinceLastRent = timeSinceLastRent / (2 * 60 * 1000); // 2 minutes interval
+                    const intervalsSinceLastRent = timeSinceLastRent / (10 * 60 * 1000); // 10 minutes interval
                     
                     if (intervalsSinceLastRent >= 1) {
                         const intervalsToPay = Math.floor(intervalsSinceLastRent);
                         const rentToCollect = intervalsToPay * lease.rent;
 
                         newPlayerStats.netWorth += rentToCollect;
-                        toastsToFire.push({ title: "Rent Collected", description: `Collected ${rentToCollect.toLocaleString()}¢ from ${lease.tenantName}.` });
+                        newPlayerStats.events.push({
+                            id: `evt_rent_${Date.now()}`,
+                            timestamp: Date.now(),
+                            type: 'Lease',
+                            description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
+                            value: rentToCollect,
+                            isMilestone: false,
+                        });
+
                         stateChanged = true;
                         
-                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 2 * 60 * 1000 };
+                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 10 * 60 * 1000 };
                     }
 
                     return lease;
