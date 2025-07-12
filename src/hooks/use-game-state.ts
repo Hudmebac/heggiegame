@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
@@ -55,6 +53,8 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     fleet: [initialShip],
     properties: [],
     leases: [],
+    availableLeases: [],
+    activeLeases: [],
     barLevel: 1, autoClickerBots: 0, establishmentLevel: 0,
     residenceLevel: 1, residenceAutoClickerBots: 0, residenceEstablishmentLevel: 0,
     commerceLevel: 1, commerceAutoClickerBots: 0, commerceEstablishmentLevel: 0,
@@ -198,7 +198,8 @@ export function useGameState() {
                         taxiMissions: [],
                         warehouses: [],
                         properties: [],
-                        leases: [],
+                        activeLeases: [],
+                        availableLeases: [],
                         militaryMissions: [],
                         diplomaticMissions: [],
                         usedPromoCodes: [],
@@ -345,7 +346,8 @@ export function useGameState() {
                     portfolio: savedProgress.playerStats.portfolio || [],
                     stocks: savedProgress.playerStats.stocks || INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
                     properties: savedProgress.playerStats.properties || [],
-                    leases: savedProgress.playerStats.leases || [],
+                    activeLeases: savedProgress.playerStats.activeLeases || [],
+                    availableLeases: savedProgress.playerStats.availableLeases || [],
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
@@ -419,7 +421,7 @@ export function useGameState() {
                 let stateChanged = false;
                 let bankruptcyTriggered = false;
                 const now = Date.now();
-                let toastToFire: { variant?: "default" | "destructive", title: string, description: string } | null = null;
+                let toastsToFire: { variant?: "default" | "destructive", title: string, description: string }[] = [];
     
                 if (newPlayerStats.loan && now > newPlayerStats.loan.nextDueDate) {
                     stateChanged = true;
@@ -429,10 +431,10 @@ export function useGameState() {
                     
                     if (newPlayerStats.loan.repaymentsMade >= newPlayerStats.loan.totalRepayments) {
                         newPlayerStats.loan = undefined;
-                        toastToFire = { title: "Loan Cleared", description: "Your loan has been cleared, though the final payment was made from debt." };
+                        toastsToFire.push({ title: "Loan Cleared", description: "Your loan has been cleared, though the final payment was made from debt." });
                     } else {
                         newPlayerStats.loan.nextDueDate = now + 5 * 60 * 1000;
-                        toastToFire = { variant: "destructive", title: "Loan Payment Missed", description: `Your payment of ${loan.repaymentAmount.toLocaleString()}¢ has been added to your debt.` };
+                        toastsToFire.push({ variant: "destructive", title: "Loan Payment Missed", description: `Your payment of ${loan.repaymentAmount.toLocaleString()}¢ has been added to your debt.` });
                     }
                 }
     
@@ -441,7 +443,7 @@ export function useGameState() {
                     const cc = newPlayerStats.creditCard;
                     if (cc.balance > 0) {
                         newPlayerStats.debt = (newPlayerStats.debt || 0) + cc.balance;
-                        toastToFire = { variant: "destructive", title: "Credit Card Payment Overdue", description: `Your outstanding balance of ${cc.balance.toLocaleString()}¢ has been moved to your general debt.` };
+                        toastsToFire.push({ variant: "destructive", title: "Credit Card Payment Overdue", description: `Your outstanding balance of ${cc.balance.toLocaleString()}¢ has been moved to your general debt.` });
                     }
                     newPlayerStats.creditCard = undefined;
                 }
@@ -449,7 +451,7 @@ export function useGameState() {
                 if (newPlayerStats.debt > 100000) {
                     stateChanged = true;
                     bankruptcyTriggered = true;
-                    toastToFire = { variant: "destructive", title: "Bankruptcy!", description: "Your overwhelming debt has forced you into bankruptcy. Game Over." };
+                    toastsToFire.push({ variant: "destructive", title: "Bankruptcy!", description: "Your overwhelming debt has forced you into bankruptcy. Game Over." });
                 }
                 
                 const newStocks: Stock[] = newPlayerStats.stocks.map(stock => {
@@ -472,27 +474,52 @@ export function useGameState() {
                 }
 
                 // Handle property upgrades/purchases
-                const newProperties = newPlayerStats.properties.map(prop => {
+                let newProperties = [...newPlayerStats.properties];
+                newProperties = newProperties.map(prop => {
                     if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
                         stateChanged = true;
                         const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
                         if(prop.upgradingComponent === 'Purchase') {
                             const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
                             (newProp as any)[upgradeKey] = 1;
-                            setTimeout(() => toast({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` }), 0);
+                            toastsToFire.push({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` });
                         } else {
                              const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
                              (newProp as any)[upgradeKey] = (newProp[upgradeKey] as number) + 1;
-                             setTimeout(() => toast({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` }), 0);
+                             toastsToFire.push({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` });
                         }
                         return newProp;
                     }
                     return prop;
                 });
                 newPlayerStats.properties = newProperties;
+                
+                // Handle lease expirations
+                const activeLeases = newPlayerStats.activeLeases || [];
+                const newlyCompletedLeases: Lease[] = [];
+                const remainingActiveLeases = activeLeases.filter(lease => {
+                    if (now > lease.startTime + lease.duration * 3600 * 1000) {
+                        newlyCompletedLeases.push(lease);
+                        return false;
+                    }
+                    return true;
+                });
+
+                if (newlyCompletedLeases.length > 0) {
+                    stateChanged = true;
+                    newlyCompletedLeases.forEach(lease => {
+                        newPlayerStats.netWorth += lease.rent;
+                        toastsToFire.push({ title: "Rent Collected", description: `Collected ${lease.rent.toLocaleString()}¢ from ${lease.tenantName} at property #${lease.propertyId}.` });
+                        const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
+                        if(propIndex > -1) {
+                            newPlayerStats.properties[propIndex].status = 'Idle';
+                        }
+                    });
+                    newPlayerStats.activeLeases = remainingActiveLeases;
+                }
     
-                if (toastToFire) {
-                    setTimeout(() => toast(toastToFire!), 0);
+                if (toastsToFire.length > 0) {
+                    setTimeout(() => toastsToFire.forEach(t => toast(t)), 0);
                 }
     
                 if (bankruptcyTriggered) {
@@ -508,4 +535,3 @@ export function useGameState() {
     
     return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey };
 }
-
