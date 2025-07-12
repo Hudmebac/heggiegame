@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Rocket, PenSquare, Wrench, Fuel, HeartPulse, Recycle, ShieldCheck } from 'lucide-react';
+import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Rocket, PenSquare, Wrench, Fuel, HeartPulse, Recycle, ShieldCheck, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { hullUpgrades, fuelUpgrades } from '@/lib/upgrades';
+import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -94,6 +96,8 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                         const fuelNeeded = maxFuel - (ship.fuel || 0);
                         const shipRefuelCost = Math.round(fuelNeeded * 2);
                         const canAffordRefuel = playerStats.netWorth >= shipRefuelCost;
+                        
+                        const baseData = SHIPS_FOR_SALE.find(s => s.id === ship.shipId);
 
                         return (
                             <div key={ship.instanceId} className={cn("p-4 rounded-md border flex flex-col", isAssigned ? "bg-muted/50 border-amber-500/30" : ship.status === 'repair_needed' ? 'bg-destructive/10 border-destructive/30' : "bg-card/50", ship.status === 'destroyed' && 'bg-destructive/30 border-destructive')}>
@@ -137,6 +141,11 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                                             <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                                 <Wrench className="mr-2" /> Outfit
                                             </Button>
+                                            {baseData?.type === 'Shuttle' && (
+                                                <Button size="sm" variant="secondary" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
+                                                    <Sparkles className="mr-2"/> Taxi Upgrades
+                                                </Button>
+                                            )}
                                             <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
                                             <Button size="sm" variant="secondary" onClick={() => handleRefuelFleetShip(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
                                         </>
