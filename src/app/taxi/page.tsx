@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Rocket, PenSquare, Wrench, Fuel, HeartPulse, Recycle, ShieldCheck, Sparkles, PackageCheck } from 'lucide-react';
+import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Rocket, PenSquare, Wrench, Fuel, HeartPulse, Recycle, ShieldCheck, Sparkles, PackageCheck, Zap, FastForward, Anchor } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -16,7 +15,7 @@ import ShipOutfittingDialog from '../components/ship-outfitting-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { hullUpgrades, fuelUpgrades } from '@/lib/upgrades';
+import { hullUpgrades, fuelUpgrades, advancedUpgrades } from '@/lib/upgrades';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 const riskColorMap = {
@@ -99,6 +98,10 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                         
                         const baseData = SHIPS_FOR_SALE.find(s => s.id === ship.shipId);
 
+                        const installedAdvancedSystems = advancedUpgrades
+                            .filter(u => ship[u.id])
+                            .map(u => u.name);
+                        
                         return (
                             <div key={ship.instanceId} className={cn("p-4 rounded-md border flex flex-col", isAssigned ? "bg-muted/50 border-amber-500/30" : ship.status === 'repair_needed' ? 'bg-destructive/10 border-destructive/30' : "bg-card/50", ship.status === 'destroyed' && 'bg-destructive/30 border-destructive')}>
                                 <div className="flex justify-between items-start">
@@ -121,6 +124,15 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                                     )}
                                 </div>
                                 <div className="text-xs text-muted-foreground mt-1">{isAssigned ? `En route to ${mission?.toSystem}` : ship.status === 'upgrading' ? `Upgrading: ${ship.upgradingComponent}` : "Awaiting dispatch"}</div>
+                                
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mt-4">
+                                    <div className="flex items-center gap-1.5" title="Passenger Comfort"><Sparkles className="h-4 w-4 text-cyan-400"/> Lvl {ship.passengerComfortLevel}</div>
+                                    <div className="flex items-center gap-1.5" title="Passenger Security"><ShieldCheck className="h-4 w-4 text-orange-400"/> Lvl {ship.passengerSecurityLevel}</div>
+                                    <div className="flex items-center gap-1.5" title="Service Packs"><PackageCheck className="h-4 w-4 text-green-400"/> Lvl {ship.passengerPacksLevel}</div>
+                                    <div className="flex items-center gap-1.5" title="Power Core"><Zap className="h-4 w-4 text-yellow-400"/> Lvl {ship.powerCoreLevel}</div>
+                                    {ship.overdriveEngine && <div className="flex items-center gap-1.5" title="Overdrive Engine"><FastForward className="h-4 w-4 text-purple-400"/> OD</div>}
+                                    {ship.warpStabilizer && <div className="flex items-center gap-1.5" title="Warp Stabilizer"><Anchor className="h-4 w-4 text-purple-400"/> WS</div>}
+                                </div>
                                 
                                 <div className="space-y-2 mt-4 flex-grow">
                                     <div className="space-y-1">
