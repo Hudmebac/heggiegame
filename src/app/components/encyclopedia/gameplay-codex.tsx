@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package, Spade, Rocket, Circle, Globe, Dice5, Gem, Ticket, Trophy } from 'lucide-react';
+import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package, Spade, Rocket, Circle, Globe, Dice5, Gem, Ticket, Trophy, LandPlot } from 'lucide-react';
 
 const difficultyLevels = [
     {
@@ -58,6 +58,27 @@ export default function GameplayCodex() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground">In Hardcore mode, the stakes are as high as they get. If your ship is destroyed for any reason, your journey ends permanently. Your save file is deleted, and you must start a new game from scratch. There are no rebirths or second chances. This mode is for veteran traders who are ready to put everything on the line.</p>
+                </CardContent>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><LandPlot className="text-primary"/>Real Estate & Landlords</CardTitle>
+                    <CardDescription>Become a property magnate by buying, upgrading, and leasing out properties.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <h4 className="font-bold text-base flex items-center gap-2">Property Acquisition</h4>
+                        <p className="text-sm text-muted-foreground">Players with the Landlord career can purchase various types of properties (Residential, Commercial, etc.) from the 'Landlord' page. You can also scout the open market for properties being sold by other galactic entities, potentially finding a great deal.</p>
+                    </div>
+                     <div>
+                        <h4 className="font-bold text-base flex items-center gap-2">Upgrading & Leasing</h4>
+                        <p className="text-sm text-muted-foreground">Each property can be upgraded through multiple levels, increasing its value and its attractiveness to potential tenants. Once you own property, you can find tenants and sign lease agreements to generate a steady passive income stream.</p>
+                    </div>
+                     <div>
+                        <h4 className="font-bold text-base flex items-center gap-2">The Property Market</h4>
+                        <p className="text-sm text-muted-foreground">Instead of a simple sale, you can list your properties on the market. Set an asking price and wait for offers from various NPCs. You might get bids above or below your asking price, allowing for strategic selling and profit maximization.</p>
+                    </div>
                 </CardContent>
             </Card>
 

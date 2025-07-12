@@ -210,6 +210,32 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        title="Property Management & Real Estate"
+                        icon={LandPlot}
+                        summary="Build a real estate empire by acquiring, upgrading, leasing, and selling properties across the galaxy."
+                        link="/landlord"
+                    >
+                        <h4>Acquiring Property</h4>
+                        <p>The 'Landlord' career is your gateway to real estate. On the Landlord page, you can:</p>
+                        <ul>
+                            <li><strong>Purchase New Properties:</strong> Buy different types of properties (Residential, Commercial, Industrial, etc.) in your current system.</li>
+                            <li><strong>Scout the Market:</strong> Use the "Scout for Listings" feature to find properties being sold by NPCs. This allows you to acquire properties in various systems and potentially find a good deal.</li>
+                        </ul>
+
+                        <h4>Upgrading and Leasing</h4>
+                        <ul>
+                             <li><strong>Upgrades:</strong> Each property has a unique upgrade path. Investing in upgrades increases the property's value and makes it eligible for more lucrative lease agreements.</li>
+                             <li><strong>Finding Tenants:</strong> Use the "Find Tenants" action to generate a list of lease proposals. Each proposal will have specific requirements for property type and level.</li>
+                             <li><strong>Leases:</strong> Assign a suitable property to a lease proposal to start generating passive rent income over time.</li>
+                        </ul>
+
+                         <h4>Selling Your Properties</h4>
+                        <ul>
+                             <li><strong>Listing on the Market:</strong> Instead of a simple sale, you can list your properties on the open market. Set an asking price and wait for offers.</li>
+                             <li><strong>Managing Offers:</strong> You may receive multiple offers from different NPC buyers. These offers can be above, at, or below your asking price. You have the power to accept the best deal or decline them all and wait for a better opportunity.</li>
+                        </ul>
+                    </Section>
+                     <Section
                         title="Quests & Objectives"
                         icon={ScrollText}
                         summary="Take on missions from the quest board for large rewards and reputation gains."

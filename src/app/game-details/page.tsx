@@ -9,6 +9,19 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.4.0 - 'Foundations'",
+        date: "Startdate: Epsilon 4525.07.13",
+        changes: [
+            "Introduced the 'Landlord' career path, allowing players to build a real estate empire.",
+            "Players can now purchase various types of properties (Residential, Commercial, etc.) in different systems.",
+            "Implemented a dynamic property market where players can list their properties for sale and receive randomized offers from NPC buyers.",
+            "Added a tenant system where players can find and assign leases to their properties for passive income.",
+            "Included a property upgrade system with unique paths for each property type.",
+            "Enhanced the event log with more granular time filters (10m, 1h, 4h, 8h) and improved event grouping by day and hour for better readability.",
+            "Fixed multiple critical bugs related to duplicate key errors in the event log."
+        ]
+    },
+    {
         version: "v1.3.3 - 'First Class'",
         date: "Startdate: Delta 4525.07.12",
         changes: [
