@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket, Wrench, Fuel, Shield, Bot, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { hullUpgrades, fuelUpgrades, weaponUpgrades, droneUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, hullUpgrades, fuelUpgrades, weaponUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { cn } from '@/lib/utils';
 import type { PlayerShip, TradeRouteContract } from '@/lib/types';
 import CooldownTimer from '@/app/components/cooldown-timer';
