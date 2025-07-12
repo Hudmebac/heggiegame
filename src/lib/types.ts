@@ -280,6 +280,35 @@ export interface Warehouse {
   storage: InventoryItem[];
 }
 
+export type PropertyType = 'Residential' | 'Commercial' | 'Industrial' | 'Recreational' | 'Military';
+export type PropertyUpgradeType = 'residential' | 'commercial' | 'industrial' | 'recreational' | 'military';
+
+export interface Property {
+  id: number;
+  name: string;
+  type: PropertyType;
+  systemName: string;
+  residentialLevel: number;
+  commercialLevel: number;
+  industrialLevel: number;
+  recreationalLevel: number;
+  militaryLevel: number;
+  status: 'Idle' | 'Upgrading' | 'Leased';
+  upgradeStartTime?: number;
+  upgradeDuration?: number;
+  upgradingComponent?: PropertyUpgradeType;
+}
+
+export interface Lease {
+  id: string;
+  propertyId: number;
+  tenantName: string;
+  rent: number;
+  duration: number; // in hours
+  startTime: number;
+  status: 'Active' | 'Completed';
+}
+
 export interface PlayerStats {
   name: string;
   bio: string;
@@ -294,6 +323,8 @@ export interface PlayerStats {
   reputation: number;
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
+  properties: Property[];
+  leases: Lease[];
   events: GameEvent[];
   assetHistory: AssetSnapshot[];
   cashInHandHistory: number[];
@@ -511,5 +542,3 @@ export interface NegotiateTradeRouteOutput {
     cost: number;
     narrative: string;
 }
-
-    

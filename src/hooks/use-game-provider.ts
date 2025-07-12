@@ -25,6 +25,7 @@ import { useDefender } from '@/hooks/use-defender';
 import { useMilitary } from '@/hooks/use-military';
 import { useOfficial } from '@/hooks/use-official';
 import { useStocks } from '@/hooks/use-stocks';
+import { useLandlord } from '@/hooks/use-landlord';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -45,6 +46,7 @@ import type { useDefender as useDefenderType } from '@/hooks/use-defender';
 import type { useMilitary as useMilitaryType } from '@/hooks/use-military';
 import type { useOfficial as useOfficialType } from '@/hooks/use-official';
 import type { useStocks as useStocksType } from '@/hooks/use-stocks';
+import type { useLandlord as useLandlordType } from '@/hooks/use-landlord';
 import AppLayout from '@/app/components/app-layout';
 
 
@@ -75,7 +77,8 @@ type GameContextType = {
   ReturnType<typeof useDefenderType> &
   ReturnType<typeof useMilitaryType> &
   ReturnType<typeof useOfficialType> &
-  ReturnType<typeof useStocksType>;
+  ReturnType<typeof useStocksType> &
+  ReturnType<typeof useLandlordType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -102,6 +105,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const militaryLogic = useMilitary(gameState, setGameState);
     const officialLogic = useOfficial(gameState, setGameState);
     const stocksLogic = useStocks(gameState, setGameState);
+    const landlordLogic = useLandlord(gameState, setGameState);
 
     // Business Logic Hooks
     const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
@@ -145,6 +149,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...militaryLogic,
         ...officialLogic,
         ...stocksLogic,
+        ...landlordLogic,
     };
     
     return (

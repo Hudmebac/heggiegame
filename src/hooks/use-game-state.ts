@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, Lease } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
@@ -53,6 +53,8 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     },
     pirateRisk: 0, reputation: 0, inspiration: 0,
     fleet: [initialShip],
+    properties: [],
+    leases: [],
     barLevel: 1, autoClickerBots: 0, establishmentLevel: 0,
     residenceLevel: 1, residenceAutoClickerBots: 0, residenceEstablishmentLevel: 0,
     commerceLevel: 1, commerceAutoClickerBots: 0, commerceEstablishmentLevel: 0,
@@ -195,6 +197,8 @@ export function useGameState() {
                         tradeContracts: [],
                         taxiMissions: [],
                         warehouses: [],
+                        properties: [],
+                        leases: [],
                         militaryMissions: [],
                         diplomaticMissions: [],
                         usedPromoCodes: [],
@@ -340,6 +344,8 @@ export function useGameState() {
                     cashInHandHistory: savedProgress.playerStats.cashInHandHistory || [savedProgress.playerStats.netWorth],
                     portfolio: savedProgress.playerStats.portfolio || [],
                     stocks: savedProgress.playerStats.stocks || INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
+                    properties: savedProgress.playerStats.properties || [],
+                    leases: savedProgress.playerStats.leases || [],
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
@@ -438,11 +444,6 @@ export function useGameState() {
                         toastToFire = { variant: "destructive", title: "Credit Card Payment Overdue", description: `Your outstanding balance of ${cc.balance.toLocaleString()}¢ has been moved to your general debt.` };
                     }
                     newPlayerStats.creditCard = undefined;
-                }
-    
-                if (newPlayerStats.debt > 0) {
-                    stateChanged = true;
-                    newPlayerStats.debt *= 1.001;
                 }
     
                 if (newPlayerStats.debt > 100000) {
