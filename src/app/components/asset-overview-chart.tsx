@@ -34,7 +34,7 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
 
     const toggleAll = () => {
         if (activeKeys.length === allKeys.length) {
-            setActiveKeys([]);
+            setActiveKeys(['totalNetWorth']);
         } else {
             setActiveKeys(allKeys);
         }
