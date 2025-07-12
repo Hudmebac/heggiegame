@@ -200,32 +200,6 @@ export function useTaxi(
     return () => clearInterval(interval);
   }, [setGameState, toast]);
 
-    const checkRequirements = (ship: PlayerShip, mission: TaxiMission): { met: boolean; reasons: string[] } => {
-        const reasons: string[] = [];
-        
-        if (mission.requiredFuel && (ship.fuel || 0) < mission.requiredFuel) {
-            reasons.push(`Requires ${mission.requiredFuel} SU fuel (ship has ${ship.fuel?.toFixed(0)} SU).`);
-        }
-
-        const hullHealth = hullUpgrades[ship.hullLevel - 1]?.health || 100;
-        const requiredHealth = hullHealth * (mission.minHullPercentage || 0);
-        if(ship.health < requiredHealth) {
-            reasons.push(`Requires ${requiredHealth.toFixed(0)} HP (ship has ${ship.health.toFixed(0)} HP).`);
-        }
-
-        if (mission.minComfortLevel && ship.passengerComfortLevel < mission.minComfortLevel) {
-            reasons.push(`Requires Comfort Lvl ${mission.minComfortLevel}.`);
-        }
-        if (mission.minSecurityLevel && ship.passengerSecurityLevel < mission.minSecurityLevel) {
-            reasons.push(`Requires Security Lvl ${mission.minSecurityLevel}.`);
-        }
-        if (mission.minPacksLevel && ship.passengerPacksLevel < mission.minPacksLevel) {
-            reasons.push(`Requires Service Lvl ${mission.minPacksLevel}.`);
-        }
-        
-        return { met: reasons.length === 0, reasons };
-    }
-
   return {
     handleGenerateTaxiMissions,
     handleAcceptTaxiMission,
