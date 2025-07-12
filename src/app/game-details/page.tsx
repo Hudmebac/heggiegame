@@ -10,7 +10,7 @@ import Link from "next/link";
 const changelogData = [
     {
         version: "v1.3.2 - 'Command & Control'",
-        date: "Startdate: Alpha 4525.07.13",
+        date: "Startdate: Bravo 4525.07.12",
         changes: [
             "Complete overhaul of the Captain page UI for a cleaner, more information-dense command hub.",
             "Redesigned the main profile card to integrate a compact, interactive Asset Overview chart.",
