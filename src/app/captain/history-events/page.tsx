@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollText, Hourglass, Star, Filter, LucideIcon, Briefcase, LandPlot, Package, Rocket, Handshake, Route, ShoppingCart, Shield } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { format, formatRelative, subDays, startOfDay, startOfHour } from 'date-fns';
+import { format, formatRelative, subDays, subMinutes, subHours, startOfDay, startOfHour } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
 import ReputationChart from "@/app/components/reputation-chart";
 import HistorySummary from '@/app/components/history-summary';
@@ -65,7 +65,7 @@ const filterCategories: { title: string; filters: { type: GameEventType | 'all';
 
 export default function HistoryEventsPage() {
     const { gameState } = useGame();
-    const [timeRange, setTimeRange] = useState('all');
+    const [timeRange, setTimeRange] = useState('10m');
     const [eventType, setEventType] = useState<GameEventType | 'all'>('all');
 
     if (!gameState) {
@@ -79,10 +79,17 @@ export default function HistoryEventsPage() {
     const filteredEvents = ALL_EVENTS.filter(event => {
         const eventDate = new Date(event.timestamp);
         let dateCondition = true;
-        if (timeRange === '7d') {
-            dateCondition = eventDate > subDays(new Date(), 7);
-        } else if (timeRange === '30d') {
-            dateCondition = eventDate > subDays(new Date(), 30);
+        const now = new Date();
+        
+        switch (timeRange) {
+            case '10m': dateCondition = eventDate > subMinutes(now, 10); break;
+            case '1h': dateCondition = eventDate > subHours(now, 1); break;
+            case '4h': dateCondition = eventDate > subHours(now, 4); break;
+            case '8h': dateCondition = eventDate > subHours(now, 8); break;
+            case '7d': dateCondition = eventDate > subDays(now, 7); break;
+            case '30d': dateCondition = eventDate > subDays(now, 30); break;
+            case 'all': // do nothing, keep all
+            default: break;
         }
 
         const typeCondition = eventType === 'all' || event.type === eventType;
@@ -104,6 +111,15 @@ export default function HistoryEventsPage() {
     }
 
     const dateKeys = Object.keys(groupedEvents).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const timeRangeFilters = [
+        { key: '10m', label: '10 Min' },
+        { key: '1h', label: '1 Hour' },
+        { key: '4h', label: '4 Hours' },
+        { key: '8h', label: '8 Hours' },
+        { key: '7d', label: '7 Days' },
+        { key: '30d', label: '30 Days' },
+        { key: 'all', label: 'All Time' },
+    ]
 
     return (
         <div className="space-y-6">
@@ -140,9 +156,9 @@ export default function HistoryEventsPage() {
                      <div className="flex flex-col gap-4 p-4 rounded-lg bg-background/50 border">
                         <div className="flex flex-wrap items-center gap-2">
                              <h4 className="text-sm font-semibold text-muted-foreground mr-2">Time Range:</h4>
-                            <Button variant={timeRange === '7d' ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange('7d')}>Last 7 Days</Button>
-                            <Button variant={timeRange === '30d' ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange('30d')}>Last 30 Days</Button>
-                            <Button variant={timeRange === 'all' ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange('all')}>All Time</Button>
+                             {timeRangeFilters.map(filter => (
+                                <Button key={filter.key} variant={timeRange === filter.key ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange(filter.key)}>{filter.label}</Button>
+                            ))}
                         </div>
                         {filterCategories.map(category => (
                             <div key={category.title} className="flex flex-wrap items-center gap-2">
@@ -165,7 +181,7 @@ export default function HistoryEventsPage() {
                                 const day = groupedEvents[dateKey];
                                 const hourKeys = Object.keys(day.hours).sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
                                 return (
-                                <AccordionItem key={dateKey} value={dateKey} className='border-b'>
+                                <AccordionItem key={dateKey} value={dateKey}>
                                     <AccordionTrigger>
                                         <div className="text-left">
                                             <p className="font-semibold">{format(day.date, 'MMMM do, yyyy')}</p>
