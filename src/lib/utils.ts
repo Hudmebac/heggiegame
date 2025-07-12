@@ -5,7 +5,7 @@ import { twMerge } from "tailwind-merge"
 import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock } from "./types";
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from './upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from './upgrades';
 
 
 export function cn(...inputs: ClassValue[]) {
@@ -180,6 +180,10 @@ export function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.droneLevel = droneTier ? droneTier.level : 1;
 
     newStats.powerCoreLevel = activeShip.powerCoreLevel;
+    newStats.passengerComfortLevel = activeShip.passengerComfortLevel;
+    newStats.passengerSecurityLevel = activeShip.passengerSecurityLevel;
+    newStats.passengerPacksLevel = activeShip.passengerPacksLevel;
+
     newStats.overdriveEngine = activeShip.overdriveEngine;
     newStats.warpStabilizer = activeShip.warpStabilizer;
     newStats.stealthPlating = activeShip.stealthPlating;
