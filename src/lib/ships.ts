@@ -113,3 +113,5 @@ export const initialShip: PlayerShip = {
     health: hullUpgrades[0].health,
     status: 'operational',
 };
+
+    

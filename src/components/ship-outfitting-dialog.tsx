@@ -178,7 +178,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
               <h3 className="font-headline text-lg text-primary border-b pb-2">Passenger Systems</h3>
               <UpgradeRow type="passengerComfort" label="Passenger Comfort" currentLevel={ship.passengerComfortLevel} upgrades={passengerComfortUpgrades} icon={Sparkles} />
               <UpgradeRow type="passengerSecurity" label="Passenger Security" currentLevel={ship.passengerSecurityLevel} upgrades={passengerSecurityUpgrades} icon={ShieldAlert} />
-              <UpgradeRow type="passengerPacks" label="Passenger Packs" currentLevel={ship.passengerPacksLevel} upgrades={passengerPacksUpgrades} icon={PackageCheck} />
+              <UpgradeRow type="passengerPacks" label="Passenger Service Packs" currentLevel={ship.passengerPacksLevel} upgrades={passengerPacksUpgrades} icon={PackageCheck} />
           </div>
            <div className="space-y-4">
             <h3 className="font-headline text-lg text-primary border-b pb-2">Advanced Systems</h3>
@@ -200,3 +200,5 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     </Dialog>
   );
 }
+
+    

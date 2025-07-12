@@ -7,7 +7,7 @@ import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Caree
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, syncActiveShipStats } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
@@ -325,7 +325,7 @@ export function usePlayerActions(
                 return prev;
             }
             
-            const upgradeMap = { cargo: cargoUpgrades, weapon: weaponUpgrades, shield: shieldUpgrades, hull: hullUpgrades, fuel: fuelUpgrades, sensor: sensorUpgrades, drone: droneUpgrades, powerCore: powerCoreUpgrades };
+            const upgradeMap = { cargo: cargoUpgrades, weapon: weaponUpgrades, shield: shieldUpgrades, hull: hullUpgrades, fuel: fuelUpgrades, sensor: sensorUpgrades, drone: droneUpgrades, powerCore: powerCoreUpgrades, passengerComfort: passengerComfortUpgrades, passengerSecurity: passengerSecurityUpgrades, passengerPacks: passengerPacksUpgrades };
             const upgrades = upgradeMap[upgradeType as keyof typeof upgradeMap];
             if (!upgrades) return prev;
 
@@ -416,6 +416,9 @@ export function usePlayerActions(
                 sensor: { levels: sensorUpgrades, current: shipToDowngrade.sensorLevel },
                 drone: { levels: droneUpgrades, current: shipToDowngrade.droneLevel },
                 powerCore: { levels: powerCoreUpgrades, current: shipToDowngrade.powerCoreLevel },
+                passengerComfort: { levels: passengerComfortUpgrades, current: shipToDowngrade.passengerComfortLevel },
+                passengerSecurity: { levels: passengerSecurityUpgrades, current: shipToDowngrade.passengerSecurityLevel },
+                passengerPacks: { levels: passengerPacksUpgrades, current: shipToDowngrade.passengerPacksLevel },
             };
             const upgradeInfo = upgradeMap[upgradeType as keyof typeof upgradeMap];
             if (!upgradeInfo) return prev;
@@ -975,3 +978,5 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
+
+    

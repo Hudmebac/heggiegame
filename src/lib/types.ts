@@ -188,6 +188,8 @@ export interface TradeRouteContract {
   minHullPercentage: number;
   minWeaponLevel?: number;
   minDroneLevel?: number;
+  minFuelLevel?: number;
+  minHullLevel?: number;
   requiredAdvancedSystems?: AdvancedToggleableUpgrade['id'][];
 }
 
@@ -506,3 +508,5 @@ export interface NegotiateTradeRouteOutput {
     cost: number;
     narrative: string;
 }
+
+    
