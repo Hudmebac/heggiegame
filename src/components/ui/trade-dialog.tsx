@@ -65,7 +65,7 @@ export default function TradeDialog({ isOpen, onOpenChange, item, tradeType, pla
     }
     
     setErrorMessage(error);
-  }, [amount, item, tradeType, playerStats, inventory, effectivePrice, currentOwned, staticItemData]);
+  }, [amount, item, tradeType, playerStats, inventory, effectivePrice, currentOwned, staticItemData, maxAmount]);
 
 
   if (!item || !playerStats || !staticItemData) {

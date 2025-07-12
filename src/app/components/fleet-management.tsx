@@ -14,7 +14,7 @@ import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrad
 import { Progress } from '@/components/ui/progress';
 
 export default function FleetManagement() {
-  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip, handleRepairFleetShip } = useGame();
+  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip, handleRepairFleetShip } from useGame();
   const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
   if (!gameState) {
@@ -153,9 +153,11 @@ export default function FleetManagement() {
                   {ship.status === 'repair_needed' && !isActive && (
                       <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!canAffordShipRepair}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
                   )}
-                  <Button size="sm" onClick={() => handleSetActiveShip(ship.instanceId)} disabled={isActive || ship.status === 'repair_needed'}>
-                    Activate
-                  </Button>
+                  {!isActive && ship.status !== 'repair_needed' && (
+                    <Button size="sm" onClick={() => handleSetActiveShip(ship.instanceId)}>
+                        Activate
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );
