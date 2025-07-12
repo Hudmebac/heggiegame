@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp, CircleUserRound } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp, CircleUserRound, Star, Skull } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -35,6 +35,8 @@ import CooldownTimer from '@/app/components/cooldown-timer';
 import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
 import FacebookIcon from '@/app/components/icons/facebook-icon';
 import AssetOverviewChartCompact from '@/app/components/asset-overview-chart-compact';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import type { Difficulty } from '@/lib/types';
 
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
@@ -57,6 +59,14 @@ function getReputationTier(score: number) {
     return reputationTiers['Galactic Syndicate'];
 }
 
+const difficultyConfig: Record<Difficulty, { icon: LucideIcon; color: string; tooltip: string }> = {
+    Easy: { icon: Star, color: 'text-green-400', tooltip: 'Easy Difficulty' },
+    Medium: { icon: Shield, color: 'text-sky-400', tooltip: 'Medium Difficulty' },
+    Hard: { icon: Skull, color: 'text-orange-400', tooltip: 'Hard Difficulty' },
+    Hardcore: { icon: Skull, color: 'text-destructive', tooltip: 'Hardcore (Permadeath)' },
+};
+
+
 function PlayerProfile() {
     const { gameState, isGeneratingBio, handleGenerateBio, setPlayerName, setPlayerBio, handleSetAvatar, handleResetGame, handleShareToFacebook, handleShareToWhatsapp } = useGame();
     const [isEditingName, setIsEditingName] = useState(false);
@@ -70,7 +80,10 @@ function PlayerProfile() {
 
     if (!gameState) return null;
 
-    const { playerStats } = gameState;
+    const { playerStats, difficulty } = gameState;
+    const DifficultyIcon = difficultyConfig[difficulty].icon;
+    const difficultyColor = difficultyConfig[difficulty].color;
+    const difficultyTooltip = difficultyConfig[difficulty].tooltip;
 
     const handleNameSave = () => {
         setPlayerName(name);
@@ -138,6 +151,16 @@ function PlayerProfile() {
                             ) : (
                                 <CardTitle className="flex items-center gap-2 font-headline text-2xl">
                                     {playerStats.name}
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <DifficultyIcon className={cn("h-5 w-5", difficultyColor)} />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>{difficultyTooltip}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsEditingName(true)}>
                                         <PenSquare className="h-4 w-4" />
                                     </Button>
