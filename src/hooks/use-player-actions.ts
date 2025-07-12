@@ -14,6 +14,12 @@ import { redeemPromoCode } from '@/app/actions';
 import { CAREER_DATA } from '@/lib/careers';
 import { FACTIONS_DATA } from '@/lib/factions';
 
+function formatUpgradeType(type: ShipUpgradeType): string {
+    // Converts camelCase to Title Case, e.g., 'passengerSecurity' -> 'Passenger Security'
+    const spaced = type.replace(/([A-Z])/g, ' $1');
+    return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
 export function usePlayerActions(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>
@@ -343,11 +349,11 @@ export function usePlayerActions(
                 setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
                 return prev;
             }
-
+            const upgradeDuration = 5000;
             shipToUpgrade.status = 'upgrading';
             shipToUpgrade.upgradingComponent = upgradeType;
             shipToUpgrade.upgradeStartTime = Date.now();
-            shipToUpgrade.upgradeDuration = 5000;
+            shipToUpgrade.upgradeDuration = upgradeDuration;
 
             fleet[shipIndex] = shipToUpgrade;
             
@@ -355,7 +361,7 @@ export function usePlayerActions(
             let newPlayerStats = { ...prev.playerStats, netWorth: newCash, fleet, cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50) };
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
-            setTimeout(() => toast({ title: "Upgrade Started!", description: `Upgrading ${shipToUpgrade.name}'s ${upgradeType}. Time: 5s.` }), 0);
+            setTimeout(() => toast({ title: "Upgrade Started!", description: `Upgrading ${shipToUpgrade.name}'s ${formatUpgradeType(upgradeType)}. Time: ${upgradeDuration / 1000}s.` }), 0);
             
             return { ...prev, playerStats: newPlayerStats };
         });
@@ -398,7 +404,7 @@ export function usePlayerActions(
 
                             setTimeout(() => toast({
                                 title: "Upgrade Complete!",
-                                description: `Your ${newShip.name}'s ${upgradeType} is now Mk. ${newLevelForToast}.`
+                                description: `Your ${newShip.name}'s ${formatUpgradeType(upgradeType)} is now Mk. ${newLevelForToast}.`
                             }), 0);
                         }
                     }
@@ -1000,4 +1006,5 @@ export function usePlayerActions(
     
 
     
+
 
