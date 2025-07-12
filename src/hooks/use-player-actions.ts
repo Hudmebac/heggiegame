@@ -271,10 +271,10 @@ export function usePlayerActions(
                 fleet: [...prev.playerStats.fleet, newShip],
                 cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
                 events: [...prev.playerStats.events, {
-                    id: `evt_purchase_${Date.now()}`,
+                    id: `evt_purchase_${Date.now()}_${ship.id}`,
                     timestamp: Date.now(),
                     type: 'Purchase',
-                    description: `Purchased a new ${ship.name}.`,
+                    description: `Purchased a new ship: ${ship.name}.`,
                     value: -ship.cost,
                     reputationChange: 1,
                     isMilestone: true,
@@ -335,7 +335,7 @@ export function usePlayerActions(
             const upgrades = upgradeMap[upgradeType as keyof typeof upgradeMap];
             if (!upgrades) return prev;
 
-            const currentLevel = (shipToUpgrade as any)[`${upgradeType}Level`] as number;
+            const currentLevel = (shipToUpgrade as any)[`${upgradeType}Level`] || 1;
             const nextLevel = currentLevel + 1;
 
             if (currentLevel >= upgrades.length) {

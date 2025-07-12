@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, PropertyType, Lease } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, PropertyType, Lease, PropertySaleOffer } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, warehouseUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
@@ -388,6 +389,10 @@ export function useGameState() {
                             hullLevel: hullLevel,
                             health: currentHealth,
                             status: ship.status || 'operational',
+                            // Sanitize NaN passenger levels
+                            passengerComfortLevel: ship.passengerComfortLevel || 1,
+                            passengerSecurityLevel: ship.passengerSecurityLevel || 1,
+                            passengerPacksLevel: ship.passengerPacksLevel || 1,
                         };
                     });
                 }
@@ -442,12 +447,13 @@ export function useGameState() {
         const financialInterval = setInterval(() => {
             setGameState(prev => {
                 if (!prev || prev.isGameOver) return prev;
-
+    
                 let newPlayerStats = { ...prev.playerStats };
                 let stateChanged = false;
                 let bankruptcyTriggered = false;
                 const now = Date.now();
                 let toastsToFire: { variant?: "default" | "destructive", title: string, description: string }[] = [];
+                let eventsToAdd: GameEvent[] = [];
     
                 if (newPlayerStats.loan && now > newPlayerStats.loan.nextDueDate) {
                     stateChanged = true;
@@ -500,8 +506,7 @@ export function useGameState() {
                 }
 
                 // Handle property upgrades/purchases
-                let newProperties = [...newPlayerStats.properties];
-                newProperties = newProperties.map(prop => {
+                let newProperties = newPlayerStats.properties.map(prop => {
                     if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
                         stateChanged = true;
                         const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
@@ -523,49 +528,89 @@ export function useGameState() {
                 // Handle lease payments and expirations
                 const activeLeases = newPlayerStats.activeLeases || [];
                 const newlyCompletedLeases: Lease[] = [];
-                const stillActiveLeases = activeLeases.map(lease => {
-                    const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
-                    if (now >= leaseEndTime) {
-                        newlyCompletedLeases.push(lease);
-                        return null;
-                    }
+                const stillActiveLeases: Lease[] = [];
 
-                    const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                    const intervalsSinceLastRent = timeSinceLastRent / (10 * 60 * 1000); // 10 minutes interval
-                    
-                    if (intervalsSinceLastRent >= 1) {
-                        const intervalsToPay = Math.floor(intervalsSinceLastRent);
-                        const rentToCollect = intervalsToPay * lease.rent;
-
-                        newPlayerStats.netWorth += rentToCollect;
-                        newPlayerStats.events.push({
-                            id: `evt_rent_${Date.now()}`,
-                            timestamp: Date.now(),
-                            type: 'Lease',
-                            description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
-                            value: rentToCollect,
-                            isMilestone: false,
-                        });
-
-                        stateChanged = true;
-                        
-                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 10 * 60 * 1000 };
-                    }
-
-                    return lease;
-                }).filter((l): l is Lease => l !== null);
-                
-                if (newlyCompletedLeases.length > 0) {
-                    stateChanged = true;
-                    newlyCompletedLeases.forEach(lease => {
-                        const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
-                        if(propIndex > -1) {
-                            newPlayerStats.properties[propIndex].status = 'Idle';
+                if(activeLeases.length > 0) {
+                    activeLeases.forEach(lease => {
+                        const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
+                        if (now >= leaseEndTime) {
+                            newlyCompletedLeases.push(lease);
+                            stateChanged = true;
+                            return;
                         }
-                    });
-                }
-                newPlayerStats.activeLeases = stillActiveLeases;
     
+                        const rentIntervalMs = 2 * 60 * 1000;
+                        const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
+                        const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
+                        
+                        if (intervalsToPay > 0) {
+                            const rentToCollect = intervalsToPay * lease.rent;
+                            newPlayerStats.netWorth += rentToCollect;
+                            
+                            const newReputation = { ...newPlayerStats.factionReputation };
+                            FACTIONS_DATA.forEach(faction => {
+                                if (faction.id !== 'Independent') {
+                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
+                                }
+                            });
+                            newPlayerStats.factionReputation = newReputation;
+    
+                            eventsToAdd.push({
+                                id: `evt_rent_${lease.propertyId}_${performance.now()}`,
+                                timestamp: now,
+                                type: 'Lease',
+                                description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
+                                value: rentToCollect,
+                                reputationChange: 0.5 * intervalsToPay,
+                                isMilestone: false,
+                            });
+                            
+                            lease.lastRentCollection = (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs;
+                            stateChanged = true;
+                        }
+                        stillActiveLeases.push(lease);
+                    });
+    
+                    if (newlyCompletedLeases.length > 0) {
+                        stateChanged = true;
+                        newlyCompletedLeases.forEach(lease => {
+                            const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
+                            if(propIndex > -1) {
+                                newPlayerStats.properties[propIndex].status = 'Idle';
+                            }
+                        });
+                    }
+                    newPlayerStats.activeLeases = stillActiveLeases;
+                }
+                
+                if (eventsToAdd.length > 0) {
+                    newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
+                }
+    
+                let propStateChanged = false;
+                const freshProperties = [...newPlayerStats.properties].map(prop => {
+                    if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
+                        stateChanged = true;
+                        propStateChanged = true;
+                        const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
+                        if(prop.upgradingComponent === 'Purchase') {
+                            const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                            (newProp as any)[upgradeKey] = 1;
+                            toastsToFire.push({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` });
+                        } else {
+                             const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                             (newProp as any)[upgradeKey] = (newProp[upgradeKey] as number) + 1;
+                             toastsToFire.push({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` });
+                        }
+                        return newProp;
+                    }
+                    return prop;
+                });
+    
+                if (propStateChanged) {
+                    newPlayerStats.properties = freshProperties;
+                }
+
                 if (toastsToFire.length > 0) {
                     setTimeout(() => toastsToFire.forEach(t => toast(t)), 0);
                 }
