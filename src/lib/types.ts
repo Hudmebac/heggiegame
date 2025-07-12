@@ -306,6 +306,7 @@ export interface Lease {
   rent: number;
   duration: number; // in hours
   startTime: number;
+  lastRentCollection: number;
   status: 'Active' | 'Completed';
 }
 
@@ -325,6 +326,8 @@ export interface PlayerStats {
   warehouses: Warehouse[];
   properties: Property[];
   leases: Lease[];
+  availableLeases?: Lease[];
+  activeLeases: Lease[];
   events: GameEvent[];
   assetHistory: AssetSnapshot[];
   cashInHandHistory: number[];

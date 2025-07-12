@@ -162,6 +162,7 @@ export function useLandlord(
                 status: 'Active',
                 startTime: Date.now(),
                 propertyId: property.id,
+                lastRentCollection: Date.now(),
             };
             
             property.status = 'Leased';

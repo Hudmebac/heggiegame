@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
@@ -158,16 +159,21 @@ export function useGameState() {
         const availableItems: MarketItem[] = [];
         STATIC_ITEMS.forEach(staticItem => {
             const economyMultiplier = ECONOMY_MULTIPLIERS[staticItem.category]?.[system.economy] ?? 1.0;
+            
             let availabilityChance = 0.6;
-            if (economyMultiplier < 1.0) availabilityChance = 1.0;
+            if (economyMultiplier < 1.0) availabilityChance = 1.0; 
             else if (economyMultiplier > 1.0) availabilityChance = 0.8;
+
             if (Math.random() < availabilityChance) {
-                const supply = Math.round(50 + Math.random() * 100 / economyMultiplier);
-                const demand = Math.round(50 + Math.random() * 100 * economyMultiplier);
+                const rarityRange = RARITY_SUPPLY_RANGES[staticItem.rarity];
+                const supply = Math.round((rarityRange.base + Math.random() * rarityRange.range) / economyMultiplier);
+                const demand = Math.round((rarityRange.base + Math.random() * rarityRange.range) * economyMultiplier * (Math.random() * 0.4 + 0.8));
+
                 availableItems.push({
                     name: staticItem.name,
                     currentPrice: calculatePrice(staticItem.basePrice, supply, demand, economyMultiplier),
-                    supply, demand,
+                    supply: Math.max(1, supply),
+                    demand: Math.max(1, demand),
                 });
             }
         });
@@ -494,29 +500,43 @@ export function useGameState() {
                 });
                 newPlayerStats.properties = newProperties;
                 
-                // Handle lease expirations
+                // Handle lease payments and expirations
                 const activeLeases = newPlayerStats.activeLeases || [];
                 const newlyCompletedLeases: Lease[] = [];
-                const remainingActiveLeases = activeLeases.filter(lease => {
-                    if (now > lease.startTime + lease.duration * 3600 * 1000) {
+                const stillActiveLeases = activeLeases.map(lease => {
+                    const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
+                    if (now >= leaseEndTime) {
                         newlyCompletedLeases.push(lease);
-                        return false;
+                        return null;
                     }
-                    return true;
-                });
 
+                    const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
+                    const hoursSinceLastRent = timeSinceLastRent / (3600 * 1000);
+                    
+                    if (hoursSinceLastRent >= 1) {
+                        const hoursToPay = Math.floor(hoursSinceLastRent);
+                        const rentToCollect = hoursToPay * lease.rent;
+
+                        newPlayerStats.netWorth += rentToCollect;
+                        toastsToFire.push({ title: "Rent Collected", description: `Collected ${rentToCollect.toLocaleString()}¢ from ${lease.tenantName}.` });
+                        stateChanged = true;
+                        
+                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + hoursToPay * 3600 * 1000 };
+                    }
+
+                    return lease;
+                }).filter((l): l is Lease => l !== null);
+                
                 if (newlyCompletedLeases.length > 0) {
                     stateChanged = true;
                     newlyCompletedLeases.forEach(lease => {
-                        newPlayerStats.netWorth += lease.rent;
-                        toastsToFire.push({ title: "Rent Collected", description: `Collected ${lease.rent.toLocaleString()}¢ from ${lease.tenantName} at property #${lease.propertyId}.` });
                         const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
                         if(propIndex > -1) {
                             newPlayerStats.properties[propIndex].status = 'Idle';
                         }
                     });
-                    newPlayerStats.activeLeases = remainingActiveLeases;
                 }
+                newPlayerStats.activeLeases = stillActiveLeases;
     
                 if (toastsToFire.length > 0) {
                     setTimeout(() => toastsToFire.forEach(t => toast(t)), 0);
@@ -528,7 +548,7 @@ export function useGameState() {
     
                 return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
             });
-        }, 1000);
+        }, 60000); // Check every minute
     
         return () => clearInterval(financialInterval);
     }, [setGameState, toast]);
