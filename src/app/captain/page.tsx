@@ -470,107 +470,113 @@ export default function CaptainPage() {
                 </Card>
             </div>
             <div className="lg:col-span-2">
-                <Accordion type="single" collapsible className="space-y-6">
+                <Accordion type="single" collapsible className="w-full space-y-6">
                  {careerInfo && (
-                    <Card as={AccordionItem} value="career">
+                    <Card>
+                        <AccordionItem value="career" className="border-b-0">
+                            <AccordionTrigger className="p-6">
+                                <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                    {CareerIcon && <CareerIcon className="text-primary" />}
+                                    Career: {careerInfo.name}
+                                </CardTitle>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-6 pb-6">
+                                <CardDescription className="mb-4">{careerInfo.description}</CardDescription>
+                                <div className="space-y-2">
+                                    <div>
+                                        <h4 className="font-semibold text-sm">Perks:</h4>
+                                        <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                            {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-sm">Risks:</h4>
+                                        <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                            {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                                        </ul>
+                                    </div>
+                                    <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Card>
+                 )}
+                 <Card>
+                    <AccordionItem value="insurance" className="border-b-0">
                         <AccordionTrigger className="p-6">
                             <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                {CareerIcon && <CareerIcon className="text-primary" />}
-                                Career: {careerInfo.name}
+                                <Shield className="text-primary"/>
+                                Insurance Policies
                             </CardTitle>
                         </AccordionTrigger>
                         <AccordionContent className="px-6 pb-6">
-                            <CardDescription className="mb-4">{careerInfo.description}</CardDescription>
-                            <div className="space-y-2">
-                                <div>
-                                    <h4 className="font-semibold text-sm">Perks:</h4>
-                                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                        {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 className="font-semibold text-sm">Risks:</h4>
-                                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                        {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
-                                    </ul>
-                                </div>
-                                <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
+                            <CardDescription className="mb-4">Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.</CardDescription>
+                            <div className="space-y-4">
+                                {Object.values(insurancePolicies).map(policy => (
+                                    <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
+                                    <div className="flex items-start gap-3">
+                                            <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
+                                            <div>
+                                                <h4 className="font-semibold">{policy.name}</h4>
+                                                <p className="text-xs text-muted-foreground">{policy.description}</p>
+                                            </div>
+                                    </div>
+                                    {playerStats.insurance[policy.type] ? (
+                                        <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
+                                    ) : (
+                                        <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
+                                            Purchase ({policy.cost.toLocaleString()}¢)
+                                        </Button>
+                                    )}
+                                    </div>
+                                ))}
                             </div>
                         </AccordionContent>
-                    </Card>
-                 )}
-                 <Card as={AccordionItem} value="insurance">
-                    <AccordionTrigger className="p-6">
-                        <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            <Shield className="text-primary"/>
-                            Insurance Policies
-                        </CardTitle>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-6 pb-6">
-                        <CardDescription className="mb-4">Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.</CardDescription>
-                        <div className="space-y-4">
-                            {Object.values(insurancePolicies).map(policy => (
-                                <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
-                                <div className="flex items-start gap-3">
-                                        <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
-                                        <div>
-                                            <h4 className="font-semibold">{policy.name}</h4>
-                                            <p className="text-xs text-muted-foreground">{policy.description}</p>
-                                        </div>
-                                </div>
-                                {playerStats.insurance[policy.type] ? (
-                                    <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
-                                ) : (
-                                    <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
-                                        Purchase ({policy.cost.toLocaleString()}¢)
-                                    </Button>
-                                )}
-                                </div>
-                            ))}
-                        </div>
-                    </AccordionContent>
+                    </AccordionItem>
                  </Card>
-                 <Card as={AccordionItem} value="portfolio">
-                    <AccordionTrigger className="p-6">
-                        <CardTitle className="font-headline text-lg flex items-center gap-2">
-                            <Briefcase className="text-primary"/>
-                            Business Portfolio
-                        </CardTitle>
-                    </AccordionTrigger>
-                    <AccordionContent className="p-0 pb-6">
-                        <CardDescription className="px-6 mb-4">Overview of your income-generating assets across the galaxy.</CardDescription>
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Asset</TableHead>
-                                        <TableHead className="text-right">Level</TableHead>
-                                        <TableHead className="text-right">Bots</TableHead>
-                                        <TableHead className="text-right">Income/sec</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {portfolio.map(asset => (
-                                        <TableRow key={asset.name}>
-                                            <TableCell className="font-medium flex items-center gap-2">
-                                                <asset.icon className="h-4 w-4 text-muted-foreground" />
-                                                {asset.name}
-                                            </TableCell>
-                                            <TableCell className="text-right font-mono">{asset.level}</TableCell>
-                                            <TableCell className="text-right font-mono">{asset.bots}</TableCell>
-                                            <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                 <Card>
+                    <AccordionItem value="portfolio" className="border-b-0">
+                        <AccordionTrigger className="p-6">
+                            <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                <Briefcase className="text-primary"/>
+                                Business Portfolio
+                            </CardTitle>
+                        </AccordionTrigger>
+                        <AccordionContent className="p-0 pb-6">
+                            <CardDescription className="px-6 mb-4">Overview of your income-generating assets across the galaxy.</CardDescription>
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Asset</TableHead>
+                                            <TableHead className="text-right">Level</TableHead>
+                                            <TableHead className="text-right">Bots</TableHead>
+                                            <TableHead className="text-right">Income/sec</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
-                                        <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
-                                    </TableRow>
-                                </TableFooter>
-                            </Table>
-                        </div>
-                    </AccordionContent>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {portfolio.map(asset => (
+                                            <TableRow key={asset.name}>
+                                                <TableCell className="font-medium flex items-center gap-2">
+                                                    <asset.icon className="h-4 w-4 text-muted-foreground" />
+                                                    {asset.name}
+                                                </TableCell>
+                                                <TableCell className="text-right font-mono">{asset.level}</TableCell>
+                                                <TableCell className="text-right font-mono">{asset.bots}</TableCell>
+                                                <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
+                                            <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
                  </Card>
                 </Accordion>
             </div>
