@@ -16,7 +16,7 @@ import { useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cargoUpgrades, hullUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, hullUpgrades, weaponUpgrades, droneUpgrades, fuelUpgrades } from '@/lib/upgrades';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -25,7 +25,7 @@ const riskColorMap = {
     'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
-const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: PlayerShip, onRename: (id: number, name: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: PlayerShip, onRename: (id: number, newName: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [newName, setNewName] = useState(ship.name);
 
     const handleSave = () => {
@@ -81,7 +81,7 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onR
                         const shipRepairCost = Math.round(shipDamage * (gameState.playerStats.insurance.ship ? 25 : 50));
                         const canAffordShipRepair = gameState.playerStats.netWorth >= shipRepairCost;
 
-                        const fuelUpgrade = cargoUpgrades[ship.fuelLevel - 1];
+                        const fuelUpgrade = fuelUpgrades[ship.fuelLevel - 1];
                         const maxFuel = fuelUpgrade?.capacity || 100;
                         const fuelNeeded = maxFuel - (ship.fuel || 0);
                         const shipRefuelCost = Math.round(fuelNeeded * 2);
@@ -123,7 +123,7 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onR
                                     <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                         <Wrench className="mr-2" /> Outfit
                                     </Button>
-                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status !== 'repair_needed'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status !== 'operational'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
                                     <Button size="sm" variant="secondary" onClick={() => onRefuel(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
                                 </div>
                             </div>
