@@ -10,12 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { PlayerShip, TaxiMission } from '@/lib/types';
-import CooldownTimer from '@/components/ui/cooldown-timer';
-import ShipOutfittingDialog from '@/components/ship-outfitting-dialog';
+import CooldownTimer from '@/app/components/cooldown-timer';
+import ShipOutfittingDialog from '@/app/components/ship-outfitting-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { hullUpgrades, fuelUpgrades, cargoUpgrades } from '@/lib/upgrades';
+import { hullUpgrades, fuelUpgrades } from '@/lib/upgrades';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
