@@ -78,7 +78,14 @@ function PlayerProfile() {
     const handleBioSave = () => {
         setPlayerBio(bio);
         setIsEditingBio(false);
-    }
+    };
+
+    const handleGenerateNewBioInEdit = () => {
+        const newBio = handleGenerateBio();
+        if (newBio) {
+            setBio(newBio);
+        }
+    };
 
     const handleAvatarSelect = (avatarUrl: string) => {
         handleSetAvatar(avatarUrl);
@@ -139,28 +146,35 @@ function PlayerProfile() {
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="p-4 bg-background/50 rounded-lg">
+                 <div className="p-4 bg-background/50 rounded-lg space-y-2">
                     {isEditingBio ? (
                         <div className="space-y-2">
-                            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="h-24" />
+                            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="min-h-[7rem]" />
                             <div className="flex justify-end gap-2">
                                 <Button variant="ghost" size="sm" onClick={() => setIsEditingBio(false)}>Cancel</Button>
-                                <Button size="sm" onClick={handleBioSave}>Save Bio</Button>
+                                <Button size="sm" onClick={handleGenerateNewBioInEdit} disabled={isGeneratingBio}>
+                                    {isGeneratingBio ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+                                </Button>
+                                <Button size="sm" onClick={handleBioSave}>Save</Button>
                             </div>
                         </div>
                     ) : (
-                         <p className="text-sm text-muted-foreground italic h-28 overflow-y-auto">{playerStats.bio}</p>
+                        <div>
+                             <div className="flex justify-between items-center mb-2">
+                                <h4 className="text-sm font-semibold">Bio</h4>
+                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setBio(playerStats.bio); setIsEditingBio(true); }}>
+                                    <PenSquare className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <p className="text-sm text-muted-foreground italic min-h-[7rem]">{playerStats.bio}</p>
+                        </div>
                     )}
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" onClick={handleGenerateBio} disabled={isGeneratingBio}>
-                        {isGeneratingBio ? <Loader2 className="animate-spin"/> : <RefreshCw />}
-                        New Bio
+                <div className="grid grid-cols-2 gap-2">
+                     <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
+                        <Share2 className="mr-2" /> Sync
                     </Button>
-                     <Button variant="outline" onClick={() => setIsEditingBio(true)} disabled={isEditingBio}>
-                        <Edit /> Edit Bio
-                    </Button>
-                    <AlertDialog>
+                     <AlertDialog>
                         <AlertDialogTrigger asChild>
                             <Button variant="destructive">
                                 <RefreshCw className="mr-2" />
@@ -179,10 +193,7 @@ function PlayerProfile() {
                         </AlertDialogContent>
                     </AlertDialog>
                 </div>
-                 <div className="grid grid-cols-3 gap-2">
-                    <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
-                        <Share2 className="mr-2" /> Sync
-                    </Button>
+                 <div className="grid grid-cols-2 gap-2">
                      <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
                         <AlertDialogTrigger asChild>
                            <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700" disabled={isFbOnCooldown}>
