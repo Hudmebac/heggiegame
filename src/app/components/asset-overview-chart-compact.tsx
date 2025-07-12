@@ -5,7 +5,7 @@ import { useState } from 'react';
 import type { AssetSnapshot } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { AreaChart, Area, XAxis, YAxis } from 'recharts';
-import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart } from 'lucide-react';
+import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart, List } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,14 @@ type ActiveKeys = keyof typeof chartConfig;
 export default function AssetOverviewChartCompact({ assetHistory }: AssetOverviewChartProps) {
     const [activeKeys, setActiveKeys] = useState<ActiveKeys[]>(['totalNetWorth']);
     const allKeys = Object.keys(chartConfig) as ActiveKeys[];
+
+    const toggleAll = () => {
+        if (activeKeys.length === allKeys.length) {
+            setActiveKeys(['totalNetWorth']);
+        } else {
+            setActiveKeys(allKeys);
+        }
+    };
 
     const chartData = assetHistory.map(snapshot => ({
         ...snapshot,
@@ -80,6 +88,15 @@ export default function AssetOverviewChartCompact({ assetHistory }: AssetOvervie
                 </ChartContainer>
             </div>
              <div className="flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
+                 <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-auto px-2 py-1"
+                    onClick={toggleAll}
+                >
+                    <List className="mr-2 h-4 w-4"/>
+                    Toggle All
+                </Button>
                 {allKeys.map((key) => {
                     const isActive = activeKeys.includes(key);
                     const Icon = chartConfig[key].icon;
