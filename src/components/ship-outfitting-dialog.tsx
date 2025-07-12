@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -9,7 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { 
     cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, 
     droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, 
-    passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades 
+    passengerComfortUpgrades, 
+    passengerSecurityUpgrades, 
+    passengerPacksUpgrades 
 } from '@/lib/upgrades';
 import { 
     Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar, Bot, Zap, FastForward, Anchor, 
@@ -174,7 +175,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
             <UpgradeRow type="sensor" label="Sensor Suite" currentLevel={ship.sensorLevel} upgrades={sensorUpgrades} icon={Radar} />
             <UpgradeRow type="drone" label="Drone Bay" currentLevel={ship.droneLevel} upgrades={droneUpgrades} icon={Bot} />
           </div>
-          <div className="space-y-4">
+           <div className="space-y-4">
               <h3 className="font-headline text-lg text-primary border-b pb-2">Passenger Systems</h3>
               <UpgradeRow type="passengerComfort" label="Passenger Comfort" currentLevel={ship.passengerComfortLevel} upgrades={passengerComfortUpgrades} icon={Sparkles} />
               <UpgradeRow type="passengerSecurity" label="Passenger Security" currentLevel={ship.passengerSecurityLevel} upgrades={passengerSecurityUpgrades} icon={ShieldAlert} />
@@ -200,5 +201,3 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     </Dialog>
   );
 }
-
-    

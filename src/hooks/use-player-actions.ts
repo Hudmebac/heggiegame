@@ -978,5 +978,3 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
-
-    
