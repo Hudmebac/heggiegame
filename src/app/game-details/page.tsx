@@ -9,6 +9,16 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.3.1 - 'The High Roller'",
+        date: "Startdate: Cycle 4525.07.13",
+        changes: [
+            "Expanded the Casino with three new games: Drone Racing, Space Roulette, and the Interstellar Gravity World Cup.",
+            "Improved the casino UI with 'Min'/'Max' buttons and a stake slider for a more fluid betting experience.",
+            "Added informational tooltips to each casino game detailing their specific payout logic and multipliers.",
+            "Implemented a responsible gaming feature: a timed 'Gamble Awareness' warning with randomized messages to encourage breaks."
+        ]
+    },
+    {
         version: "v1.3.0 - 'The Exchange'",
         date: "Startdate: Cycle 4525.07.12",
         changes: [

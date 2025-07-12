@@ -1,7 +1,7 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package } from 'lucide-react';
+import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package, Spade, Rocket, Circle, Globe, Dice5, Gem, Ticket, Trophy } from 'lucide-react';
 
 const difficultyLevels = [
     {
@@ -19,6 +19,18 @@ const difficultyLevels = [
         title: 'Hard',
         description: 'A tough challenge for veteran traders. Pirate activity is high, and threats are more severe.',
     }
+];
+
+const casinoGames = [
+    { icon: Gem, title: 'Slot Machines', description: 'Fast-paced fun with frequent, smaller payouts.' },
+    { icon: Dice5, title: 'Table Games', description: 'Balanced risk for solid rewards in games like blackjack and roulette.' },
+    { icon: Spade, title: 'Poker Room', description: 'Strategic games where skill can lead to high rewards.' },
+    { icon: Rocket, title: 'Drone Racing', description: 'Bet on high-speed races for high-octane, high-payout action.' },
+    { icon: Circle, title: 'Space Roulette', description: 'A zero-G variant of roulette with chaotic results and more betting options.' },
+    { icon: Ticket, title: 'Sportsbook', description: 'A game of knowledge and luck, betting on live galactic sports.' },
+    { icon: Globe, title: 'Gravity World Cup', description: 'Place long-shot bets on the premier zero-G sporting event for huge potential payouts.' },
+    { icon: Trophy, title: 'VIP Room', description: 'Exclusive, high-stakes games for serious players with massive risk and reward.' },
+    { icon: Ticket, title: 'Daily Lottery', description: 'A daily chance to win a massive, life-changing grand prize.' },
 ];
 
 export default function GameplayCodex() {
@@ -46,6 +58,21 @@ export default function GameplayCodex() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground">In Hardcore mode, the stakes are as high as they get. If your ship is destroyed for any reason, your journey ends permanently. Your save file is deleted, and you must start a new game from scratch. There are no rebirths or second chances. This mode is for veteran traders who are ready to put everything on the line.</p>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Spade className="text-primary"/>Casino Games</CardTitle>
+                    <CardDescription>Test your luck across a variety of games of chance found on the Casino floor.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                     {casinoGames.map(game => (
+                        <div key={game.title} className="border p-4 rounded-lg bg-background/30">
+                            <h4 className="font-bold text-base text-primary flex items-center gap-2"><game.icon className="h-5 w-5"/> {game.title}</h4>
+                            <p className="text-sm text-muted-foreground mt-2">{game.description}</p>
+                        </div>
+                    ))}
                 </CardContent>
             </Card>
 
