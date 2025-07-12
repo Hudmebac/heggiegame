@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import type { PlayerStats } from '@/lib/types';
 import { Badge } from "@/components/ui/badge";
-import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale, Clipboard, Info, CandlestickChart } from 'lucide-react';
+import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale, Clipboard, Info, CandlestickChart, LandPlot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAREER_DATA } from '@/lib/careers';
 
@@ -46,6 +46,7 @@ const allNavItems = [
     { href: '/military', label: 'Fighter', icon: Sword, career: 'Fighter' },
     { href: '/official', label: 'Galactic Official', icon: Scale, career: 'Galactic Official' },
     { href: '/contractor', label: 'Contractor', icon: Clipboard, career: 'Heggie Contractor' },
+    { href: '/landlord', label: 'Landlord', icon: LandPlot, career: 'Landlord' },
     // Game Details Section
     { href: '/game-details', label: 'Game Details', icon: Info, section: 'Game Details' },
 ];

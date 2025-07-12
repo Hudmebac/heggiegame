@@ -1,6 +1,6 @@
 
 import type { Career, PlayerShip } from '@/lib/types';
-import { Truck, CarTaxiFront, Building, CandlestickChart, Shield, Sword, Scale, LucideIcon, Clipboard } from 'lucide-react';
+import { Truck, CarTaxiFront, Building, CandlestickChart, Shield, Sword, Scale, LucideIcon, Clipboard, LandPlot } from 'lucide-react';
 import { hullUpgrades } from './upgrades';
 
 export interface CareerData {
@@ -61,12 +61,13 @@ export const CAREER_DATA: CareerData[] = [
     {
         id: 'Landlord',
         name: 'Landlord',
-        icon: Building,
+        icon: LandPlot,
         description: 'Build, rent, upgrade, and flip property across planets for long-term passive income.',
         perks: ['20% discount on all property development costs', 'Reliable long-term income stream', 'Property valuation events and bidding wars'],
         risks: ['Maintenance decay, planetary economy changes'],
         startingFleet: [{ ...baseShip, instanceId: 1, shipId: 'shuttle-s', name: "Proprietor's Shuttle" }],
         startingNetWorth: 400000,
+        page: '/landlord'
     },
     {
         id: 'Trader',
