@@ -102,6 +102,48 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
 };
 
 
+const logAssetSnapshot = (playerStats: PlayerStats): PlayerStats => {
+    const fleetValue = playerStats.fleet.reduce((acc, ship) => acc + calculateShipValue(ship), 0);
+    const cargoValue = calculateCargoValue(playerStats.inventory, []); // Pass empty array as market items are not available here
+    const realEstateValue = 
+        (playerStats.barContract?.currentMarketValue || 0) +
+        (playerStats.residenceContract?.currentMarketValue || 0) +
+        (playerStats.commerceContract?.currentMarketValue || 0) +
+        (playerStats.industryContract?.currentMarketValue || 0) +
+        (playerStats.constructionContract?.currentMarketValue || 0) +
+        (playerStats.recreationContract?.currentMarketValue || 0) +
+        (playerStats.bankContract?.currentMarketValue || 0);
+
+    const sharePortfolioValue = playerStats.portfolio.reduce((acc, holding) => {
+        const currentStock = playerStats.stocks.find(s => s.id === holding.id);
+        return acc + (currentStock ? currentStock.price * holding.shares : 0);
+    }, 0);
+
+    const snapshot: AssetSnapshot = {
+        timestamp: Date.now(),
+        totalNetWorth: playerStats.netWorth + (playerStats.bankAccount?.balance || 0) + fleetValue + cargoValue + realEstateValue + sharePortfolioValue,
+        cash: playerStats.netWorth,
+        bankBalance: playerStats.bankAccount?.balance || 0,
+        fleetValue,
+        cargoValue,
+        realEstateValue,
+        sharePortfolioValue,
+    };
+
+    const newAssetHistory = [...(playerStats.assetHistory || [])];
+    const lastSnapshot = newAssetHistory[newAssetHistory.length - 1];
+    
+    // To prevent rapid-fire snapshots with identical data
+    if (!lastSnapshot || snapshot.totalNetWorth !== lastSnapshot.totalNetWorth) {
+        newAssetHistory.push(snapshot);
+    }
+    
+    return {
+        ...playerStats,
+        assetHistory: newAssetHistory.slice(-100), // Keep last 100 snapshots
+    };
+};
+
 export function useGameState() {
     const [gameState, setGameState] = useState<GameState | null>(null);
     const { toast } = useToast();
@@ -368,47 +410,51 @@ export function useGameState() {
                 if (!prev || prev.isGameOver) return prev;
 
                 let newPlayerStats = { ...prev.playerStats };
+                let stateChanged = false;
                 let bankruptcyTriggered = false;
                 const now = Date.now();
-                let newToast: { variant?: "default" | "destructive", title: string, description: string } | null = null;
-
+                let toastToFire: { variant?: "default" | "destructive", title: string, description: string } | null = null;
+    
                 if (newPlayerStats.loan && now > newPlayerStats.loan.nextDueDate) {
+                    stateChanged = true;
                     const loan = { ...newPlayerStats.loan };
                     newPlayerStats.debt = (newPlayerStats.debt || 0) + loan.repaymentAmount;
                     newPlayerStats.loan.repaymentsMade += 1;
                     
                     if (newPlayerStats.loan.repaymentsMade >= newPlayerStats.loan.totalRepayments) {
                         newPlayerStats.loan = undefined;
-                        newToast = { title: "Loan Cleared", description: "Your loan has been cleared, though the final payment was made from debt." };
+                        toastToFire = { title: "Loan Cleared", description: "Your loan has been cleared, though the final payment was made from debt." };
                     } else {
                         newPlayerStats.loan.nextDueDate = now + 5 * 60 * 1000;
-                        newToast = { variant: "destructive", title: "Loan Payment Missed", description: `Your payment of ${loan.repaymentAmount.toLocaleString()}¢ has been added to your debt.` };
+                        toastToFire = { variant: "destructive", title: "Loan Payment Missed", description: `Your payment of ${loan.repaymentAmount.toLocaleString()}¢ has been added to your debt.` };
                     }
                 }
-
+    
                 if (newPlayerStats.creditCard && newPlayerStats.creditCard.dueDate && now > newPlayerStats.creditCard.dueDate) {
+                    stateChanged = true;
                     const cc = newPlayerStats.creditCard;
                     if (cc.balance > 0) {
                         newPlayerStats.debt = (newPlayerStats.debt || 0) + cc.balance;
-                        newToast = { variant: "destructive", title: "Credit Card Payment Overdue", description: `Your outstanding balance of ${cc.balance.toLocaleString()}¢ has been moved to your general debt.` };
+                        toastToFire = { variant: "destructive", title: "Credit Card Payment Overdue", description: `Your outstanding balance of ${cc.balance.toLocaleString()}¢ has been moved to your general debt.` };
                     }
                     newPlayerStats.creditCard = undefined;
                 }
-
+    
                 if (newPlayerStats.debt > 0) {
+                    stateChanged = true;
                     newPlayerStats.debt *= 1.001;
                 }
-
+    
                 if (newPlayerStats.debt > 100000) {
+                    stateChanged = true;
                     bankruptcyTriggered = true;
-                    newToast = { variant: "destructive", title: "Bankruptcy!", description: "Your overwhelming debt has forced you into bankruptcy. Game Over." };
+                    toastToFire = { variant: "destructive", title: "Bankruptcy!", description: "Your overwhelming debt has forced you into bankruptcy. Game Over." };
                 }
                 
-                // Stock market updates
                 const newStocks: Stock[] = newPlayerStats.stocks.map(stock => {
-                    // Update every 5-15 seconds for more visible changes
                     if (now > (stock.lastUpdated || 0) + (5000 + Math.random() * 10000)) { 
-                        const microFluctuation = (Math.random() - 0.5) * 0.02; // -1% to +1%
+                        stateChanged = true;
+                        const microFluctuation = (Math.random() - 0.5) * 0.02; 
                         const newPrice = Math.max(1, Math.round(stock.price * (1 + microFluctuation)));
                         const changePercent = ((newPrice - stock.history[0]) / stock.history[0]) * 100;
                         const newHistory = [...stock.history, newPrice].slice(-50);
@@ -417,19 +463,25 @@ export function useGameState() {
                     return stock;
                 });
                 newPlayerStats.stocks = newStocks;
-                
-                if (newToast) {
-                    setTimeout(() => toast(newToast!), 0);
+    
+                const lastSnapshot = newPlayerStats.assetHistory[newPlayerStats.assetHistory.length - 1];
+                if (!lastSnapshot || now - lastSnapshot.timestamp > 5000) {
+                    stateChanged = true;
+                    newPlayerStats = logAssetSnapshot(newPlayerStats);
                 }
-
+    
+                if (toastToFire) {
+                    setTimeout(() => toast(toastToFire!), 0);
+                }
+    
                 if (bankruptcyTriggered) {
                     return { ...prev, isGameOver: true };
                 }
-
-                return { ...prev, playerStats: newPlayerStats };
+    
+                return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
             });
-        }, 5000); // Check every 5 seconds
-
+        }, 5000);
+    
         return () => clearInterval(financialInterval);
     }, [setGameState, toast]);
     

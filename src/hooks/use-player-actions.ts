@@ -14,71 +14,12 @@ import { redeemPromoCode } from '@/app/actions';
 import { CAREER_DATA } from '@/lib/careers';
 import { FACTIONS_DATA } from '@/lib/factions';
 
-
-const logAssetSnapshot = (playerStats: PlayerStats): PlayerStats => {
-    const fleetValue = playerStats.fleet.reduce((acc, ship) => acc + calculateShipValue(ship), 0);
-    const cargoValue = calculateCargoValue(playerStats.inventory, playerStats.stocks); // Note: marketItems not directly available, but this is for snapshot. Using stocks as a proxy for value isn't ideal but works for now.
-    const realEstateValue = 
-        (playerStats.barContract?.currentMarketValue || 0) +
-        (playerStats.residenceContract?.currentMarketValue || 0) +
-        (playerStats.commerceContract?.currentMarketValue || 0) +
-        (playerStats.industryContract?.currentMarketValue || 0) +
-        (playerStats.constructionContract?.currentMarketValue || 0) +
-        (playerStats.recreationContract?.currentMarketValue || 0) +
-        (playerStats.bankContract?.currentMarketValue || 0);
-
-    const sharePortfolioValue = playerStats.portfolio.reduce((acc, holding) => {
-        const currentStock = playerStats.stocks.find(s => s.id === holding.id);
-        return acc + (currentStock ? currentStock.price * holding.shares : 0);
-    }, 0);
-
-    const snapshot: AssetSnapshot = {
-        timestamp: Date.now(),
-        totalNetWorth: playerStats.netWorth + (playerStats.bankAccount?.balance || 0) + fleetValue + cargoValue + realEstateValue + sharePortfolioValue,
-        cash: playerStats.netWorth,
-        bankBalance: playerStats.bankAccount?.balance || 0,
-        fleetValue,
-        cargoValue,
-        realEstateValue,
-        sharePortfolioValue,
-    };
-
-    const newAssetHistory = [...(playerStats.assetHistory || [])];
-    const lastSnapshot = newAssetHistory[newAssetHistory.length - 1];
-    
-    // To prevent rapid-fire snapshots with identical data
-    if (!lastSnapshot || snapshot.totalNetWorth !== lastSnapshot.totalNetWorth) {
-        newAssetHistory.push(snapshot);
-    }
-    
-    return {
-        ...playerStats,
-        assetHistory: newAssetHistory.slice(-100), // Keep last 100 snapshots
-    };
-};
-
 export function usePlayerActions(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>
 ) {
     const { toast } = useToast();
     const [isGeneratingBio, startBioGenerationTransition] = useTransition();
-
-    useEffect(() => {
-        if (gameState) {
-            setGameState(prev => {
-                if (!prev) return null;
-                const lastSnapshot = prev.playerStats.assetHistory[prev.playerStats.assetHistory.length - 1];
-                const now = Date.now();
-                // Throttle snapshots to once every 5 seconds to avoid excessive updates
-                if (!lastSnapshot || now - lastSnapshot.timestamp > 5000) {
-                   return { ...prev, playerStats: logAssetSnapshot(prev.playerStats) };
-                }
-                return prev;
-            });
-        }
-    }, [gameState, setGameState]);
-
 
     const handleSetAvatar = useCallback((url: string) => {
         setGameState(prev => {
@@ -647,11 +588,7 @@ export function usePlayerActions(
             
             setTimeout(() => toast({ title: "Career Path Changed!", description: `You spent ${cost.toLocaleString()}¢ to become a ${newCareer}.` }), 0);
             
-            const finalStateWithSnapshot = {
-                ...finalState,
-                playerStats: logAssetSnapshot(finalState.playerStats)
-            };
-            return finalStateWithSnapshot;
+            return finalState;
         });
     }, [setGameState, toast]);
 
