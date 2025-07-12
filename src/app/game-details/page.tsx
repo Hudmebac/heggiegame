@@ -9,8 +9,8 @@ import Link from "next/link";
 
 const changelogData = [
     {
-        version: "v1.3.4 - 'First Class'",
-        date: "Startdate: Delta 4525.07.14",
+        version: "v1.3.3 - 'First Class'",
+        date: "Startdate: Delta 4525.07.12",
         changes: [
             "Introduced a new suite of 'Passenger Systems' upgrades for all ships, including Comfort, Security, and Service Packs.",
             "Overhauled the Taxi Pilot career to create a more engaging and strategic gameplay loop.",
@@ -20,8 +20,8 @@ const changelogData = [
         ]
     },
     {
-        version: "v1.3.3 - 'Logistics & Consequences'",
-        date: "Startdate: Charlie 4525.07.13",
+        version: "v1.3.2 - 'Logistics & Consequences'",
+        date: "Startdate: Charlie 4525.07.12",
         changes: [
             "Overhauled the Hauler career with deeper strategic mechanics.",
             "Contracts now have minimum fuel and hull integrity requirements, requiring careful fleet management.",
@@ -32,7 +32,7 @@ const changelogData = [
         ]
     },
     {
-        version: "v1.3.2 - 'Command & Control'",
+        version: "v1.3.1 - 'Command & Control'",
         date: "Startdate: Bravo 4525.07.12",
         changes: [
             "Complete overhaul of the Captain page UI for a cleaner, more information-dense command hub.",
@@ -43,7 +43,7 @@ const changelogData = [
         ]
     },
     {
-        version: "v1.3.1 - 'The High Roller'",
+        version: "v1.3.0 - 'The High Roller'",
         date: "Startdate: Alpha 4525.07.12",
         changes: [
             "Expanded the Casino with three new games: Drone Racing, Space Roulette, and the Interstellar Gravity World Cup.",
@@ -53,7 +53,7 @@ const changelogData = [
         ]
     },
     {
-        version: "v1.3.0 - 'The Exchange'",
+        version: "v1.2.4 - 'The Exchange'",
         date: "Startdate: Beta 4525.07.11",
         changes: [
             "Introduced the HEGGIE Stock Exchange, a dynamic market for trading shares in galactic corporations and ship manufacturers.",
