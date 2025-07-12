@@ -1,15 +1,20 @@
 
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
 import type { PlayerShip, ShipUpgradeType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, AdvancedLeveledUpgrade } from '@/lib/upgrades';
+import { 
+    cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, 
+    droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, 
+    passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades 
+} from '@/lib/upgrades';
 import { 
     Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar, Bot, Zap, FastForward, Anchor, 
     Ghost, ScanLine, Wrench, CheckCircle, Brain, Leaf, ShieldAlert, DoorOpen, Globe, Thermometer, 
-    Handshake, GitCommit, Crosshair
+    Handshake, GitCommit, Crosshair, PackageCheck 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import CooldownTimer from '@/app/components/cooldown-timer';
@@ -21,7 +26,13 @@ interface ShipOutfittingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type UpgradeInfo = (CargoUpgrade | WeaponUpgrade | ShieldUpgrade | HullUpgrade | FuelUpgrade | SensorUpgrade | DroneUpgrade | AdvancedLeveledUpgrade);
+type UpgradeInfo = {
+    level: number;
+    name: string;
+    cost: number;
+    [key: string]: any; 
+};
+
 
 const advancedIconMap: Record<AdvancedToggleableUpgrade['id'], React.ElementType> = {
     overdriveEngine: FastForward,
@@ -158,10 +169,16 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
             <UpgradeRow type="cargo" label="Cargo Hold" currentLevel={ship.cargoLevel} upgrades={cargoUpgrades} icon={Warehouse} />
             <UpgradeRow type="hull" label="Hull Integrity" currentLevel={ship.hullLevel} upgrades={hullUpgrades} icon={HeartPulse} />
             <UpgradeRow type="shield" label="Shield Generator" currentLevel={ship.shieldLevel} upgrades={shieldUpgrades} icon={ShieldCheck} />
-            <UpgradeRow type="weapon" label="Weapon Systems" currentLevel={ship.weaponLevel} upgrades={weaponUpgrades} icon={Sparkles} />
+            <UpgradeRow type="weapon" label="Weapon Systems" currentLevel={ship.weaponLevel} upgrades={weaponUpgrades} icon={Crosshair} />
             <UpgradeRow type="fuel" label="Fuel Tank" currentLevel={ship.fuelLevel} upgrades={fuelUpgrades} icon={Fuel} />
             <UpgradeRow type="sensor" label="Sensor Suite" currentLevel={ship.sensorLevel} upgrades={sensorUpgrades} icon={Radar} />
             <UpgradeRow type="drone" label="Drone Bay" currentLevel={ship.droneLevel} upgrades={droneUpgrades} icon={Bot} />
+          </div>
+          <div className="space-y-4">
+              <h3 className="font-headline text-lg text-primary border-b pb-2">Passenger Systems</h3>
+              <UpgradeRow type="passengerComfort" label="Passenger Comfort" currentLevel={ship.passengerComfortLevel} upgrades={passengerComfortUpgrades} icon={Sparkles} />
+              <UpgradeRow type="passengerSecurity" label="Passenger Security" currentLevel={ship.passengerSecurityLevel} upgrades={passengerSecurityUpgrades} icon={ShieldAlert} />
+              <UpgradeRow type="passengerPacks" label="Passenger Packs" currentLevel={ship.passengerPacksLevel} upgrades={passengerPacksUpgrades} icon={PackageCheck} />
           </div>
            <div className="space-y-4">
             <h3 className="font-headline text-lg text-primary border-b pb-2">Advanced Systems</h3>
@@ -183,4 +200,3 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     </Dialog>
   );
 }
-

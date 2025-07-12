@@ -252,10 +252,10 @@ export function usePlayerActions(
                 shipId: ship.id,
                 name: ship.name,
                 cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
-                powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
+                powerCoreLevel: 1, passengerComfortLevel: 1, passengerSecurityLevel: 1, passengerPacksLevel: 1, 
+                overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
                 gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
                 health: hullUpgrades[0].health,
-                fuel: fuelUpgrades[0].capacity,
                 status: 'operational',
             };
             const newCash = prev.playerStats.netWorth - ship.cost;
@@ -326,7 +326,9 @@ export function usePlayerActions(
             }
             
             const upgradeMap = { cargo: cargoUpgrades, weapon: weaponUpgrades, shield: shieldUpgrades, hull: hullUpgrades, fuel: fuelUpgrades, sensor: sensorUpgrades, drone: droneUpgrades, powerCore: powerCoreUpgrades };
-            const upgrades = upgradeMap[upgradeType];
+            const upgrades = upgradeMap[upgradeType as keyof typeof upgradeMap];
+            if (!upgrades) return prev;
+
             const currentLevel = (shipToUpgrade as any)[`${upgradeType}Level`] as number;
 
             if (currentLevel >= upgrades.length) {
@@ -397,7 +399,7 @@ export function usePlayerActions(
         return () => clearInterval(interval);
     }, [setGameState, toast]);
 
-    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore') => {
+    const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: ShipUpgradeType) => {
         setGameState(prev => {
             if (!prev) return null;
             const fleet = [...prev.playerStats.fleet];
@@ -415,7 +417,9 @@ export function usePlayerActions(
                 drone: { levels: droneUpgrades, current: shipToDowngrade.droneLevel },
                 powerCore: { levels: powerCoreUpgrades, current: shipToDowngrade.powerCoreLevel },
             };
-            const upgradeInfo = upgradeMap[upgradeType];
+            const upgradeInfo = upgradeMap[upgradeType as keyof typeof upgradeMap];
+            if (!upgradeInfo) return prev;
+
             if (upgradeInfo.current <= 1) {
                 setTimeout(() => toast({ variant: "destructive", title: "Downgrade Failed", description: "Cannot downgrade further." }), 0);
                 return prev;

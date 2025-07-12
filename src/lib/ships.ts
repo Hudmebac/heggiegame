@@ -1,4 +1,5 @@
 
+
 import type { ShipForSale, PlayerShip } from '@/lib/types';
 import { hullUpgrades } from './upgrades';
 
@@ -106,7 +107,8 @@ export const initialShip: PlayerShip = {
     shipId: 'shuttle-s',
     name: 'My Shuttle',
     cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
-    powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
+    powerCoreLevel: 1, passengerComfortLevel: 1, passengerSecurityLevel: 1, passengerPacksLevel: 1,
+    overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
     gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
     health: hullUpgrades[0].health,
     status: 'operational',

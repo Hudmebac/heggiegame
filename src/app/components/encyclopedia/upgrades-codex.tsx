@@ -1,9 +1,17 @@
-'use client';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades } from "@/lib/upgrades";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Package, Crosshair, ShieldCheck, HeartPulse, Fuel, Radar, Bot, Zap, Wrench } from 'lucide-react';
 
-const UpgradeCard = ({ title, icon: Icon, upgrades, unit }: { title: string, icon: React.ElementType, upgrades: { name: string, cost: number, capacity?: number, health?: number }[], unit?: string }) => (
+'use client';
+import { 
+    cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, 
+    droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, 
+    passengerSecurityUpgrades, passengerPacksUpgrades 
+} from "@/lib/upgrades";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { 
+    Package, Crosshair, ShieldCheck, HeartPulse, Fuel, Radar, Bot, Zap, Wrench, 
+    Sparkles, ShieldAlert, PackageCheck 
+} from 'lucide-react';
+
+const UpgradeCard = ({ title, icon: Icon, upgrades, unit }: { title: string, icon: React.ElementType, upgrades: { name: string, cost: number, capacity?: number, health?: number, description?: string }[], unit?: string }) => (
     <Card>
         <CardHeader>
             <CardTitle className="font-headline text-lg flex items-center gap-2"><Icon className="text-primary"/>{title}</CardTitle>
@@ -11,12 +19,13 @@ const UpgradeCard = ({ title, icon: Icon, upgrades, unit }: { title: string, ico
         <CardContent className="space-y-3">
             {upgrades.map(upgrade => (
                 <div key={upgrade.name} className="flex justify-between items-center text-sm">
-                    <span>
+                    <div className="flex-1">
                         {upgrade.name}
                         {upgrade.capacity != null && ` (${upgrade.capacity}${unit})`}
                         {upgrade.health != null && ` (${upgrade.health}HP)`}
-                    </span>
-                    <span className="font-mono text-amber-300">{upgrade.cost.toLocaleString()}¢</span>
+                        {upgrade.description && <p className="text-xs text-muted-foreground">{upgrade.description}</p>}
+                    </div>
+                    <span className="font-mono text-amber-300 ml-4 whitespace-nowrap">{upgrade.cost.toLocaleString()}¢</span>
                 </div>
             ))}
         </CardContent>
@@ -33,12 +42,31 @@ export default function UpgradesCodex() {
             <UpgradeCard title="Fuel Upgrades" icon={Fuel} upgrades={fuelUpgrades} unit=" SU" />
             <UpgradeCard title="Sensor Upgrades" icon={Radar} upgrades={sensorUpgrades} />
             <UpgradeCard title="Drone Upgrades" icon={Bot} upgrades={droneUpgrades} />
-            <UpgradeCard title="Power Core Upgrades" icon={Zap} upgrades={powerCoreUpgrades} />
+            <UpgradeCard title="Passenger Comfort" icon={Sparkles} upgrades={passengerComfortUpgrades} />
+            <UpgradeCard title="Passenger Security" icon={ShieldAlert} upgrades={passengerSecurityUpgrades} />
+            <UpgradeCard title="Passenger Service Packs" icon={PackageCheck} upgrades={passengerPacksUpgrades} />
+            
+            <Card className="lg:col-span-3">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Zap className="text-primary"/>Power Core Upgrades</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                     {powerCoreUpgrades.map(upgrade => (
+                        <div key={upgrade.name} className="flex justify-between items-center text-sm">
+                            <div className="flex-1">
+                                {upgrade.name} (Lvl {upgrade.level})
+                                <p className="text-xs text-muted-foreground">{upgrade.description}</p>
+                            </div>
+                            <span className="font-mono text-amber-300 ml-4 whitespace-nowrap">{upgrade.cost > 0 ? upgrade.cost.toLocaleString() + '¢' : 'Base'}</span>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
 
             <Card className="lg:col-span-3">
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Wrench className="text-primary"/>Advanced Systems</CardTitle>
-                    <CardDescription>Toggleable, high-cost modules that provide unique strategic advantages.</CardDescription>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Wrench className="text-primary"/>Advanced Toggleable Modules</CardTitle>
+                    <CardDescription>High-cost modules that provide unique strategic advantages. These are purchased once.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {advancedUpgrades.map(upgrade => (

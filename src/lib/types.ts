@@ -108,7 +108,7 @@ export interface BankAccount {
     lastFluctuation: number; // timestamp
 }
 
-export type ShipUpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore';
+export type ShipUpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore' | 'passengerComfort' | 'passengerSecurity' | 'passengerPacks';
 
 export interface PlayerShip {
   instanceId: number;
@@ -127,6 +127,9 @@ export interface PlayerShip {
   cargoLevel: number;
   droneLevel: number;
   powerCoreLevel: number;
+  passengerComfortLevel: number;
+  passengerSecurityLevel: number;
+  passengerPacksLevel: number;
   overdriveEngine: boolean;
   warpStabilizer: boolean;
   stealthPlating: boolean;
@@ -315,6 +318,9 @@ export interface PlayerStats {
   cargoLevel: number;
   droneLevel: number;
   powerCoreLevel: number;
+  passengerComfortLevel: number;
+  passengerSecurityLevel: number;
+  passengerPacksLevel: number;
   overdriveEngine: boolean;
   warpStabilizer: boolean;
   stealthPlating: boolean;

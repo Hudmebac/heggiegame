@@ -2,7 +2,10 @@ import type { CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgra
 
 const costMultiplier = 1.4;
 const costGrowthFactor = 2.0;
+const taxiCostGrowthFactor = 2.3;
 const upgradeLevelCount = 30;
+const taxiUpgradeLevelCount = 10;
+
 
 const generateUpgradeCosts = (count: number, baseCost: number, costGrowth: number): number[] => {
     const costs: number[] = [];
@@ -192,4 +195,61 @@ export const warehouseUpgrades: WarehouseUpgrade[] = warehouseNames.map((name, i
     name,
     cost: warehouseCosts[i],
     capacity: 200 * (i + 1) * (i + 1)
+}));
+
+
+// --- Taxi Specific Upgrades ---
+export interface PassengerUpgrade {
+    level: number;
+    name: string;
+    description: string;
+    cost: number;
+}
+
+// Passenger Comfort
+const comfortCosts = generateUpgradeCosts(taxiUpgradeLevelCount, 20000 * costMultiplier, taxiCostGrowthFactor);
+const comfortNames = [
+    'Basic Amenities', 'Soft Lighting', 'Climate Control', 'Reclining Seats', 'Personal Entertainment', 
+    'Spacious Cabins', 'Holodeck Lounge', 'Wellness Zone', 'Cuisine Module', 'Prestige Suite'
+];
+const comfortDescriptions = [
+    'Noise dampening and basic lighting.', 'Soft, adjustable lighting for passenger comfort.', 'Advanced climate control for perfect cabin temperature.',
+    'Enhanced seating with recline and massage functions.', 'Individual holo-screens with a library of content.', 'Expanded passenger cabins for extra legroom and luggage.',
+    'A small holographic entertainment room.', 'A wellness zone with bio-feedback relaxation pods.', 'A module that synthesizes interstellar delicacies.',
+    'Ultimate luxury, boosting faction rep and fare prices.'
+];
+export const passengerComfortUpgrades: PassengerUpgrade[] = comfortNames.map((name, i) => ({
+    level: i + 1, name, cost: comfortCosts[i], description: comfortDescriptions[i]
+}));
+
+// Passenger Security
+const securityCosts = generateUpgradeCosts(taxiUpgradeLevelCount, 25000 * costMultiplier, taxiCostGrowthFactor);
+const securityNames = [
+    'Secure Harnesses', 'Basic Shielding', 'Internal Surveillance', 'Threat Detection', 'Escape Pods',
+    'Security Droids', 'Predictive Breach AI', 'Biometric Access', 'Riot Suppression', 'Quantum Lockdown'
+];
+const securityDescriptions = [
+    'High-G rated passenger harnesses.', 'Basic cabin shielding against micro-meteoroids.', 'A simple surveillance system for the passenger cabin.',
+    'Advanced scanners to detect potential threats.', 'Emergency escape pods for passenger safety.', 'Onboard droids trained in security protocols.',
+    'AI that predicts and seals potential hull breaches.', 'Doors and compartments locked by biometric scans.', 'A non-lethal field to quell unruly passengers.',
+    'Instantly seals compartments with quantum-locked fields.'
+];
+export const passengerSecurityUpgrades: PassengerUpgrade[] = securityNames.map((name, i) => ({
+    level: i + 1, name, cost: securityCosts[i], description: securityDescriptions[i]
+}));
+
+// Passenger Packs
+const packCosts = generateUpgradeCosts(taxiUpgradeLevelCount, 15000 * costMultiplier, taxiCostGrowthFactor);
+const packNames = [
+    'Economy Pack', 'Standard Meal Service', 'Limited Cargo Add-on', 'Priority Boarding', 'Customizable Cabins',
+    'Loyalty Points Program', 'Mining Guild Pack', 'Corporate Client Pack', 'Diplomatic Suite', 'Signature Experience Pack'
+];
+const packDescriptions = [
+    'Basic transportation, no frills.', 'Offers standard-issue nutrient paste and water.', 'Allows for a small amount of personal cargo.',
+    'Passengers get priority access during docking.', 'Cabin lighting and sound can be customized by the passenger.', 'Frequent flyers earn points towards discounts.',
+    'Low-G pods and raw mineral sample storage for miners.', 'High-speed data links and secure comms for corporate clients.', 'Enhanced privacy shields and fine wine for diplomats.',
+    'Limited edition, themed interior and service packages.'
+];
+export const passengerPacksUpgrades: PassengerUpgrade[] = packNames.map((name, i) => ({
+    level: i + 1, name, cost: packCosts[i], description: packDescriptions[i]
 }));
