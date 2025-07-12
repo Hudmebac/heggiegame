@@ -1,4 +1,3 @@
-
 import type { TaxiMission } from '@/lib/types';
 
 // This is a list of mission templates. The final 'id', 'fromSystem', and 'toSystem' will be generated dynamically.
@@ -54,6 +53,7 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         duration: 190,
         requiredFuel: 22,
         minHullPercentage: 0.90,
+        minComfortLevel: 2,
     },
     // High Risk
     {
@@ -65,6 +65,7 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         duration: 220,
         requiredFuel: 30,
         minHullPercentage: 0.95,
+        minSecurityLevel: 3,
     },
     {
         passengerName: 'Ex-syndicate enforcer',
@@ -75,6 +76,7 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         duration: 300,
         requiredFuel: 40,
         minHullPercentage: 0.95,
+        minSecurityLevel: 4,
     },
     // Critical Risk
     {
@@ -86,5 +88,7 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         duration: 250,
         requiredFuel: 50,
         minHullPercentage: 1.0,
+        minSecurityLevel: 7,
+        minPacksLevel: 5,
     },
 ];
