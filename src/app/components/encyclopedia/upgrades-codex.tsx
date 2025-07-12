@@ -2,8 +2,10 @@
 'use client';
 import { 
     cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, 
-    droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, 
-    passengerSecurityUpgrades, passengerPacksUpgrades 
+    droneUpgrades, powerCoreUpgrades, advancedUpgrades, 
+    passengerComfortUpgrades, 
+    passengerSecurityUpgrades, 
+    passengerPacksUpgrades 
 } from "@/lib/upgrades";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
