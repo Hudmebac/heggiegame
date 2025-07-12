@@ -429,7 +429,7 @@ export function usePlayerActions(
             }
 
             if (upgradeType === 'cargo' && shipIndex === 0) { // Only check cargo for active ship
-                const newMaxCargo = upgradeInfo.levels[upgradeInfo.current - 2].capacity;
+                const newMaxCargo = (upgradeInfo.levels as any)[upgradeInfo.current - 2].capacity;
                 const currentCargo = calculateCurrentCargo(prev.inventory);
                 if (currentCargo > newMaxCargo) {
                     setTimeout(() => toast({ variant: "destructive", title: "Downgrade Failed", description: `Cannot downgrade cargo hold, you have too much cargo (${currentCargo.toFixed(2)}t / ${newMaxCargo}t).` }), 0);
@@ -481,7 +481,7 @@ export function usePlayerActions(
                 return prev;
             }
             
-            shipToUpgrade[moduleId] = true;
+            (shipToUpgrade as any)[moduleId] = true;
             fleet[shipIndex] = shipToUpgrade;
             const newCash = prev.playerStats.netWorth - moduleData.cost;
             let newPlayerStats = { 

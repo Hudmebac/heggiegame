@@ -2,16 +2,23 @@
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
-import type { PlayerShip, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade, DroneUpgrade } from '@/lib/types';
+import type { PlayerShip, ShipUpgradeType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, AdvancedLeveledUpgrade } from '@/lib/upgrades';
+import { 
+    cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, 
+    droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, 
+    passengerComfortUpgrades, 
+    passengerSecurityUpgrades, 
+    passengerPacksUpgrades 
+} from '@/lib/upgrades';
 import { 
     Rocket, Warehouse, HeartPulse, ShieldCheck, Sparkles, Fuel, Radar, Bot, Zap, FastForward, Anchor, 
     Ghost, ScanLine, Wrench, CheckCircle, Brain, Leaf, ShieldAlert, DoorOpen, Globe, Thermometer, 
-    Handshake, GitCommit, Crosshair
+    Handshake, GitCommit, Crosshair, PackageCheck 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 
 interface ShipOutfittingDialogProps {
@@ -20,8 +27,13 @@ interface ShipOutfittingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type UpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore';
-type UpgradeInfo = (CargoUpgrade | WeaponUpgrade | ShieldUpgrade | HullUpgrade | FuelUpgrade | SensorUpgrade | DroneUpgrade | AdvancedLeveledUpgrade);
+type UpgradeInfo = {
+    level: number;
+    name: string;
+    cost: number;
+    [key: string]: any; 
+};
+
 
 const advancedIconMap: Record<AdvancedToggleableUpgrade['id'], React.ElementType> = {
     overdriveEngine: FastForward,
@@ -69,7 +81,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     return Math.round((currentTier.cost - prevTier.cost) * 0.7);
   };
   
-  const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: UpgradeType, label: string, currentLevel: number, upgrades: UpgradeInfo[], icon: React.ElementType }) => {
+  const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: ShipUpgradeType, label: string, currentLevel: number, upgrades: UpgradeInfo[], icon: React.ElementType }) => {
     const level = currentLevel || 1;
     const cost = getUpgradeCost(level, upgrades);
     const refund = getDowngradeValue(level, upgrades);
@@ -77,6 +89,9 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
 
     const currentUpgrade = upgrades[level - 1];
     const nextUpgrade = level < upgrades.length ? upgrades[level] : null;
+
+    const isCurrentlyUpgrading = ship.status === 'upgrading';
+    const isThisComponentUpgrading = isCurrentlyUpgrading && ship.upgradingComponent === type;
 
     if (!currentUpgrade) {
         return null;
@@ -98,8 +113,16 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
         </div>
         
         <div className="flex items-center gap-2 md:justify-end md:col-span-1">
-          {level > 1 && <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)}>Sell ({refund.toLocaleString()}¢)</Button>}
-          {nextUpgrade ? <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford}>{`Upgrade (${cost.toLocaleString()}¢)`}</Button> : <Button size="sm" disabled>Max</Button>}
+          {level > 1 && <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)} disabled={isCurrentlyUpgrading}>Sell ({refund.toLocaleString()}¢)</Button>}
+          {isThisComponentUpgrading && ship.upgradeStartTime && ship.upgradeDuration ? (
+            <div className="text-xs font-mono text-cyan-400 h-9 px-3 flex items-center">
+                <CooldownTimer expiry={ship.upgradeStartTime + ship.upgradeDuration} />
+            </div>
+          ) : nextUpgrade ? (
+            <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford || isCurrentlyUpgrading}>Upgrade ({cost.toLocaleString()}¢)</Button>
+          ) : (
+            <Button size="sm" disabled>Max</Button>
+          )}
         </div>
       </div>
     );
@@ -121,7 +144,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
                   {isInstalled ? (
                       <span className="flex items-center gap-2 text-sm text-green-400 font-semibold"><CheckCircle className="h-4 w-4"/> Installed</span>
                   ) : (
-                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford}>
+                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford || ship.status !== 'operational'}>
                         <Wrench className="mr-2" />
                         Purchase ({upgrade.cost.toLocaleString()}¢)
                       </Button>
@@ -147,10 +170,16 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
             <UpgradeRow type="cargo" label="Cargo Hold" currentLevel={ship.cargoLevel} upgrades={cargoUpgrades} icon={Warehouse} />
             <UpgradeRow type="hull" label="Hull Integrity" currentLevel={ship.hullLevel} upgrades={hullUpgrades} icon={HeartPulse} />
             <UpgradeRow type="shield" label="Shield Generator" currentLevel={ship.shieldLevel} upgrades={shieldUpgrades} icon={ShieldCheck} />
-            <UpgradeRow type="weapon" label="Weapon Systems" currentLevel={ship.weaponLevel} upgrades={weaponUpgrades} icon={Sparkles} />
+            <UpgradeRow type="weapon" label="Weapon Systems" currentLevel={ship.weaponLevel} upgrades={weaponUpgrades} icon={Crosshair} />
             <UpgradeRow type="fuel" label="Fuel Tank" currentLevel={ship.fuelLevel} upgrades={fuelUpgrades} icon={Fuel} />
             <UpgradeRow type="sensor" label="Sensor Suite" currentLevel={ship.sensorLevel} upgrades={sensorUpgrades} icon={Radar} />
             <UpgradeRow type="drone" label="Drone Bay" currentLevel={ship.droneLevel} upgrades={droneUpgrades} icon={Bot} />
+          </div>
+           <div className="space-y-4">
+              <h3 className="font-headline text-lg text-primary border-b pb-2">Passenger Systems</h3>
+              <UpgradeRow type="passengerComfort" label="Passenger Comfort" currentLevel={ship.passengerComfortLevel} upgrades={passengerComfortUpgrades} icon={Sparkles} />
+              <UpgradeRow type="passengerSecurity" label="Passenger Security" currentLevel={ship.passengerSecurityLevel} upgrades={passengerSecurityUpgrades} icon={ShieldAlert} />
+              <UpgradeRow type="passengerPacks" label="Passenger Service Packs" currentLevel={ship.passengerPacksLevel} upgrades={passengerPacksUpgrades} icon={PackageCheck} />
           </div>
            <div className="space-y-4">
             <h3 className="font-headline text-lg text-primary border-b pb-2">Advanced Systems</h3>
