@@ -430,6 +430,7 @@ export interface PlayerStats {
   diplomaticMissions: DiplomaticMission[];
   lastDiplomaticMissionGeneration?: number;
   staff: Staff[];
+  lastLeaseGeneration?: number;
 }
 
 export interface PriceHistory {

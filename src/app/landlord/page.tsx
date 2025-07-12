@@ -36,6 +36,10 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
     const { gameState, handleUpgradeProperty } = useGame();
     if (!gameState) return null;
     
+    if (property.status !== 'Idle') {
+        return <p className="text-sm text-muted-foreground text-center py-4">Upgrades are unavailable while property is leased or being upgraded.</p>
+    }
+
     const upgradeKey = `${property.type.toLowerCase()}Level` as keyof Property;
     const upgradeData = propertyUpgrades[property.type.toLowerCase() as keyof typeof propertyUpgrades];
     if (!upgradeData) return null;
@@ -223,6 +227,11 @@ export default function LandlordPage() {
     const getAssignableProperties = (lease: Lease) => {
         return idleProperties.filter(p => p.type === lease.propertyType && p[`${p.type.toLowerCase()}Level` as keyof Property] >= lease.requiredLevel);
     };
+    
+    const cooldown = 60 * 1000;
+    const lastGeneration = playerStats.lastLeaseGeneration || 0;
+    const isCooldownActive = Date.now() < lastGeneration + cooldown;
+    const cooldownExpiry = lastGeneration + cooldown;
 
     return (
         <div className="space-y-6">
@@ -295,9 +304,9 @@ export default function LandlordPage() {
                     <CardDescription>Find tenants and manage your leases. New proposals are generated based on your property portfolio.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <Button onClick={handleFindTenants} disabled={isGeneratingLeases || idleProperties.length === 0}>
+                     <Button onClick={handleFindTenants} disabled={isGeneratingLeases || idleProperties.length === 0 || isCooldownActive}>
                         {isGeneratingLeases ? <Loader2 className="animate-spin mr-2"/> : <UserPlus className="mr-2"/>}
-                        {idleProperties.length === 0 ? "No Available Properties" : "Find Tenants"}
+                        {isCooldownActive ? <CooldownTimer expiry={cooldownExpiry} /> : (idleProperties.length === 0 ? "No Available Properties" : "Find Tenants")}
                     </Button>
 
                     {activeLeases && activeLeases.length > 0 && (
@@ -309,7 +318,7 @@ export default function LandlordPage() {
                                 <div key={`${lease.id}-${lease.propertyId}`} className="p-3 rounded-md border bg-background/50">
                                     <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
                                     <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                        <span>Rent: {lease.rent.toLocaleString()}¢ / 10 mins</span>
+                                        <span>Rent: {lease.rent.toLocaleString()}¢/hr</span>
                                         <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
                                     </div>
                                 </div>
@@ -327,7 +336,7 @@ export default function LandlordPage() {
                                     <div>
                                         <p className="font-semibold text-sm">{lease.tenantName}</p>
                                         <p className="text-xs text-muted-foreground">{lease.description}</p>
-                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/10mins | Term: {lease.duration}h</p>
+                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/hr | Term: {lease.duration}h</p>
                                     </div>
                                     <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
                                         Assign

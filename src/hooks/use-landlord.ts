@@ -124,6 +124,14 @@ export function useLandlord(
 
     const handleFindTenants = useCallback(async () => {
         if (!gameState) return;
+
+        const cooldown = 60 * 1000;
+        const lastGeneration = gameState.playerStats.lastLeaseGeneration || 0;
+        if (Date.now() - lastGeneration < cooldown) {
+            toast({ variant: 'destructive', title: 'On Cooldown', description: 'Can only search for tenants once per minute.' });
+            return;
+        }
+
         setIsGeneratingLeases(true);
         try {
             const idleProperties = gameState.playerStats.properties.filter(p => p.status === 'Idle');
@@ -134,15 +142,12 @@ export function useLandlord(
             const result = await generateLeaseProposals({ propertyCount: idleProperties.length, proposalCount: 3 + Math.floor(Math.random() * 3) });
             setGameState(prev => {
                 if (!prev) return null;
-                const leasesWithCorrectType = result.leases.map(lease => ({
-                    ...lease,
-                    status: 'Active' as const, // This needs to be 'Active' to match the type, though it's not truly active yet
-                }));
                 return {
                     ...prev,
                     playerStats: {
                         ...prev.playerStats,
-                        availableLeases: result.leases
+                        availableLeases: result.leases,
+                        lastLeaseGeneration: Date.now(),
                     }
                 }
             });
