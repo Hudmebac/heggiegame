@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import type { GameState, Property, PropertyType, Lease } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
@@ -259,6 +259,69 @@ export function useLandlord(
         });
     }, [setGameState]);
 
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setGameState(prev => {
+                if (!prev || prev.isGameOver) return prev;
+
+                let newPlayerStats = { ...prev.playerStats };
+                let stateChanged = false;
+                const now = Date.now();
+                
+                // Handle lease payments and expirations
+                const activeLeases = newPlayerStats.activeLeases || [];
+                const newlyCompletedLeases: Lease[] = [];
+                const stillActiveLeases = activeLeases.map(lease => {
+                    const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
+                    if (now >= leaseEndTime) {
+                        newlyCompletedLeases.push(lease);
+                        return null;
+                    }
+
+                    const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
+                    const intervalsSinceLastRent = timeSinceLastRent / (2 * 60 * 1000); // 2 minutes interval
+                    
+                    if (intervalsSinceLastRent >= 1) {
+                        const intervalsToPay = Math.floor(intervalsSinceLastRent);
+                        const rentToCollect = intervalsToPay * lease.rent;
+
+                        newPlayerStats.netWorth += rentToCollect;
+                        newPlayerStats.events.push({
+                            id: `evt_rent_${Date.now()}_${lease.propertyId}`,
+                            timestamp: Date.now(),
+                            type: 'Lease',
+                            description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
+                            value: rentToCollect,
+                            reputationChange: 0,
+                            isMilestone: false,
+                        });
+
+                        stateChanged = true;
+                        
+                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 2 * 60 * 1000 };
+                    }
+
+                    return lease;
+                }).filter((l): l is Lease => l !== null);
+                
+                if (newlyCompletedLeases.length > 0) {
+                    stateChanged = true;
+                    newlyCompletedLeases.forEach(lease => {
+                        const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
+                        if(propIndex > -1) {
+                            newPlayerStats.properties[propIndex].status = 'Idle';
+                        }
+                    });
+                }
+                newPlayerStats.activeLeases = stillActiveLeases;
+                
+                return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
+            });
+        }, 1000); // Check every second
+
+        return () => clearInterval(interval);
+    }, [setGameState]);
 
     return {
         handlePurchaseProperty,
