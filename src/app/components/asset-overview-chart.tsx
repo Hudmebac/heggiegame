@@ -5,9 +5,9 @@
 import { useState } from 'react';
 import type { AssetSnapshot } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
+import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart } from 'lucide-react';
+import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart, List } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,15 @@ type ActiveKeys = keyof typeof chartConfig;
 
 export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartProps) {
     const [activeKeys, setActiveKeys] = useState<ActiveKeys[]>(['sharePortfolioValue']);
+    const allKeys = Object.keys(chartConfig) as ActiveKeys[];
+
+    const toggleAll = () => {
+        if (activeKeys.length === allKeys.length) {
+            setActiveKeys([]);
+        } else {
+            setActiveKeys(allKeys);
+        }
+    };
     
     const chartData = assetHistory.map(snapshot => ({
         ...snapshot,
@@ -92,27 +101,36 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
                             ))}
                              <Legend content={({ payload }) => {
                                 return (
-                                <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
-                                    {payload?.map((entry) => {
-                                    const key = entry.dataKey as ActiveKeys;
-                                    const isActive = activeKeys.includes(key);
-                                    const Icon = chartConfig[key].icon;
-                                    return (
-                                        <Button
-                                            key={entry.value}
-                                            variant="ghost"
-                                            size="sm"
-                                            className={cn("text-xs h-auto px-2 py-1", isActive ? "text-foreground" : "text-muted-foreground")}
-                                            onClick={() => {
-                                                setActiveKeys(prev => 
-                                                    prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-                                                )
-                                            }}
-                                        >
-                                            <Icon className={cn("mr-2 h-4 w-4")} style={{ color: entry.color }}/>
-                                            {entry.value}
-                                        </Button>
-                                    );
+                                <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-4">
+                                     <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-xs h-auto px-2 py-1"
+                                        onClick={toggleAll}
+                                    >
+                                        <List className="mr-2 h-4 w-4"/>
+                                        Toggle All
+                                    </Button>
+                                    {allKeys.map((key) => {
+                                        const entry = payload?.find(p => p.dataKey === key);
+                                        const isActive = activeKeys.includes(key);
+                                        const Icon = chartConfig[key].icon;
+                                        return (
+                                            <Button
+                                                key={key}
+                                                variant="ghost"
+                                                size="sm"
+                                                className={cn("text-xs h-auto px-2 py-1", isActive ? "text-foreground" : "text-muted-foreground")}
+                                                onClick={() => {
+                                                    setActiveKeys(prev => 
+                                                        prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+                                                    )
+                                                }}
+                                            >
+                                                <Icon className={cn("mr-2 h-4 w-4", entry?.color && `text-[${entry.color}]`)} style={{ color: entry?.color }}/>
+                                                {chartConfig[key].label}
+                                            </Button>
+                                        );
                                     })}
                                 </div>
                                 );
