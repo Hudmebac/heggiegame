@@ -232,7 +232,7 @@ function PlayerProfile() {
                     </Button>
                 </div>
 
-                <div className="pt-4 border-t border-border/50 flex-grow flex flex-col">
+                 <div className="pt-4 border-t border-border/50 flex-grow flex flex-col h-[200px]">
                     <AssetOverviewChart assetHistory={playerStats.assetHistory || []} />
                 </div>
 
@@ -586,4 +586,3 @@ export default function CaptainPage() {
     </div>
   );
 }
-
