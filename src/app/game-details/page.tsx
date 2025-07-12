@@ -10,7 +10,7 @@ import Link from "next/link";
 const changelogData = [
     {
         version: "v1.3.1 - 'The High Roller'",
-        date: "Startdate: Cycle 4525.07.13",
+        date: "Startdate: Alpha 4525.07.12",
         changes: [
             "Expanded the Casino with three new games: Drone Racing, Space Roulette, and the Interstellar Gravity World Cup.",
             "Improved the casino UI with 'Min'/'Max' buttons and a stake slider for a more fluid betting experience.",
@@ -20,7 +20,7 @@ const changelogData = [
     },
     {
         version: "v1.3.0 - 'The Exchange'",
-        date: "Startdate: Cycle 4525.07.12",
+        date: "Startdate: Beta 4525.07.11",
         changes: [
             "Introduced the HEGGIE Stock Exchange, a dynamic market for trading shares in galactic corporations and ship manufacturers.",
             "Implemented a sophisticated stock price fluctuation model, including micro-fluctuations and random market events like spikes and crashes.",
@@ -30,7 +30,7 @@ const changelogData = [
     },
     {
         version: "v1.2.3 – 'Strategic Depth'",
-        date: "Startdate: Cycle 4525.07.11",
+        date: "Startdate: Alpha 4525.07.11",
         changes: [
             "Implemented a comprehensive Insurance System, allowing players to purchase policies to mitigate the risks of ship destruction and cargo loss.",
             "Introduced the Galactic Bank Loan System, enabling players to take on strategic debt to accelerate their enterprise's growth.",
@@ -42,7 +42,7 @@ const changelogData = [
     },
     {
         version: "v1.2.2 – 'Economy Rash'",
-        date: "Startdate: Cycle 4525.0710",
+        date: "Startdate: Beta 4525.07.10",
         changes: [
             "Complete reengineering of the core economy system—introducing dynamic market fluctuations, resource volatility, and sector-based demand modeling for more emergent gameplay.",
             "Debuted the Galactic Bank Initiative, empowering players to manage assets, negotiate multi-cycle loans, and invest in adaptive financial instruments across planetary systems.",
@@ -54,7 +54,7 @@ const changelogData = [
     },
     {
         version: "v1.2.1 - 'Stability Patch'",
-        date: "Startdate: Cycle 4525.09.1",
+        date: "Startdate: Alpha 4525.07.10",
         changes: [
             "Critical fix to pirate encounter logic to prevent infinite loops and ensure encounters are decisive events.",
             "Refined insurance behavior to correctly trigger rebirth in non-Hardcore modes and disable insurance purchasing in Hardcore mode.",
@@ -64,7 +64,7 @@ const changelogData = [
     },
     {
         version: "v1.2.0 - 'Orion's Arm'",
-        date: "Startdate: Cycle 4525.0709",
+        date: "Startdate: Alpha 4525.07.09",
         changes: [
             "Introduced Faction Allegiance system. Players can now pledge to one of six major galactic powers for unique perks.",
             "Added 'How to Play' section to the Encyclopedia.",
@@ -75,7 +75,7 @@ const changelogData = [
     },
     {
         version: "v1.1.0 - 'Gemini'",
-        date: "Startdate: Cycle 4525.0708",
+        date: "Startdate: Alpha 4525.07.08",
         changes: [
             "Overhauled the career system, introducing unique mission boards for Hauler, Taxi Pilot, Defender, and more.",
             "Added a full suite of business ventures: Residence, Commerce, Industry, Construction, and Recreation.",
@@ -84,7 +84,7 @@ const changelogData = [
     },
     {
         version: "v1.0.0 - 'Helios'",
-        date: "Startdate: Cycle 4525.0707",
+        date: "Startdate: Alpha 4525.07.07",
         changes: [
             "Initial launch of the HEGGIE: Hegg Interstellar Exchange.",
             "Core gameplay loop established: trading, ship management, and questing.",
