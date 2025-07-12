@@ -269,7 +269,7 @@ export function usePlayerActions(
                     timestamp: Date.now(),
                     type: 'Purchase',
                     description: `Purchased a new ship: ${ship.name}.`,
-                    value: -ship.cost,
+                    value: -cost,
                     reputationChange: 1,
                     isMilestone: true,
                 }],

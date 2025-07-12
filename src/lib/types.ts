@@ -210,6 +210,9 @@ export interface TaxiMission {
   assignedShipName?: string;
   requiredFuel: number;
   minHullPercentage: number;
+  minComfortLevel?: number;
+  minSecurityLevel?: number;
+  minPacksLevel?: number;
 }
 
 export interface EscortMission {
