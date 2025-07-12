@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass } from 'lucide-react';
+import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare } from 'lucide-react';
 import type { Property, PropertyType, Lease } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
@@ -20,6 +20,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 const propertyTypeConfig: { type: PropertyType; icon: React.ElementType, cost: number }[] = [
     { type: 'Residential', icon: Home, cost: 250000 },
@@ -65,7 +66,7 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
 };
 
 
-const PropertyCard = ({ property }: { property: Property }) => {
+const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenameClick: (property: Property) => void }) => {
     const Icon = propertyTypeConfig.find(p => p.type === property.type)?.icon || LandPlot;
     const currentLevel = property[`${property.type.toLowerCase()}Level` as keyof Property] as number || 0;
 
@@ -76,6 +77,9 @@ const PropertyCard = ({ property }: { property: Property }) => {
                     <span className="flex items-center gap-2">
                         <Icon className="h-5 w-5 text-primary" />
                         {property.name}
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onRenameClick(property)}>
+                            <PenSquare className="h-3 w-3" />
+                        </Button>
                     </span>
                     <Badge variant="outline">{property.systemName}</Badge>
                 </CardTitle>
@@ -141,9 +145,46 @@ const AssignLeaseDialog = ({ lease, properties, onAssign, isOpen, onOpenChange }
     )
 }
 
+const RenamePropertyDialog = ({ property, onRename, isOpen, onOpenChange }: { property: Property | null, onRename: (id: number, newName: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const [name, setName] = useState(property?.name || '');
+
+    useEffect(() => {
+        if(property) setName(property.name);
+    }, [property]);
+
+    if(!property) return null;
+
+    const handleSave = () => {
+        if(name.trim()) {
+            onRename(property.id, name.trim());
+            onOpenChange(false);
+        }
+    }
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Rename Property</DialogTitle>
+                    <DialogDescription>Give your property a unique name.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Label htmlFor="property-name">New Property Name</Label>
+                    <Input id="property-name" value={name} onChange={e => setName(e.target.value)} />
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <Button onClick={handleSave}>Save Name</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function LandlordPage() {
-    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases } = useGame();
+    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty } = useGame();
     const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
+    const [renamingProperty, setRenamingProperty] = useState<Property | null>(null);
 
     if (!gameState) return null;
 
@@ -194,7 +235,7 @@ export default function LandlordPage() {
                 <CardContent>
                     {properties.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {properties.map(prop => <PropertyCard key={prop.id} property={prop}/>)}
+                            {properties.map(prop => <PropertyCard key={prop.id} property={prop} onRenameClick={setRenamingProperty} />)}
                         </div>
                     ) : (
                         <p className="text-muted-foreground text-center py-8">You do not own any properties. Purchase one to get started.</p>
@@ -264,6 +305,13 @@ export default function LandlordPage() {
                     onAssign={(propertyId) => handleAssignLease(selectedLease.id, propertyId)}
                 />
             )}
+            
+            <RenamePropertyDialog
+                isOpen={!!renamingProperty}
+                onOpenChange={() => setRenamingProperty(null)}
+                property={renamingProperty}
+                onRename={handleRenameProperty}
+            />
         </div>
     );
 }

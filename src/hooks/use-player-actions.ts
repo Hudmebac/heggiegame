@@ -3,7 +3,7 @@
 'use client';
 
 import { useCallback, useTransition, useEffect, useState } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType, Property } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -964,6 +964,17 @@ export function usePlayerActions(
             return { ...prev, playerStats: { ...prev.playerStats, fleet } };
         });
     }, [setGameState]);
+    
+    const handleRenameProperty = useCallback((propertyId: number, newName: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const properties = prev.playerStats.properties.map(prop => 
+                prop.id === propertyId ? { ...prop, name: newName } : prop
+            );
+            toast({ title: "Property Renamed", description: `Your property is now known as "${newName}".`});
+            return { ...prev, playerStats: { ...prev.playerStats, properties } };
+        });
+    }, [setGameState, toast]);
 
     return {
         isGeneratingBio,
@@ -1000,12 +1011,14 @@ export function usePlayerActions(
         handleHolotagMinigameScore,
         handleKeypadCrackerMinigameScore,
         handleRenameShip,
+        handleRenameProperty,
     };
 }
 
     
 
     
+
 
 
 
