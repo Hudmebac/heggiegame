@@ -141,11 +141,6 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                                             <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                                 <Wrench className="mr-2" /> Outfit
                                             </Button>
-                                            {baseData?.type === 'Shuttle' && (
-                                                <Button size="sm" variant="secondary" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
-                                                    <Sparkles className="mr-2"/> Taxi Upgrades
-                                                </Button>
-                                            )}
                                             <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
                                             <Button size="sm" variant="secondary" onClick={() => handleRefuelFleetShip(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
                                         </>
