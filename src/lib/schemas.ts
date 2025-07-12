@@ -125,7 +125,7 @@ export const GenerateTradersOutputSchema = z.object({
 export type GenerateTradersOutput = z.infer<typeof GenerateTradersOutputSchema>;
 
 // Schemas for resolve-casino-game
-export const CasinoGameTypeSchema = z.enum(['slots', 'table', 'poker', 'vip', 'sportsbook', 'lottery']);
+export const CasinoGameTypeSchema = z.enum(['slots', 'table', 'poker', 'vip', 'sportsbook', 'lottery', 'droneRacing', 'spaceRoulette', 'gravityWorldCup']);
 
 export const ResolveCasinoGameInputSchema = z.object({
   gameType: CasinoGameTypeSchema.describe('The type of casino game being played.'),
@@ -343,6 +343,41 @@ export const DiplomaticMissionSchema = z.object({
   status: z.enum(['Available', 'Active', 'Completed', 'Failed']).describe("The current status of the mission."),
 });
 export type DiplomaticMission = z.infer<typeof DiplomaticMissionSchema>;
+
+export const GenerateDiplomaticMissionsInputSchema = z.object({
+  influence: z.number().describe("The player's current influence score."),
+  currentSystem: z.string().describe("The player's current star system."),
+});
+export type GenerateDiplomaticMissionsInput = z.infer<typeof GenerateDiplomaticMissionsInputSchema>;
+
+export const GenerateDiplomaticMissionsOutputSchema = z.object({
+    missions: z.array(DiplomaticMissionSchema).describe("An array of 4-5 generated diplomatic missions."),
+});
+export type GenerateDiplomaticMissionsOutput = z.infer<typeof GenerateDiplomaticMissionsOutputSchema>;
+
+
+export const GenerateTradeContractsInputSchema = z.object({
+    reputation: z.number().describe("The player's current reputation score."),
+    currentSystem: z.string().describe("The player's current star system."),
+});
+export type GenerateTradeContractsInput = z.infer<typeof GenerateTradeContractsInputSchema>;
+
+export const GenerateTradeContractsOutputSchema = z.object({
+    contracts: z.array(TradeRouteContractSchema).describe("An array of 4-5 generated trade route contracts."),
+});
+export type GenerateTradeContractsOutput = z.infer<typeof GenerateTradeContractsOutputSchema>;
+
+export const GenerateTaxiMissionsInputSchema = z.object({
+    reputation: z.number().describe("The player's current reputation score."),
+    currentSystem: z.string().describe("The player's current star system."),
+});
+export type GenerateTaxiMissionsInput = z.infer<typeof GenerateTaxiMissionsInputSchema>;
+
+export const GenerateTaxiMissionsOutputSchema = z.object({
+    missions: z.array(TaxiMissionSchema).describe("An array of 4-5 generated taxi missions."),
+});
+export type GenerateTaxiMissionsOutput = z.infer<typeof GenerateTaxiMissionsOutputSchema>;
+
 
 // Schemas for negotiate-trade-route
 export const NegotiateTradeRouteInputSchema = z.object({

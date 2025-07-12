@@ -23,6 +23,9 @@ const gameConfig: Record<
   vip:        { winChance: 0.3,  payoutMin: 1.5,  payoutMax: 20,   bonusChance: 0.5,  bonusPayoutMin: 5000,      bonusPayoutMax: 50000 },
   sportsbook: { winChance: 0.45, payoutMin: 1.5,  payoutMax: 30,   bonusChance: 0.05, bonusPayoutMin: 5000,      bonusPayoutMax: 50000 },
   lottery:    { winChance: 0.02, payoutMin: 10000,payoutMax: 10000,bonusChance: 0.15, bonusPayoutMin: 500000,    bonusPayoutMax: 1500000000 },
+  droneRacing: { winChance: 0.4, payoutMin: 2, payoutMax: 25, bonusChance: 0.08, bonusPayoutMin: 10000, bonusPayoutMax: 75000 },
+  spaceRoulette: { winChance: 0.48, payoutMin: 1.2, payoutMax: 35, bonusChance: 0.02, bonusPayoutMin: 20000, bonusPayoutMax: 100000 },
+  gravityWorldCup: { winChance: 0.25, payoutMin: 5, payoutMax: 50, bonusChance: 0.01, bonusPayoutMin: 100000, bonusPayoutMax: 500000 },
 };
 
 export function useCasino(
