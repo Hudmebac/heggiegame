@@ -318,7 +318,7 @@ export default function LandlordPage() {
                                 <div key={`${lease.id}-${lease.propertyId}`} className="p-3 rounded-md border bg-background/50">
                                     <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
                                     <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                        <span>Rent: {lease.rent.toLocaleString()}¢/hr</span>
+                                        <span>Rent: {lease.rent.toLocaleString()}¢ / 2 mins</span>
                                         <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
                                     </div>
                                 </div>
@@ -336,7 +336,7 @@ export default function LandlordPage() {
                                     <div>
                                         <p className="font-semibold text-sm">{lease.tenantName}</p>
                                         <p className="text-xs text-muted-foreground">{lease.description}</p>
-                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/hr | Term: {lease.duration}h</p>
+                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/2mins | Term: {lease.duration}h</p>
                                     </div>
                                     <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
                                         Assign

@@ -511,7 +511,7 @@ export function useGameState() {
                     }
 
                     const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                    const intervalsSinceLastRent = timeSinceLastRent / (10 * 60 * 1000); // 10 minutes interval
+                    const intervalsSinceLastRent = timeSinceLastRent / (2 * 60 * 1000); // 2 minutes interval
                     
                     if (intervalsSinceLastRent >= 1) {
                         const intervalsToPay = Math.floor(intervalsSinceLastRent);
@@ -521,7 +521,7 @@ export function useGameState() {
                         toastsToFire.push({ title: "Rent Collected", description: `Collected ${rentToCollect.toLocaleString()}¢ from ${lease.tenantName}.` });
                         stateChanged = true;
                         
-                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 10 * 60 * 1000 };
+                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 2 * 60 * 1000 };
                     }
 
                     return lease;
