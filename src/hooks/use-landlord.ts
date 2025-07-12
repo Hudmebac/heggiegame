@@ -18,6 +18,11 @@ export function useLandlord(
         setGameState(prev => {
             if (!prev) return null;
 
+            if (prev.playerStats.properties.some(p => p.status === 'Upgrading')) {
+                setTimeout(() => toast({ variant: 'destructive', title: 'Action Failed', description: 'Another property is already being purchased or upgraded.' }), 0);
+                return prev;
+            }
+
             const costMap: Record<PropertyType, number> = {
                 'Residential': 250000,
                 'Commercial': 1000000,
@@ -64,6 +69,11 @@ export function useLandlord(
     const handleUpgradeProperty = useCallback((propertyId: number, type: PropertyType) => {
         setGameState(prev => {
             if (!prev) return null;
+
+            if (prev.playerStats.properties.some(p => p.status === 'Upgrading')) {
+                setTimeout(() => toast({ variant: 'destructive', title: 'Action Failed', description: 'Another property is already being purchased or upgraded.' }), 0);
+                return prev;
+            }
             
             const propIndex = prev.playerStats.properties.findIndex(p => p.id === propertyId);
             if(propIndex === -1) return prev;
@@ -182,6 +192,17 @@ export function useLandlord(
             };
         });
     }, [setGameState, toast]);
+    
+    const handleRenameProperty = useCallback((propertyId: number, newName: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const properties = prev.playerStats.properties.map(prop => 
+                prop.id === propertyId ? { ...prop, name: newName } : prop
+            );
+            toast({ title: "Property Renamed", description: `Your property is now known as "${newName}".`});
+            return { ...prev, playerStats: { ...prev.playerStats, properties } };
+        });
+    }, [setGameState, toast]);
 
 
     return {
@@ -189,6 +210,7 @@ export function useLandlord(
         handleUpgradeProperty,
         handleFindTenants,
         handleAssignLease,
+        handleRenameProperty,
         isGeneratingLeases,
     };
 }

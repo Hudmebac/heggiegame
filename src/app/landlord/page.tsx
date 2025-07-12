@@ -20,6 +20,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+
 
 const propertyTypeConfig: { type: PropertyType; icon: React.ElementType, cost: number }[] = [
     { type: 'Residential', icon: Home, cost: 250000 },
@@ -66,8 +68,21 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
 
 
 const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenameClick: (property: Property) => void }) => {
+    const { gameState } = useGame();
     const Icon = propertyTypeConfig.find(p => p.type === property.type)?.icon || LandPlot;
     const currentLevel = property[`${property.type.toLowerCase()}Level` as keyof Property] as number || 0;
+
+    const activeLease = gameState?.playerStats.activeLeases.find(l => l.propertyId === property.id);
+    const leaseProgress = activeLease ? (Date.now() - activeLease.startTime) / (activeLease.duration * 3600 * 1000) * 100 : 0;
+    
+    let statusBadge: React.ReactNode;
+    if (property.status === 'Upgrading') {
+        statusBadge = <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">Upgrading</Badge>
+    } else if (activeLease) {
+        statusBadge = <Badge variant="outline" className="text-green-400 border-green-500/30">Leased</Badge>
+    } else {
+        statusBadge = <Badge variant="outline">Available</Badge>
+    }
 
     return (
          <Card className="bg-card/50">
@@ -80,23 +95,31 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                             <PenSquare className="h-3 w-3" />
                         </Button>
                     </span>
-                    <Badge variant="outline">{property.systemName}</Badge>
+                    {statusBadge}
                 </CardTitle>
                 <CardDescription>
-                    {property.type} Property - Level {currentLevel}
+                    {property.type} Property - Level {currentLevel} - {property.systemName}
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 {property.status === 'Upgrading' && property.upgradeStartTime && property.upgradeDuration ? (
                     <div className="space-y-2">
                         <p className="text-xs text-cyan-400 text-center">Upgrading: {property.upgradingComponent}</p>
-                        <Progress value={ (1 - ((property.upgradeStartTime + property.upgradeDuration) - Date.now()) / property.upgradeDuration) * 100 } />
+                        <Progress value={ (1 - ((property.upgradeStartTime + property.upgradeDuration) - Date.now()) / property.upgradeDuration) * 100 } indicatorClassName="bg-cyan-400" />
                         <p className="text-xs text-muted-foreground text-center">
                             <CooldownTimer expiry={property.upgradeStartTime + property.upgradeDuration} />
                         </p>
                     </div>
+                ) : activeLease ? (
+                     <div className="space-y-2">
+                        <p className="text-xs text-green-400 text-center">Tenant: {activeLease.tenantName}</p>
+                        <Progress value={leaseProgress} indicatorClassName="bg-green-400" />
+                        <p className="text-xs text-muted-foreground text-center">
+                           Lease ends in: <CooldownTimer expiry={activeLease.startTime + activeLease.duration * 3600 * 1000} />
+                        </p>
+                    </div>
                 ) : (
-                     <Accordion type="single" collapsible>
+                     <Accordion type="single" collapsible disabled={property.status !== 'Idle'}>
                         <AccordionItem value="upgrades">
                             <AccordionTrigger>Show Upgrades</AccordionTrigger>
                             <AccordionContent>

@@ -965,16 +965,6 @@ export function usePlayerActions(
         });
     }, [setGameState]);
     
-    const handleRenameProperty = useCallback((propertyId: number, newName: string) => {
-        setGameState(prev => {
-            if (!prev) return null;
-            const properties = prev.playerStats.properties.map(prop => 
-                prop.id === propertyId ? { ...prop, name: newName } : prop
-            );
-            toast({ title: "Property Renamed", description: `Your property is now known as "${newName}".`});
-            return { ...prev, playerStats: { ...prev.playerStats, properties } };
-        });
-    }, [setGameState, toast]);
 
     return {
         isGeneratingBio,
@@ -1011,13 +1001,13 @@ export function usePlayerActions(
         handleHolotagMinigameScore,
         handleKeypadCrackerMinigameScore,
         handleRenameShip,
-        handleRenameProperty,
     };
 }
 
     
 
     
+
 
 
 
