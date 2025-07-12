@@ -29,15 +29,8 @@ import { useLandlord } from '@/hooks/use-landlord';
 import AppLayout from '@/app/components/app-layout';
 
 
-type GameContextType = {
-    gameState: GameState | null;
-    isClient: boolean;
-    isGeneratingNewGame: boolean;
-    startNewGame: (difficulty: Difficulty, career: Career) => Promise<void>;
-    handleRedeemPromoCode: (code: string) => Promise<void>;
-    loadGameStateFromKey: (key: string) => boolean;
-    generateShareKey: () => string | null;
-} & ReturnType<typeof useQuests> &
+type GameContextType = ReturnType<typeof useGameState> &
+  ReturnType<typeof useQuests> &
   ReturnType<typeof usePlayerActions> &
   ReturnType<typeof useEncounters> &
   ReturnType<typeof useBar> &
@@ -71,7 +64,8 @@ export const useGame = () => {
 };
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-    const { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey } = useGameState();
+    const gameStateLogic = useGameState();
+    const { gameState, setGameState } = gameStateLogic;
     
     // Core Logic Hooks
     const questLogic = useQuests(gameState, setGameState);
@@ -101,12 +95,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const travelLogic = useTravel(gameState, setGameState);
     
     const contextValue: GameContextType = {
-        gameState,
-        isClient,
-        isGeneratingNewGame,
-        startNewGame,
-        loadGameStateFromKey,
-        generateShareKey,
+        ...gameStateLogic,
         ...questLogic,
         ...playerActions,
         ...encounters,
