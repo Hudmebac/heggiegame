@@ -1,13 +1,13 @@
-
-
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
-import type { GameState, Property, PropertyType, Lease, GameEvent, FactionId } from '@/lib/types';
+import type { GameState, Property, PropertyType, Lease, GameEvent, FactionId, PropertySaleOffer } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { generateLeaseProposals } from '@/app/actions';
 import { FACTIONS_DATA } from '@/lib/factions';
+import { calculatePropertyValue } from '@/lib/utils';
+import { traderNames } from '@/lib/traders';
 
 export function useLandlord(
     gameState: GameState | null,
@@ -264,6 +264,89 @@ export function useLandlord(
         });
     }, [setGameState]);
 
+    const handleListPropertyForSale = useCallback((propertyId: number, askingPrice: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+
+            const newProperties = prev.playerStats.properties.map(p => p.id === propertyId ? { ...p, status: 'ForSale' as const } : p);
+            const property = newProperties.find(p => p.id === propertyId);
+            if (!property) return prev;
+
+            const offerCount = 2 + Math.floor(Math.random() * 3); // 2-4 offers
+            const newOffers: PropertySaleOffer[] = Array.from({ length: offerCount }).map((_, i) => {
+                const offerModifier = 0.8 + Math.random() * 0.4; // Offer between 80% and 120% of asking price
+                return {
+                    offerId: `offer_${propertyId}_${Date.now()}_${i}`,
+                    propertyId: propertyId,
+                    buyerName: traderNames[Math.floor(Math.random() * traderNames.length)],
+                    offerAmount: Math.round(askingPrice * offerModifier),
+                    askingPrice: askingPrice,
+                    narrative: "A compelling offer for a prime piece of real estate."
+                }
+            });
+
+            setTimeout(() => toast({ title: 'Property Listed!', description: `Your property "${property.name}" is now on the market.` }), 0);
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    properties: newProperties,
+                    propertySaleOffers: [...(prev.playerStats.propertySaleOffers || []), ...newOffers]
+                }
+            }
+        });
+    }, [setGameState, toast]);
+
+    const handleAcceptPropertyOffer = useCallback((offerId: string) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.propertySaleOffers) return prev;
+            
+            const offer = prev.playerStats.propertySaleOffers.find(o => o.offerId === offerId);
+            if (!offer) return prev;
+            
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth + offer.offerAmount,
+                properties: prev.playerStats.properties.filter(p => p.id !== offer.propertyId),
+                propertySaleOffers: prev.playerStats.propertySaleOffers.filter(o => o.propertyId !== offer.propertyId)
+            };
+            
+            const propertySold = prev.playerStats.properties.find(p => p.id === offer.propertyId);
+
+            newPlayerStats.events.push({
+                id: `evt_prop_sale_${Date.now()}`,
+                timestamp: Date.now(),
+                type: 'Purchase', // Logged as a 'purchase' for the buyer, shows as income for player
+                description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
+                value: offer.offerAmount,
+                isMilestone: true,
+            });
+
+            setTimeout(() => toast({ title: 'Property Sold!', description: `You sold "${propertySold?.name}" for ${offer.offerAmount.toLocaleString()}¢.` }), 0);
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
+    const handleDeclinePropertyOffer = useCallback((offerId: string) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.propertySaleOffers) return prev;
+            
+            const newOffers = prev.playerStats.propertySaleOffers.filter(o => o.offerId !== offerId);
+            const declinedOffer = prev.playerStats.propertySaleOffers.find(o => o.offerId === offerId);
+
+            if (newOffers.every(o => o.propertyId !== declinedOffer?.propertyId)) {
+                // Last offer for this property was declined, set it back to Idle
+                const newProperties = prev.playerStats.properties.map(p => 
+                    p.id === declinedOffer?.propertyId ? { ...p, status: 'Idle' as const } : p
+                );
+                return { ...prev, playerStats: { ...prev.playerStats, properties: newProperties, propertySaleOffers: newOffers } };
+            }
+            
+            return { ...prev, playerStats: { ...prev.playerStats, propertySaleOffers: newOffers } };
+        });
+    }, [setGameState]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -289,6 +372,7 @@ export function useLandlord(
                     const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
                     
                     if (timeSinceLastRent >= rentIntervalMs) {
+                        stateChanged = true;
                         const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
                         const rentToCollect = intervalsToPay * lease.rent;
 
@@ -329,7 +413,6 @@ export function useLandlord(
                 }
                 
                 if (eventsToAdd.length > 0 || newlyCompletedLeases.length > 0) {
-                    stateChanged = true;
                     newPlayerStats.activeLeases = stillActiveLeases;
                     newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
                 }
@@ -372,6 +455,9 @@ export function useLandlord(
         handleAssignLease,
         handleRenameProperty,
         handleIgnoreLease,
+        handleListPropertyForSale,
+        handleAcceptPropertyOffer,
+        handleDeclinePropertyOffer,
         isGeneratingLeases,
     };
 }

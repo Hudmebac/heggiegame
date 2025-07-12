@@ -1,12 +1,11 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare, X } from 'lucide-react';
-import type { Property, PropertyType, Lease } from '@/lib/types';
+import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare, X, Tag } from 'lucide-react';
+import type { Property, PropertyType, Lease, PropertySaleOffer } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { calculatePropertyValue } from '@/lib/utils';
 
 
 const propertyTypeConfig: { type: PropertyType; icon: React.ElementType, cost: number }[] = [
@@ -37,7 +37,7 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
     if (!gameState) return null;
     
     if (property.status !== 'Idle') {
-        return <p className="text-sm text-muted-foreground text-center py-4">Upgrades are unavailable while property is leased or being upgraded.</p>
+        return <p className="text-sm text-muted-foreground text-center py-4">Upgrades are unavailable while property is leased, for sale, or being upgraded.</p>
     }
 
     const upgradeKey = `${property.type.toLowerCase()}Level` as keyof Property;
@@ -71,8 +71,35 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
     );
 };
 
+const ListForSaleDialog = ({ property, onList }: { property: Property, onList: (id: number, price: number) => void }) => {
+    const estimatedValue = calculatePropertyValue(property);
+    const [askingPrice, setAskingPrice] = useState(estimatedValue);
 
-const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenameClick: (property: Property) => void }) => {
+    return (
+         <DialogContent>
+            <DialogHeader>
+                <DialogTitle>List Property for Sale</DialogTitle>
+                <DialogDescription>
+                    List "{property.name}" on the galactic market. You can set your asking price. Offers may come in higher or lower.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                 <div className="text-sm text-center">Estimated Market Value: <span className="font-mono text-amber-300">{estimatedValue.toLocaleString()}¢</span></div>
+                 <div>
+                    <Label htmlFor="asking-price">Asking Price</Label>
+                    <Input id="asking-price" type="number" value={askingPrice} onChange={(e) => setAskingPrice(Number(e.target.value))} />
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <DialogClose asChild><Button onClick={() => onList(property.id, askingPrice)}>List Property</Button></DialogClose>
+            </DialogFooter>
+        </DialogContent>
+    )
+}
+
+
+const PropertyCard = ({ property, onRenameClick, onListClick }: { property: Property, onRenameClick: (property: Property) => void, onListClick: (property: Property) => void }) => {
     const { gameState } = useGame();
     const Icon = propertyTypeConfig.find(p => p.type === property.type)?.icon || LandPlot;
     
@@ -85,7 +112,9 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
     const leaseProgress = activeLease ? (Date.now() - activeLease.startTime) / (activeLease.duration * 3600 * 1000) * 100 : 0;
     
     let statusBadge: React.ReactNode;
-    if (property.status === 'Upgrading') {
+    if (property.status === 'ForSale') {
+        statusBadge = <Badge variant="outline" className="text-amber-400 border-amber-500/30">For Sale</Badge>
+    } else if (property.status === 'Upgrading') {
         statusBadge = <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">Upgrading</Badge>
     } else if (activeLease) {
         statusBadge = <Badge variant="outline" className="text-green-400 border-green-500/30">Leased</Badge>
@@ -94,7 +123,7 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
     }
 
     return (
-         <Card className="bg-card/50">
+         <Card className="bg-card/50 flex flex-col">
             <CardHeader>
                 <CardTitle className="text-base flex justify-between items-start">
                     <span className="flex items-center gap-2">
@@ -110,7 +139,7 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                     Level {currentLevel}: {currentUpgradeName}
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
                 {property.status === 'Upgrading' && property.upgradeStartTime && property.upgradeDuration ? (
                     <div className="space-y-2">
                         <p className="text-xs text-cyan-400 text-center">Upgrading: {property.upgradingComponent}</p>
@@ -138,6 +167,13 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                     </Accordion>
                 )}
             </CardContent>
+            {property.status === 'Idle' && (
+                <CardContent>
+                    <Button className="w-full" size="sm" variant="secondary" onClick={() => onListClick(property)}>
+                        <Tag className="mr-2 h-4 w-4"/> List for Sale
+                    </Button>
+                </CardContent>
+            )}
         </Card>
     )
 }
@@ -213,14 +249,15 @@ const RenamePropertyDialog = ({ property, onRename, isOpen, onOpenChange }: { pr
 }
 
 export default function LandlordPage() {
-    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty, handleIgnoreLease } = useGame();
+    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty, handleIgnoreLease, handleListPropertyForSale, handleAcceptPropertyOffer, handleDeclinePropertyOffer } = useGame();
     const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
     const [renamingProperty, setRenamingProperty] = useState<Property | null>(null);
+    const [listingProperty, setListingProperty] = useState<Property | null>(null);
 
     if (!gameState) return null;
 
     const { playerStats } = gameState;
-    const { properties, availableLeases, activeLeases } = playerStats;
+    const { properties, availableLeases, activeLeases, propertySaleOffers } = playerStats;
     
     const idleProperties = properties.filter(p => p.status === 'Idle' && !activeLeases.some(l => l.propertyId === p.id));
     
@@ -262,6 +299,41 @@ export default function LandlordPage() {
                     ))}
                 </CardContent>
             </Card>
+            
+            {(propertySaleOffers || []).length > 0 && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg">Property Market Offers</CardTitle>
+                        <CardDescription>Review and respond to incoming offers for your listed properties.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(propertySaleOffers || []).map(offer => {
+                            const property = properties.find(p => p.id === offer.propertyId);
+                            if (!property) return null;
+                            const valueDiff = offer.offerAmount - offer.askingPrice;
+                            return (
+                                <div key={offer.offerId} className="p-4 rounded-md border bg-background/50">
+                                    <p className="font-semibold text-sm">{property.name} ({property.type})</p>
+                                    <p className="text-xs text-muted-foreground">Offer from: <span className="font-semibold text-primary">{offer.buyerName}</span></p>
+                                    <p className="text-xs text-muted-foreground mt-2 italic">"{offer.narrative}"</p>
+                                    <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                                        <div className="text-sm">
+                                            Offer: <span className="font-mono text-amber-300">{offer.offerAmount.toLocaleString()}¢</span>
+                                            <span className={cn("text-xs font-mono ml-2", valueDiff > 0 ? "text-green-400" : valueDiff < 0 ? "text-destructive" : "text-muted-foreground")}>
+                                                ({valueDiff >= 0 ? '+' : ''}{valueDiff.toLocaleString()}¢)
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" onClick={() => handleAcceptPropertyOffer(offer.offerId)}>Accept</Button>
+                                            <Button size="sm" variant="destructive" onClick={() => handleDeclinePropertyOffer(offer.offerId)}>Decline</Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </CardContent>
+                </Card>
+            )}
 
             <Card>
                 <CardHeader>
@@ -283,7 +355,7 @@ export default function LandlordPage() {
                                             </div>
                                        </AccordionTrigger>
                                        <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
-                                           {propertiesOfType.map(prop => <PropertyCard key={prop.id} property={prop} onRenameClick={setRenamingProperty} />)}
+                                           {propertiesOfType.map(prop => <PropertyCard key={prop.id} property={prop} onRenameClick={setRenamingProperty} onListClick={setListingProperty} />)}
                                        </AccordionContent>
                                    </AccordionItem>
                                )
@@ -369,6 +441,17 @@ export default function LandlordPage() {
                 property={renamingProperty}
                 onRename={handleRenameProperty}
             />
+            {listingProperty && (
+                <Dialog open={!!listingProperty} onOpenChange={() => setListingProperty(null)}>
+                    <ListForSaleDialog 
+                        property={listingProperty}
+                        onList={(id, price) => {
+                            handleListPropertyForSale(id, price);
+                            setListingProperty(null);
+                        }}
+                    />
+                </Dialog>
+            )}
         </div>
     );
 }

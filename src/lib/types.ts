@@ -293,10 +293,19 @@ export interface Property {
   industrialLevel: number;
   recreationalLevel: number;
   militaryLevel: number;
-  status: 'Idle' | 'Upgrading' | 'Leased';
+  status: 'Idle' | 'Upgrading' | 'Leased' | 'ForSale';
   upgradeStartTime?: number;
   upgradeDuration?: number;
   upgradingComponent?: PropertyUpgradeType | 'Purchase';
+}
+
+export interface PropertySaleOffer {
+    offerId: string;
+    propertyId: number;
+    buyerName: string;
+    offerAmount: number;
+    askingPrice: number;
+    narrative: string;
 }
 
 export interface Lease {
@@ -331,6 +340,7 @@ export interface PlayerStats {
   leases: Lease[];
   availableLeases?: Lease[];
   activeLeases: Lease[];
+  propertySaleOffers?: PropertySaleOffer[];
   events: GameEvent[];
   assetHistory: AssetSnapshot[];
   cashInHandHistory: number[];

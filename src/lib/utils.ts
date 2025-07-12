@@ -2,10 +2,11 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock, ItemRarity } from "./types";
+import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock, ItemRarity, Property } from "./types";
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from './upgrades';
+import { propertyUpgrades } from './property-upgrades';
 
 
 export function cn(...inputs: ClassValue[]) {
@@ -213,4 +214,22 @@ export function syncActiveShipStats(playerStats: PlayerStats): PlayerStats {
     newStats.fuel = Math.min(newStats.fuel || 0, newStats.maxFuel);
 
     return newStats;
+}
+
+export function calculatePropertyValue(property: Property): number {
+    let value = 0;
+    const upgradeKey = `${property.type.toLowerCase()}Level` as keyof Property;
+    const currentLevel = (property[upgradeKey] as number) || 0;
+    const upgradeData = propertyUpgrades[property.type.toLowerCase() as keyof typeof propertyUpgrades];
+    
+    if (upgradeData && currentLevel > 0) {
+        value += upgradeData.upgrades[currentLevel-1].cost;
+    }
+
+    const costMap: Record<Property['type'], number> = {
+        'Residential': 250000, 'Commercial': 1000000, 'Industrial': 1750000, 'Recreational': 2250000, 'Military': 5000000,
+    };
+    value += costMap[property.type];
+    
+    return value;
 }
