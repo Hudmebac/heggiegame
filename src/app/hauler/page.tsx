@@ -53,7 +53,16 @@ const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: Play
     );
 };
 
-const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onRenameShip }: { fleet: PlayerShip[], activeContracts: any[], onOutfit: (instanceId: number) => void, onRepair: (instanceId: number) => void, onRefuel: (instanceId: number) => void, onRenameShip: (instanceId: number, newName: string) => void }) => {
+interface FleetStatusProps {
+    fleet: PlayerShip[];
+    activeContracts: any[];
+    onOutfit: (instanceId: number) => void;
+    onRepair: (instanceId: number) => void;
+    onRefuel: (instanceId: number) => void;
+    onRenameShip: (instanceId: number, newName: string) => void;
+}
+
+const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onRenameShip }: FleetStatusProps) => {
     const { gameState } = useGame();
     const [renamingShip, setRenamingShip] = useState<PlayerShip | null>(null);
     const assignedShipIds = new Set(activeContracts.map(m => m.assignedShipInstanceId));
@@ -123,7 +132,7 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onR
                                     <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                         <Wrench className="mr-2" /> Outfit
                                     </Button>
-                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status !== 'repair_needed'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
                                     <Button size="sm" variant="secondary" onClick={() => onRefuel(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
                                 </div>
                             </div>
