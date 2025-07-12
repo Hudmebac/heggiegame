@@ -369,23 +369,33 @@ export function usePlayerActions(
                 
                 let stateChanged = false;
                 const newFleet = prev.playerStats.fleet.map(ship => {
-                    const newShip = {...ship}; // Create a mutable copy
+                    const newShip = {...ship};
                     if (newShip.status === 'upgrading' && newShip.upgradeStartTime && newShip.upgradeDuration && newShip.upgradingComponent) {
                         if (Date.now() > newShip.upgradeStartTime + newShip.upgradeDuration) {
                             stateChanged = true;
                             const upgradeType = newShip.upgradingComponent;
-                            const levelKey = `${upgradeType}Level` as keyof PlayerShip;
-                            
-                            const currentLevel = (newShip as any)[levelKey] as number;
-                            (newShip as any)[levelKey] = currentLevel + 1;
+                            let newLevelForToast = 0;
+
+                            switch (upgradeType) {
+                                case 'cargo': newShip.cargoLevel++; newLevelForToast = newShip.cargoLevel; break;
+                                case 'weapon': newShip.weaponLevel++; newLevelForToast = newShip.weaponLevel; break;
+                                case 'shield': newShip.shieldLevel++; newLevelForToast = newShip.shieldLevel; break;
+                                case 'hull': newShip.hullLevel++; newLevelForToast = newShip.hullLevel; break;
+                                case 'fuel': newShip.fuelLevel++; newLevelForToast = newShip.fuelLevel; break;
+                                case 'sensor': newShip.sensorLevel++; newLevelForToast = newShip.sensorLevel; break;
+                                case 'drone': newShip.droneLevel++; newLevelForToast = newShip.droneLevel; break;
+                                case 'powerCore': newShip.powerCoreLevel++; newLevelForToast = newShip.powerCoreLevel; break;
+                                case 'passengerComfort': newShip.passengerComfortLevel++; newLevelForToast = newShip.passengerComfortLevel; break;
+                                case 'passengerSecurity': newShip.passengerSecurityLevel++; newLevelForToast = newShip.passengerSecurityLevel; break;
+                                case 'passengerPacks': newShip.passengerPacksLevel++; newLevelForToast = newShip.passengerPacksLevel; break;
+                                default: break;
+                            }
                             
                             newShip.status = 'operational';
                             newShip.upgradeStartTime = undefined;
                             newShip.upgradeDuration = undefined;
                             newShip.upgradingComponent = undefined;
 
-                            const newLevelForToast = (newShip as any)[levelKey];
-                            
                             setTimeout(() => toast({
                                 title: "Upgrade Complete!",
                                 description: `Your ${newShip.name}'s ${upgradeType} is now Mk. ${newLevelForToast}.`
@@ -990,3 +1000,4 @@ export function usePlayerActions(
     
 
     
+
