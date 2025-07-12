@@ -470,6 +470,26 @@ export function useGameState() {
                     stateChanged = true;
                     newPlayerStats = logAssetSnapshot(newPlayerStats);
                 }
+
+                // Handle property upgrades/purchases
+                const newProperties = newPlayerStats.properties.map(prop => {
+                    if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
+                        stateChanged = true;
+                        const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
+                        if(prop.upgradingComponent === 'Purchase') {
+                            const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                            (newProp as any)[upgradeKey] = 1;
+                            setTimeout(() => toast({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` }), 0);
+                        } else {
+                             const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                             (newProp as any)[upgradeKey] = (newProp[upgradeKey] as number) + 1;
+                             setTimeout(() => toast({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` }), 0);
+                        }
+                        return newProp;
+                    }
+                    return prop;
+                });
+                newPlayerStats.properties = newProperties;
     
                 if (toastToFire) {
                     setTimeout(() => toast(toastToFire!), 0);
@@ -481,10 +501,11 @@ export function useGameState() {
     
                 return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
             });
-        }, 5000);
+        }, 1000);
     
         return () => clearInterval(financialInterval);
     }, [setGameState, toast]);
     
     return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey };
 }
+
