@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import type { GameEvent } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, Package, Rocket, Star, TrendingDown, TrendingUp } from 'lucide-react';
+import { Briefcase, Package, Rocket, Star, TrendingDown, TrendingUp, LandPlot } from 'lucide-react';
 import { formatCompactNumber } from '@/lib/utils';
 
 interface HistorySummaryProps {
@@ -18,6 +18,7 @@ export default function HistorySummary({ events, initialNetWorth, currentNetWort
     let missionsCompleted = 0;
     let tradesMade = 0;
     let shipsPurchased = 0;
+    let propertiesPurchased = 0;
     let highestNetWorthFromEvents = initialNetWorth;
     let runningTotal = initialNetWorth;
 
@@ -25,6 +26,7 @@ export default function HistorySummary({ events, initialNetWorth, currentNetWort
       if (event.type === 'Mission') missionsCompleted++;
       if (event.type === 'Trade') tradesMade++;
       if (event.type === 'Purchase' && event.description.includes('ship')) shipsPurchased++;
+      if (event.type === 'Purchase' && event.description.includes('property')) propertiesPurchased++;
       
       runningTotal += event.value;
       if (runningTotal > highestNetWorthFromEvents) {
@@ -37,7 +39,7 @@ export default function HistorySummary({ events, initialNetWorth, currentNetWort
     const totalProfit = events.filter(e => e.value > 0).reduce((sum, e) => sum + e.value, 0);
     const totalSpending = events.filter(e => e.value < 0).reduce((sum, e) => sum + e.value, 0);
 
-    return { missionsCompleted, tradesMade, shipsPurchased, highestNetWorth, totalProfit, totalSpending };
+    return { missionsCompleted, tradesMade, shipsPurchased, propertiesPurchased, highestNetWorth, totalProfit, totalSpending };
   }, [events, initialNetWorth, actualCurrentNetWorth]);
 
   const StatCard = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
@@ -58,10 +60,11 @@ export default function HistorySummary({ events, initialNetWorth, currentNetWort
                 Career Highlights
             </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
             <StatCard icon={Briefcase} label="Missions" value={stats.missionsCompleted} />
             <StatCard icon={Package} label="Trades" value={stats.tradesMade} />
-            <StatCard icon={Rocket} label="Ships Purchased" value={stats.shipsPurchased} />
+            <StatCard icon={Rocket} label="Ships Bought" value={stats.shipsPurchased} />
+            <StatCard icon={LandPlot} label="Properties" value={stats.propertiesPurchased} />
             <StatCard icon={TrendingUp} label="Highest Cash" value={`¢${formatCompactNumber(stats.highestNetWorth)}`} />
             <StatCard icon={TrendingUp} label="Total Profit" value={`¢${formatCompactNumber(stats.totalProfit)}`} />
             <StatCard icon={TrendingDown} label="Total Spending" value={`${formatCompactNumber(stats.totalSpending)}¢`} />

@@ -274,7 +274,7 @@ export function usePlayerActions(
                     id: `evt_purchase_${Date.now()}`,
                     timestamp: Date.now(),
                     type: 'Purchase',
-                    description: `Purchased a new ship: ${ship.name}.`,
+                    description: `Purchased a new ${ship.name}.`,
                     value: -ship.cost,
                     reputationChange: 1,
                     isMilestone: true,
@@ -1003,12 +1003,3 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
-
-    
-
-    
-
-
-
-
-
