@@ -4,8 +4,8 @@
 import { useState } from 'react';
 import type { AssetSnapshot } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart, List } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis } from 'recharts';
+import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
