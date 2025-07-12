@@ -9,6 +9,18 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.3.3 - 'Logistics & Consequences'",
+        date: "Startdate: Charlie 4525.07.13",
+        changes: [
+            "Overhauled the Hauler career with deeper strategic mechanics.",
+            "Contracts now have minimum fuel and hull integrity requirements, requiring careful fleet management.",
+            "Ships now consume fuel based on contract distance and suffer hull wear-and-tear upon completion.",
+            "Pirate encounters are now more perilous, with damage scaling based on threat. A ship's hull can now be destroyed in combat.",
+            "Introduced a ship salvage system: destroyed ships can be recovered but will suffer a severe downgrade to all installed components.",
+            "Added cooldown timers to the Ship Outfitting screen, providing clear visual feedback on upgrade progress."
+        ]
+    },
+    {
         version: "v1.3.2 - 'Command & Control'",
         date: "Startdate: Bravo 4525.07.12",
         changes: [

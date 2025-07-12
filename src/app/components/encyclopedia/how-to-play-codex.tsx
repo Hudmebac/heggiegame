@@ -107,8 +107,9 @@ export default function HowToPlayCodex() {
                         <ul>
                             <li><strong>Active Ship Maintenance:</strong> Your currently active ship's fuel and hull integrity are displayed here. You must refuel and repair your ship to keep it operational. These services are available at any starport.</li>
                             <li><strong>Your Fleet:</strong> This section lists all ships you own. The ship at the top of the list is your active vessel. You can Outfit, Sell, or Activate any ship in your fleet.</li>
-                            <li><strong>Outfitting:</strong> Clicking 'Outfit' opens a detailed dialog where you can spend credits to upgrade individual components of a ship, such as its cargo hold, weapons, shields, and advanced systems. Each upgrade level provides better stats.</li>
-                            <li><strong>Shipyard:</strong> Purchase new ship hulls to add to your fleet. Each ship type excels in different areas (e.g., Haulers for cargo, Vipers for combat). A diverse fleet is key for tackling specialized career missions.</li>
+                            <li><strong>Outfitting:</strong> Clicking 'Outfit' opens a detailed dialog where you can spend credits to upgrade individual components of a ship. Upgrades take time to install, during which the ship is unavailable for missions.</li>
+                            <li><strong>Shipyard:</strong> Purchase new ship hulls to add to your fleet. Each ship type excels in different areas (e.g., Haulers for cargo, Vipers for combat).</li>
+                             <li><strong>Ship Destruction & Salvage:</strong> If a ship's hull integrity reaches zero, it is destroyed. A destroyed ship is useless until it is salvaged. Salvaging a wreck is free, but all of its installed upgrades will be severely damaged, reducing their levels by half.</li>
                         </ul>
                     </Section>
                     
@@ -218,7 +219,7 @@ export default function HowToPlayCodex() {
                         <ul>
                             <li><strong>Quest Types:</strong> You will find various types of missions, including Bounties, Daily tasks, unique storyline Quests, and timed Objectives.</li>
                             <li><strong>Objectives:</strong> Timed Objectives challenge you to complete a certain number of actions (e.g., "Serve 100 patrons") within a time limit for a bonus reward. These are a great way to earn extra credits while working on your businesses.</li>
-                            <li><strong>Career Missions:</strong> Your chosen career will unlock unique, repeatable missions on its dedicated page (e.g., Hauler contracts, Defender escorts). These are the best way to earn reputation and income specific to your playstyle.</li>
+                            <li><strong>Career Missions:</strong> Your chosen career will unlock unique, repeatable missions on its dedicated page. For example, a Hauler can accept transport contracts that utilize their entire fleet, not just their active ship. These missions require careful fleet management, as they have specific fuel, cargo, and hull integrity requirements.</li>
                         </ul>
                     </Section>
                 </Accordion>
