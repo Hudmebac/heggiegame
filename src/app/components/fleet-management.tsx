@@ -14,7 +14,7 @@ import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrad
 import { Progress } from '@/components/ui/progress';
 
 export default function FleetManagement() {
-  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip, handleRepairFleetShip } from useGame();
+  const { gameState, handlePurchaseShip, handleSellShip, handleSetActiveShip, handleRefuel, handleRepairShip, handleRepairFleetShip } = useGame();
   const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
   if (!gameState) {
@@ -90,7 +90,7 @@ export default function FleetManagement() {
             const sensorInfo = sensorUpgrades[ship.sensorLevel - 1];
             const droneInfo = droneUpgrades[ship.droneLevel - 1];
             
-            const maxHealth = hullInfo.health;
+            const maxHealth = hullInfo?.health || 100;
             const shipDamage = maxHealth - ship.health;
             const shipRepairCost = Math.round(shipDamage * (playerStats.insurance.ship ? 25 : 50));
             const canAffordShipRepair = playerStats.netWorth >= shipRepairCost;
