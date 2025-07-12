@@ -6,7 +6,7 @@ import type { GameState, TradeRouteContract, Pirate, PlayerShip } from '@/lib/ty
 import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
 import { STATIC_TRADE_CONTRACTS } from '@/lib/trade-contracts';
-import { ROUTES } from '@/lib/systems';
+import { ROUTES, SYSTEMS } from '@/lib/systems';
 import { cargoUpgrades } from '@/lib/upgrades';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 
@@ -51,22 +51,39 @@ export function useHauler(
             return;
         }
 
+        const fromSystemData = SYSTEMS.find(s => s.name === currentSystem);
+        if (!fromSystemData) return;
+
         const shuffledContracts = [...STATIC_TRADE_CONTRACTS].sort(() => 0.5 - Math.random());
         const contractCount = 4 + Math.floor(Math.random() * 2); // 4 or 5 contracts
         
         const newContracts: TradeRouteContract[] = shuffledContracts.slice(0, contractCount).map((contractTemplate, index) => {
-            const repModifier = 1 + (playerStats.reputation / 200); // up to 50% bonus at 100 rep
-            const payout = Math.round(contractTemplate.payout * repModifier);
+            const toSystemName = connectedSystems[Math.floor(Math.random() * connectedSystems.length)];
+            const toSystemData = SYSTEMS.find(s => s.name === toSystemName);
+            if (!toSystemData) return null;
+
+            const distance = Math.hypot(toSystemData.x - fromSystemData.x, toSystemData.y - fromSystemData.y);
+            
+            // New dynamic payout calculation
+            const baseMultiplier = 10;
+            const distanceBonus = Math.round(distance * 50);
+            const quantityBonus = Math.round(contractTemplate.quantity * 20);
+            const timePenalty = (300 / contractTemplate.duration); // Shorter duration = higher payout
+            const repModifier = 1 + (playerStats.reputation / 200);
+
+            const basePayout = contractTemplate.payout * baseMultiplier;
+            const dynamicPayout = Math.round((basePayout + distanceBonus + quantityBonus) * timePenalty * repModifier);
+
 
             return {
                 ...contractTemplate,
                 id: `${Date.now()}-${index}`,
                 fromSystem: currentSystem,
-                toSystem: connectedSystems[Math.floor(Math.random() * connectedSystems.length)],
+                toSystem: toSystemName,
                 status: 'Available',
-                payout,
+                payout: dynamicPayout,
             };
-        });
+        }).filter((c): c is TradeRouteContract => c !== null);
         
         setGameState(prev => {
           if (!prev) return null;
@@ -75,7 +92,8 @@ export function useHauler(
             ...prev,
             playerStats: {
               ...prev.playerStats,
-              tradeContracts: [...activeContracts, ...newContracts]
+              tradeContracts: [...activeContracts, ...newContracts],
+              lastHaulerContractGeneration: Date.now(),
             }
           };
         });
