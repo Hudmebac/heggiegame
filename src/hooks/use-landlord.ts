@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
@@ -61,6 +62,7 @@ export function useLandlord(
                 type: 'Purchase' as const,
                 description: `Purchased a new ${type} property in ${prev.currentSystem}.`,
                 value: -cost,
+                reputationChange: 1,
                 isMilestone: true,
             };
 
@@ -157,6 +159,7 @@ export function useLandlord(
             const idleProperties = gameState.playerStats.properties.filter(p => p.status === 'Idle');
             if (idleProperties.length === 0) {
                  toast({ variant: 'destructive', title: 'No Available Properties', description: 'All your properties are currently occupied or upgrading.' });
+                 setIsGeneratingLeases(false);
                 return;
             }
             const result = await generateLeaseProposals({ propertyCount: idleProperties.length, proposalCount: 3 + Math.floor(Math.random() * 3) });
@@ -269,10 +272,12 @@ export function useLandlord(
                 let newPlayerStats = { ...prev.playerStats };
                 let stateChanged = false;
                 const now = Date.now();
+                let eventsToAdd: GameEvent[] = [];
                 
                 // Handle lease payments and expirations
                 const activeLeases = newPlayerStats.activeLeases || [];
                 const newlyCompletedLeases: Lease[] = [];
+
                 const stillActiveLeases = activeLeases.map(lease => {
                     const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
                     if (now >= leaseEndTime) {
@@ -280,34 +285,31 @@ export function useLandlord(
                         return null;
                     }
 
+                    const rentIntervalMs = 2 * 60 * 1000;
                     const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                    const intervalsSinceLastRent = timeSinceLastRent / (2 * 60 * 1000); // 2 minutes interval
                     
-                    if (intervalsSinceLastRent >= 1) {
-                        const intervalsToPay = Math.floor(intervalsSinceLastRent);
+                    if (timeSinceLastRent >= rentIntervalMs) {
+                        const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
                         const rentToCollect = intervalsToPay * lease.rent;
 
                         newPlayerStats.netWorth += rentToCollect;
-                        newPlayerStats.events.push({
-                            id: `evt_rent_${lease.propertyId}_${Date.now() + Math.random()}`,
-                            timestamp: Date.now(),
+                        eventsToAdd.push({
+                            id: `evt_rent_${lease.propertyId}_${now + Math.random()}`,
+                            timestamp: now,
                             type: 'Lease',
                             description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
                             value: rentToCollect,
                             reputationChange: 0,
                             isMilestone: false,
                         });
-
-                        stateChanged = true;
                         
-                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 2 * 60 * 1000 };
+                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs };
                     }
 
                     return lease;
                 }).filter((l): l is Lease => l !== null);
                 
                 if (newlyCompletedLeases.length > 0) {
-                    stateChanged = true;
                     newlyCompletedLeases.forEach(lease => {
                         const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
                         if(propIndex > -1) {
@@ -315,7 +317,12 @@ export function useLandlord(
                         }
                     });
                 }
-                newPlayerStats.activeLeases = stillActiveLeases;
+
+                if (eventsToAdd.length > 0 || newlyCompletedLeases.length > 0) {
+                    stateChanged = true;
+                    newPlayerStats.activeLeases = stillActiveLeases;
+                    newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
+                }
                 
                 return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
             });

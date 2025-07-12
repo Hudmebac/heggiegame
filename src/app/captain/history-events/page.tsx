@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ScrollText, Hourglass, Star, Filter } from "lucide-react";
+import { ScrollText, Hourglass, Star, Filter, LucideIcon, Briefcase, LandPlot, Package, Rocket, Handshake, Route, ShoppingCart, Shield } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { format, formatRelative, subDays } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
@@ -12,7 +12,6 @@ import ReputationChart from "@/app/components/reputation-chart";
 import HistorySummary from '@/app/components/history-summary';
 import AssetOverviewChart from '@/app/components/asset-overview-chart';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGame } from '@/app/components/game-provider';
 import { EventIconMap } from '@/lib/events';
 import { CAREER_DATA } from '@/lib/careers';
@@ -29,6 +28,34 @@ const groupEventsByDay = (events: GameEvent[]) => {
         return acc;
     }, {} as Record<string, GameEvent[]>);
 };
+
+const filterCategories: { title: string; filters: { type: GameEventType | 'all'; label: string; icon: LucideIcon }[] }[] = [
+    {
+        title: 'General',
+        filters: [
+            { type: 'all', label: 'All', icon: Filter },
+            { type: 'Career', label: 'Career', icon: Star },
+            { type: 'Faction', label: 'Faction', icon: Handshake },
+            { type: 'System', label: 'System', icon: Route },
+        ]
+    },
+    {
+        title: 'Financial',
+        filters: [
+            { type: 'Trade', label: 'Trade', icon: Package },
+            { type: 'Purchase', label: 'Purchases', icon: ShoppingCart },
+            { type: 'Lease', label: 'Leases', icon: LandPlot },
+        ]
+    },
+    {
+        title: 'Operations',
+        filters: [
+            { type: 'Mission', label: 'Missions', icon: Briefcase },
+            { type: 'Upgrade', label: 'Upgrades', icon: Rocket },
+            { type: 'Combat', label: 'Combat', icon: Shield },
+        ]
+    }
+];
 
 export default function HistoryEventsPage() {
     const { gameState } = useGame();
@@ -70,8 +97,6 @@ export default function HistoryEventsPage() {
         }
     }
 
-    const eventTypes: Array<'all' | GameEventType> = ['all', 'Trade', 'Combat', 'Upgrade', 'Mission', 'System', 'Career', 'Faction', 'Purchase'];
-
     return (
         <div className="space-y-6">
             <Card>
@@ -101,29 +126,30 @@ export default function HistoryEventsPage() {
 
             <Card className="bg-card/50">
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg">Event Log</CardTitle>
+                    <CardTitle className="font-headline text-lg">Event Log Filters</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 md:p-6 space-y-4">
-                     <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-background/50 border">
-                        <div className="flex items-center gap-2">
-                            <Filter className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm font-semibold">Filters:</span>
+                     <div className="flex flex-col gap-4 p-4 rounded-lg bg-background/50 border">
+                        <div className="flex flex-wrap items-center gap-2">
+                             <h4 className="text-sm font-semibold text-muted-foreground mr-2">Time Range:</h4>
+                            <Button variant={timeRange === '7d' ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange('7d')}>Last 7 Days</Button>
+                            <Button variant={timeRange === '30d' ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange('30d')}>Last 30 Days</Button>
+                            <Button variant={timeRange === 'all' ? 'secondary' : 'outline'} size="sm" onClick={() => setTimeRange('all')}>All Time</Button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant={timeRange === '7d' ? 'default' : 'outline'} onClick={() => setTimeRange('7d')}>Last 7 Days</Button>
-                            <Button variant={timeRange === '30d' ? 'default' : 'outline'} onClick={() => setTimeRange('30d')}>Last 30 Days</Button>
-                            <Button variant={timeRange === 'all' ? 'default' : 'outline'} onClick={() => setTimeRange('all')}>All Time</Button>
-                        </div>
-                        <Select value={eventType} onValueChange={(value) => setEventType(value as any)}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Filter by event type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {eventTypes.map(type => (
-                                    <SelectItem key={type} value={type} className="capitalize">{type === 'all' ? 'All Event Types' : type}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {filterCategories.map(category => (
+                            <div key={category.title} className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-sm font-semibold text-muted-foreground mr-2 w-20">{category.title}:</h4>
+                                {category.filters.map(filter => {
+                                    const Icon = filter.icon;
+                                    return (
+                                        <Button key={filter.type} variant={eventType === filter.type ? 'secondary' : 'outline'} size="sm" onClick={() => setEventType(filter.type)}>
+                                            <Icon className="h-4 w-4 mr-2" />
+                                            {filter.label}
+                                        </Button>
+                                    )
+                                })}
+                            </div>
+                        ))}
                     </div>
                     {Object.keys(groupedEvents).length > 0 ? (
                         <Accordion type="single" collapsible defaultValue={Object.keys(groupedEvents)[0]}>
@@ -186,4 +212,5 @@ export default function HistoryEventsPage() {
         </div>
     );
 }
+
 
