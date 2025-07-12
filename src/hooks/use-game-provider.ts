@@ -3,7 +3,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career, Stock, StockCategory, Property, Lease } from '@/lib/types';
+import type { GameState, Difficulty, Career } from '@/lib/types';
 import { useGameState } from '@/hooks/use-game-state';
 import { useQuests } from '@/hooks/use-quests';
 import { useMarket } from '@/hooks/use-market';
@@ -29,7 +29,9 @@ import { useLandlord } from '@/hooks/use-landlord';
 import AppLayout from '@/app/components/app-layout';
 
 
-type GameContextType = ReturnType<typeof useGameState> &
+// Explicitly define the full context type by combining all hook return types
+type GameContextType = 
+  ReturnType<typeof useGameState> &
   ReturnType<typeof useQuests> &
   ReturnType<typeof usePlayerActions> &
   ReturnType<typeof useEncounters> &
@@ -94,6 +96,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const marketLogic = useMarket(gameState, setGameState);
     const travelLogic = useTravel(gameState, setGameState);
     
+    // Combine all logic into a single context value, ensuring no properties are overwritten
     const contextValue: GameContextType = {
         ...gameStateLogic,
         ...questLogic,
@@ -116,7 +119,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...militaryLogic,
         ...officialLogic,
         ...stocksLogic,
-        ...landlordLogic,
+        ...landlordLogic, // Explicitly include landlord logic
     };
     
     return (
