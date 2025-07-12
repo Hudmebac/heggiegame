@@ -306,7 +306,7 @@ export default function LandlordPage() {
                             {activeLeases.map(lease => {
                                 const property = properties.find(p => p.id === lease.propertyId);
                                 return (
-                                <div key={lease.id} className="p-3 rounded-md border bg-background/50">
+                                <div key={`${lease.id}-${lease.propertyId}`} className="p-3 rounded-md border bg-background/50">
                                     <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
                                     <div className="flex justify-between items-center text-xs text-muted-foreground">
                                         <span>Rent: {lease.rent.toLocaleString()}¢ / 10 mins</span>
@@ -358,4 +358,3 @@ export default function LandlordPage() {
         </div>
     );
 }
-
