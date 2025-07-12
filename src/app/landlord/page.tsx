@@ -10,7 +10,7 @@ import type { Property, PropertyType, Lease } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import CooldownTimer from '@/components/cooldown-timer';
+import CooldownTimer from '@/app/components/cooldown-timer';
 import {
   Accordion,
   AccordionContent,
@@ -103,7 +103,7 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                     {statusBadge}
                 </CardTitle>
                 <CardDescription>
-                    Lvl {currentLevel}: {currentUpgradeName} - {property.systemName}
+                    Level {currentLevel}: {currentUpgradeName}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -358,3 +358,4 @@ export default function LandlordPage() {
         </div>
     );
 }
+
