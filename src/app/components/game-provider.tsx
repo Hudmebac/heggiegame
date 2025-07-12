@@ -3,7 +3,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career, Stock } from '@/lib/types';
+import type { GameState, MarketItem, System, EncounterResult, Quest, PlayerShip, ShipForSale, CrewMember, PartnershipOffer, ActiveObjective, Difficulty, Career, Stock, Property, Lease } from '@/lib/types';
 import { useGameState } from '@/hooks/use-game-state';
 import { useQuests } from '@/hooks/use-quests';
 import { useMarket } from '@/hooks/use-market';
@@ -25,6 +25,7 @@ import { useDefender } from '@/hooks/use-defender';
 import { useMilitary } from '@/hooks/use-military';
 import { useOfficial } from '@/hooks/use-official';
 import { useStocks } from '@/hooks/use-stocks';
+import { useLandlord } from '@/hooks/use-landlord';
 import type { useQuests as useQuestsType } from '@/hooks/use-quests';
 import type { usePlayerActions as usePlayerActionsType } from '@/hooks/use-player-actions';
 import type { useEncounters as useEncountersType } from '@/hooks/use-encounters';
@@ -45,6 +46,7 @@ import type { useDefender as useDefenderType } from '@/hooks/use-defender';
 import type { useMilitary as useMilitaryType } from '@/hooks/use-military';
 import type { useOfficial as useOfficialType } from '@/hooks/use-official';
 import type { useStocks as useStocksType } from '@/hooks/use-stocks';
+import type { useLandlord as useLandlordType } from '@/hooks/use-landlord';
 import AppLayout from '@/app/components/app-layout';
 
 
@@ -75,7 +77,8 @@ type GameContextType = {
   ReturnType<typeof useDefenderType> &
   ReturnType<typeof useMilitaryType> &
   ReturnType<typeof useOfficialType> &
-  ReturnType<typeof useStocksType>;
+  ReturnType<typeof useStocksType> &
+  ReturnType<typeof useLandlordType>;
 
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -92,7 +95,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey } = useGameState();
     
     // Core Logic Hooks
-    const { updateObjectiveProgress, ...questLogic } = useQuests(gameState, setGameState);
+    const questLogic = useQuests(gameState, setGameState);
     const playerActions = usePlayerActions(gameState, setGameState);
     const encounters = useEncounters(gameState, setGameState);
     const haulerLogic = useHauler(gameState, setGameState);
@@ -102,14 +105,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const militaryLogic = useMilitary(gameState, setGameState);
     const officialLogic = useOfficial(gameState, setGameState);
     const stocksLogic = useStocks(gameState, setGameState);
+    const landlordLogic = useLandlord(gameState, setGameState);
 
     // Business Logic Hooks
-    const barLogic = useBar(gameState, setGameState, updateObjectiveProgress);
-    const residenceLogic = useResidence(gameState, setGameState, updateObjectiveProgress);
-    const commerceLogic = useCommerce(gameState, setGameState, updateObjectiveProgress);
-    const industryLogic = useIndustry(gameState, setGameState, updateObjectiveProgress);
-    const constructionLogic = useConstruction(gameState, setGameState, updateObjectiveProgress);
-    const recreationLogic = useRecreation(gameState, setGameState, updateObjectiveProgress);
+    const barLogic = useBar(gameState, setGameState, questLogic.updateObjectiveProgress);
+    const residenceLogic = useResidence(gameState, setGameState, questLogic.updateObjectiveProgress);
+    const commerceLogic = useCommerce(gameState, setGameState, questLogic.updateObjectiveProgress);
+    const industryLogic = useIndustry(gameState, setGameState, questLogic.updateObjectiveProgress);
+    const constructionLogic = useConstruction(gameState, setGameState, questLogic.updateObjectiveProgress);
+    const recreationLogic = useRecreation(gameState, setGameState, questLogic.updateObjectiveProgress);
     const casinoLogic = useCasino(gameState, setGameState);
     const bankLogic = useBank(gameState, setGameState, stocksLogic.handleAddStock);
 
@@ -124,7 +128,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         startNewGame,
         loadGameStateFromKey,
         generateShareKey,
-        updateObjectiveProgress,
         ...questLogic,
         ...playerActions,
         ...encounters,
@@ -145,6 +148,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...militaryLogic,
         ...officialLogic,
         ...stocksLogic,
+        ...landlordLogic,
     };
     
     return (
