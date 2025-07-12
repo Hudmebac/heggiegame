@@ -21,12 +21,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-const propertyTypeConfig: { type: PropertyType; icon: React.ElementType }[] = [
-    { type: 'Residential', icon: Home },
-    { type: 'Commercial', icon: Briefcase },
-    { type: 'Industrial', icon: Factory },
-    { type: 'Recreational', icon: Ticket },
-    { type: 'Military', icon: Shield },
+const propertyTypeConfig: { type: PropertyType; icon: React.ElementType, cost: number }[] = [
+    { type: 'Residential', icon: Home, cost: 250000 },
+    { type: 'Commercial', icon: Briefcase, cost: 1000000 },
+    { type: 'Industrial', icon: Factory, cost: 1750000 },
+    { type: 'Recreational', icon: Ticket, cost: 2250000 },
+    { type: 'Military', icon: Shield, cost: 5000000 },
 ];
 
 const UpgradeDialog = ({ property }: { property: Property }) => {
@@ -176,10 +176,11 @@ export default function LandlordPage() {
                     <CardDescription>Purchase new properties in the current system. Each purchase takes 10 seconds to finalize.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {propertyTypeConfig.map(({ type, icon: Icon }) => (
-                        <Button key={type} className="flex-col h-24" onClick={() => handlePurchaseProperty(type)}>
+                    {propertyTypeConfig.map(({ type, icon: Icon, cost }) => (
+                        <Button key={type} className="flex-col h-24" onClick={() => handlePurchaseProperty(type)} disabled={playerStats.netWorth < cost}>
                             <Icon className="h-8 w-8 mb-2" />
                             Buy {type}
+                            <span className="text-xs font-mono text-primary-foreground/80">({cost.toLocaleString()}¢)</span>
                         </Button>
                     ))}
                 </CardContent>
@@ -266,4 +267,3 @@ export default function LandlordPage() {
         </div>
     );
 }
-
