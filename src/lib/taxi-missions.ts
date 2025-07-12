@@ -1,7 +1,8 @@
+
 import type { TaxiMission } from '@/lib/types';
 
 // This is a list of mission templates. The final 'id', 'fromSystem', and 'toSystem' will be generated dynamically.
-export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSystem' | 'status'>[] = [
+export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSystem' | 'status' | 'assignedShipInstanceId' | 'assignedShipName'>[] = [
     // Low Risk
     {
         passengerName: 'Corpo-auditor Klex',
@@ -10,6 +11,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 2000,
         riskLevel: 'Low',
         duration: 150,
+        requiredFuel: 10,
+        minHullPercentage: 0.75,
     },
     {
         passengerName: 'Glitched Pleasure-bot',
@@ -18,6 +21,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 1500,
         riskLevel: 'Low',
         duration: 180,
+        requiredFuel: 15,
+        minHullPercentage: 0.70,
     },
     {
         passengerName: 'A group of tourists',
@@ -26,6 +31,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 3000,
         riskLevel: 'Low',
         duration: 240,
+        requiredFuel: 20,
+        minHullPercentage: 0.80,
     },
     // Medium Risk
     {
@@ -35,6 +42,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 5000,
         riskLevel: 'Medium',
         duration: 200,
+        requiredFuel: 25,
+        minHullPercentage: 0.85,
     },
     {
         passengerName: 'Holovid starlet',
@@ -43,6 +52,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 10000,
         riskLevel: 'Medium',
         duration: 190,
+        requiredFuel: 22,
+        minHullPercentage: 0.90,
     },
     // High Risk
     {
@@ -52,6 +63,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 25000,
         riskLevel: 'High',
         duration: 220,
+        requiredFuel: 30,
+        minHullPercentage: 0.95,
     },
     {
         passengerName: 'Ex-syndicate enforcer',
@@ -60,6 +73,8 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 20000,
         riskLevel: 'High',
         duration: 300,
+        requiredFuel: 40,
+        minHullPercentage: 0.95,
     },
     // Critical Risk
     {
@@ -69,5 +84,7 @@ export const STATIC_TAXI_MISSIONS: Omit<TaxiMission, 'id' | 'fromSystem' | 'toSy
         bonus: 50000,
         riskLevel: 'Critical',
         duration: 250,
+        requiredFuel: 50,
+        minHullPercentage: 1.0,
     },
 ];

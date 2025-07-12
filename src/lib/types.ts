@@ -201,6 +201,10 @@ export interface TaxiMission {
   progress?: number;
   startTime?: number;
   duration: number;
+  assignedShipInstanceId?: number | null;
+  assignedShipName?: string;
+  requiredFuel: number;
+  minHullPercentage: number;
 }
 
 export interface EscortMission {

@@ -2,10 +2,11 @@
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
-import type { GameState, TaxiMission } from '@/lib/types';
+import type { GameState, TaxiMission, PlayerShip } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { STATIC_TAXI_MISSIONS } from '@/lib/taxi-missions';
 import { ROUTES } from '@/lib/systems';
+import { hullUpgrades } from '@/lib/upgrades';
 
 const getConnectedSystems = (systemName: string): string[] => {
     const connected = new Set<string>();
@@ -60,7 +61,8 @@ export function useTaxi(
             ...prev,
             playerStats: {
               ...prev.playerStats,
-              taxiMissions: [...activeMissions, ...newMissions]
+              taxiMissions: [...activeMissions, ...newMissions],
+              lastTaxiMissionGeneration: Date.now(),
             }
           };
         });
@@ -68,7 +70,7 @@ export function useTaxi(
     });
   }, [gameState, setGameState, toast]);
   
-  const handleAcceptTaxiMission = useCallback((missionId: string) => {
+  const handleAcceptTaxiMission = useCallback((missionId: string, assignedShipId?: number) => {
     setGameState(prev => {
         if(!prev) return null;
         
@@ -78,10 +80,23 @@ export function useTaxi(
             return prev;
         }
 
-        const updatedMissions = prev.playerStats.taxiMissions.map(m => 
-            m.id === missionId ? { ...m, status: 'Active' as const, startTime: Date.now(), progress: 0 } : m
-        );
+        const shipToAssign = assignedShipId ? prev.playerStats.fleet.find(s => s.instanceId === assignedShipId) : null;
+        if (!shipToAssign) {
+            setTimeout(() => toast({ variant: "destructive", title: "Assignment Failed", description: "Could not find a suitable ship to assign." }), 0);
+            return prev;
+        }
 
+        const updatedMissions = prev.playerStats.taxiMissions.map(m => 
+            m.id === missionId ? { 
+                ...m, 
+                status: 'Active' as const, 
+                startTime: Date.now(), 
+                progress: 0,
+                assignedShipInstanceId: shipToAssign.instanceId,
+                assignedShipName: shipToAssign.name,
+            } : m
+        );
+        
         setTimeout(() => toast({ title: "Fare Accepted!", description: `Route to ${mission.toSystem} for ${mission.passengerName} is now active.` }), 0);
 
         return {
@@ -107,23 +122,48 @@ export function useTaxi(
         const updatedMissions = [...(prev.playerStats.taxiMissions || [])];
         let newPlayerStats = { ...prev.playerStats };
         let newEvents = [...prev.playerStats.events];
+        let newFleet = [...prev.playerStats.fleet];
 
         activeMissions.forEach(mission => {
           const index = updatedMissions.findIndex(m => m.id === mission.id);
-          if (index === -1) return;
+          const shipIndex = newFleet.findIndex(s => s.instanceId === mission.assignedShipInstanceId);
+          if (index === -1 || shipIndex === -1) return;
+
+          const assignedShip = newFleet[shipIndex];
 
           const elapsed = (now - (mission.startTime || now)) / 1000;
           const progress = Math.min(100, (elapsed / mission.duration) * 100);
-          updatedMissions[index].progress = progress;
-          stateChanged = true;
+          
+          if (updatedMissions[index].progress !== progress) {
+            updatedMissions[index].progress = progress;
+            stateChanged = true;
+          }
           
           if (progress >= 100) {
             updatedMissions[index].status = 'Completed';
+            updatedMissions[index].assignedShipInstanceId = null;
+            
             const totalPayout = mission.fare + mission.bonus;
             const repChange = 1;
             newPlayerStats.netWorth += totalPayout;
             newPlayerStats.reputation += repChange;
 
+            const fuelConsumed = mission.requiredFuel || 0;
+            const maxHealth = hullUpgrades[assignedShip.hullLevel - 1]?.health || 100;
+            const wearAndTear = Math.max(1, Math.round(maxHealth * (Math.random() * 0.02 + 0.01)));
+
+            newFleet[shipIndex].fuel = Math.max(0, (newFleet[shipIndex].fuel || 0) - fuelConsumed);
+            const newHealth = Math.max(0, newFleet[shipIndex].health - wearAndTear);
+            if(newHealth <= 0) {
+                newFleet[shipIndex].health = 0;
+                newFleet[shipIndex].status = 'destroyed';
+            } else {
+                newFleet[shipIndex].health = newHealth;
+                if(newHealth < maxHealth / 2 && newFleet[shipIndex].status === 'operational') {
+                    newFleet[shipIndex].status = 'repair_needed';
+                }
+            }
+            
             newEvents.push({
                 id: `evt_${Date.now()}_${mission.id}`,
                 timestamp: Date.now(),
@@ -139,7 +179,7 @@ export function useTaxi(
         });
 
         if (stateChanged) {
-          return { ...prev, playerStats: { ...newPlayerStats, taxiMissions: updatedMissions, events: newEvents }};
+          return { ...prev, playerStats: { ...newPlayerStats, taxiMissions: updatedMissions, events: newEvents, fleet: newFleet }};
         }
 
         return prev;
