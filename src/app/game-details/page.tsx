@@ -9,6 +9,17 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.3.2 - 'Command & Control'",
+        date: "Startdate: Alpha 4525.07.13",
+        changes: [
+            "Complete overhaul of the Captain page UI for a cleaner, more information-dense command hub.",
+            "Redesigned the main profile card to integrate a compact, interactive Asset Overview chart.",
+            "Converted Career, Insurance, and Business Portfolio sections into expandable cards to reduce clutter.",
+            "Refined the page layout to be fully responsive across different screen sizes and zoom levels.",
+            "Streamlined social sharing buttons to be more compact and iconic."
+        ]
+    },
+    {
         version: "v1.3.1 - 'The High Roller'",
         date: "Startdate: Alpha 4525.07.12",
         changes: [
