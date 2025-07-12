@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -252,13 +253,29 @@ export default function LandlordPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg">Your Portfolio</CardTitle>
-                    <CardDescription>An overview of all properties you own.</CardDescription>
+                    <CardDescription>An overview of all properties you own, grouped by type.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {properties.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {properties.map(prop => <PropertyCard key={prop.id} property={prop} onRenameClick={setRenamingProperty} />)}
-                        </div>
+                        <Accordion type="multiple" defaultValue={propertyTypeConfig.map(p => p.type)}>
+                           {propertyTypeConfig.map(({ type, icon: Icon }) => {
+                               const propertiesOfType = properties.filter(p => p.type === type);
+                               if (propertiesOfType.length === 0) return null;
+                               return (
+                                   <AccordionItem value={type} key={type}>
+                                       <AccordionTrigger>
+                                            <div className="flex items-center gap-2">
+                                                <Icon className="h-5 w-5 text-primary" />
+                                                <span className="font-semibold">{type} Properties ({propertiesOfType.length})</span>
+                                            </div>
+                                       </AccordionTrigger>
+                                       <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                           {propertiesOfType.map(prop => <PropertyCard key={prop.id} property={prop} onRenameClick={setRenamingProperty} />)}
+                                       </AccordionContent>
+                                   </AccordionItem>
+                               )
+                           })}
+                        </Accordion>
                     ) : (
                         <p className="text-muted-foreground text-center py-8">You do not own any properties. Purchase one to get started.</p>
                     )}
@@ -288,7 +305,7 @@ export default function LandlordPage() {
                                 <div key={lease.id} className="p-3 rounded-md border bg-background/50">
                                     <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
                                     <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                        <span>Rent: {lease.rent.toLocaleString()}¢ / hour</span>
+                                        <span>Rent: {lease.rent.toLocaleString()}¢ / 10 mins</span>
                                         <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
                                     </div>
                                 </div>
@@ -306,7 +323,7 @@ export default function LandlordPage() {
                                     <div>
                                         <p className="font-semibold text-sm">{lease.tenantName}</p>
                                         <p className="text-xs text-muted-foreground">{lease.description}</p>
-                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/hr | Term: {lease.duration}h</p>
+                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/10mins | Term: {lease.duration}h</p>
                                     </div>
                                     <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
                                         Assign

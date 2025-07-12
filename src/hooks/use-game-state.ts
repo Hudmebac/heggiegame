@@ -13,7 +13,7 @@ import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { INITIAL_STOCKS } from '@/lib/stocks';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, syncActiveShipStats, RARITY_SUPPLY_RANGES } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, RARITY_SUPPLY_RANGES } from '@/lib/utils';
 import pako from 'pako';
 
 const formatStardate = (date: Date): string => {
@@ -511,17 +511,17 @@ export function useGameState() {
                     }
 
                     const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                    const hoursSinceLastRent = timeSinceLastRent / (3600 * 1000);
+                    const intervalsSinceLastRent = timeSinceLastRent / (10 * 60 * 1000); // 10 minutes interval
                     
-                    if (hoursSinceLastRent >= 1) {
-                        const hoursToPay = Math.floor(hoursSinceLastRent);
-                        const rentToCollect = hoursToPay * lease.rent;
+                    if (intervalsSinceLastRent >= 1) {
+                        const intervalsToPay = Math.floor(intervalsSinceLastRent);
+                        const rentToCollect = intervalsToPay * lease.rent;
 
                         newPlayerStats.netWorth += rentToCollect;
                         toastsToFire.push({ title: "Rent Collected", description: `Collected ${rentToCollect.toLocaleString()}¢ from ${lease.tenantName}.` });
                         stateChanged = true;
                         
-                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + hoursToPay * 3600 * 1000 };
+                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * 10 * 60 * 1000 };
                     }
 
                     return lease;

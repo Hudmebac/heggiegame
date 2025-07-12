@@ -296,7 +296,7 @@ export interface Property {
   status: 'Idle' | 'Upgrading' | 'Leased';
   upgradeStartTime?: number;
   upgradeDuration?: number;
-  upgradingComponent?: PropertyUpgradeType;
+  upgradingComponent?: PropertyUpgradeType | 'Purchase';
 }
 
 export interface Lease {
@@ -308,6 +308,9 @@ export interface Lease {
   startTime: number;
   lastRentCollection: number;
   status: 'Active' | 'Completed';
+  propertyType: PropertyType;
+  requiredLevel: number;
+  description: string;
 }
 
 export interface PlayerStats {
