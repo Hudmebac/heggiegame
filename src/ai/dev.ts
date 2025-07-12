@@ -13,3 +13,5 @@ import '@/ai/flows/generate-construction-partnership-offers.ts';
 import '@/ai/flows/generate-recreation-partnership-offers.ts';
 import '@/ai/flows/generate-bank-partnership-offers.ts';
 import '@/ai/flows/negotiate-trade-route.ts';
+import '@/ai/flows/generate-lease-proposals.ts';
+

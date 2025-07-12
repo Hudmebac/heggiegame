@@ -1,16 +1,18 @@
 
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { GameState, Property, PropertyType, Lease } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
+import { generateLeaseProposals } from '@/app/actions';
 
 export function useLandlord(
     gameState: GameState | null,
     setGameState: React.Dispatch<React.SetStateAction<GameState | null>>
 ) {
     const { toast } = useToast();
+    const [isGeneratingLeases, setIsGeneratingLeases] = useState(false);
 
     const handlePurchaseProperty = useCallback((type: PropertyType) => {
         setGameState(prev => {
@@ -67,8 +69,16 @@ export function useLandlord(
             }
             
             const upgradeKey = `${type.toLowerCase()}Level` as keyof Property;
-            const currentLevel = property[upgradeKey] as number || 0;
-            const cost = 10000 * (currentLevel + 1); // Placeholder cost
+            const upgradeData = propertyUpgrades[type.toLowerCase() as keyof typeof propertyUpgrades];
+            if (!upgradeData) return prev;
+            
+            const currentLevel = (property[upgradeKey] as number) || 0;
+            if (currentLevel >= upgradeData.upgrades.length) {
+                toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Property is at max level.' });
+                return prev;
+            }
+            
+            const cost = upgradeData.upgrades[currentLevel].cost - (upgradeData.upgrades[currentLevel-1]?.cost || 0);
 
             if (prev.playerStats.netWorth < cost) {
                 toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Insufficient funds.' });
@@ -94,9 +104,82 @@ export function useLandlord(
         });
     }, [setGameState, toast]);
 
+    const handleFindTenants = useCallback(async () => {
+        if (!gameState) return;
+        setIsGeneratingLeases(true);
+        try {
+            const idleProperties = gameState.playerStats.properties.filter(p => p.status === 'Idle');
+            if (idleProperties.length === 0) {
+                 toast({ variant: 'destructive', title: 'No Available Properties', description: 'All your properties are currently occupied or upgrading.' });
+                return;
+            }
+            const result = await generateLeaseProposals({ propertyCount: idleProperties.length, proposalCount: 3 + Math.floor(Math.random() * 3) });
+            setGameState(prev => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    playerStats: {
+                        ...prev.playerStats,
+                        availableLeases: result.leases
+                    }
+                }
+            });
+            toast({ title: 'Lease Proposals Received', description: 'Potential tenants are ready for review.' });
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Network Error', description: 'Could not fetch tenant proposals at this time.' });
+        } finally {
+            setIsGeneratingLeases(false);
+        }
+    }, [gameState, setGameState, toast]);
+
+    const handleAssignLease = useCallback((leaseId: string, propertyId: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            
+            const lease = prev.playerStats.availableLeases?.find(l => l.id === leaseId);
+            const propertyIndex = prev.playerStats.properties.findIndex(p => p.id === propertyId);
+            
+            if (!lease || propertyIndex === -1) return prev;
+
+            const property = { ...prev.playerStats.properties[propertyIndex] };
+
+            if (property.status !== 'Idle') {
+                toast({ variant: 'destructive', title: 'Assignment Failed', description: 'Property is not available.' });
+                return prev;
+            }
+
+            const newLease: Lease = {
+                ...lease,
+                status: 'Active',
+                startTime: Date.now(),
+                propertyId: property.id,
+            };
+            
+            property.status = 'Leased';
+            const newProperties = [...prev.playerStats.properties];
+            newProperties[propertyIndex] = property;
+
+            toast({ title: 'Lease Signed!', description: `${lease.tenantName} is now leasing ${property.name}.` });
+            
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    properties: newProperties,
+                    activeLeases: [...(prev.playerStats.activeLeases || []), newLease],
+                    availableLeases: prev.playerStats.availableLeases?.filter(l => l.id !== leaseId),
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
 
     return {
         handlePurchaseProperty,
         handleUpgradeProperty,
+        handleFindTenants,
+        handleAssignLease,
+        isGeneratingLeases,
     };
 }

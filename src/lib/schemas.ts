@@ -392,3 +392,25 @@ export const NegotiateTradeRouteOutputSchema = z.object({
   narrative: z.string().describe("A short, flavourful narrative describing the outcome of the negotiation."),
 });
 export type NegotiateTradeRouteOutput = z.infer<typeof NegotiateTradeRouteOutputSchema>;
+
+// Schemas for generate-lease-proposals
+export const LeaseSchema = z.object({
+    id: z.string().describe("A unique identifier for the lease proposal."),
+    tenantName: z.string().describe("A creative, sci-fi appropriate name for the tenant."),
+    propertyType: z.enum(['Residential', 'Commercial', 'Industrial', 'Recreational', 'Military']).describe("The specific type of property the tenant requires."),
+    requiredLevel: z.number().min(1).max(10).describe("The minimum property upgrade level required."),
+    rent: z.number().describe("The amount of credits the tenant will pay per cycle."),
+    duration: z.number().describe("The duration of the lease in hours."),
+    description: z.string().describe("A short, flavourful description of the tenant and their needs."),
+});
+
+export const GenerateLeaseProposalsInputSchema = z.object({
+    propertyCount: z.number().describe("The number of available properties the player owns."),
+    proposalCount: z.number().describe("The number of lease proposals to generate."),
+});
+export type GenerateLeaseProposalsInput = z.infer<typeof GenerateLeaseProposalsInputSchema>;
+
+export const GenerateLeaseProposalsOutputSchema = z.object({
+    leases: z.array(LeaseSchema).describe("An array of generated lease proposals."),
+});
+export type GenerateLeaseProposalsOutput = z.infer<typeof GenerateLeaseProposalsOutputSchema>;

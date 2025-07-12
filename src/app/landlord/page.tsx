@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus } from 'lucide-react';
-import type { Property, PropertyType } from '@/lib/types';
+import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass } from 'lucide-react';
+import type { Property, PropertyType, Lease } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +17,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 const propertyTypeConfig: { type: PropertyType; icon: React.ElementType }[] = [
     { type: 'Residential', icon: Home },
@@ -31,17 +33,18 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
     const { gameState, handleUpgradeProperty } = useGame();
     if (!gameState) return null;
     
-    const upgradeLevels = propertyUpgrades[property.type.toLowerCase() as keyof typeof propertyUpgrades];
-    if (!upgradeLevels) return null;
+    const upgradeKey = `${property.type.toLowerCase()}Level` as keyof Property;
+    const upgradeData = propertyUpgrades[property.type.toLowerCase() as keyof typeof propertyUpgrades];
+    if (!upgradeData) return null;
 
-    const currentLevel = property[`${property.type.toLowerCase()}Level` as keyof Property] as number || 0;
+    const currentLevel = (property[upgradeKey] as number) || 0;
 
     return (
         <div className="space-y-2">
-            {upgradeLevels.map(upgrade => {
+            {upgradeData.upgrades.map(upgrade => {
                 const isCurrent = upgrade.level === currentLevel;
                 const isNext = upgrade.level === currentLevel + 1;
-                const cost = 10000 * upgrade.level; // Placeholder cost
+                const cost = upgrade.cost - (upgradeData.upgrades[currentLevel-1]?.cost || 0);
                 const canAfford = gameState.playerStats.netWorth >= cost;
                 return (
                     <div key={upgrade.level} className="flex justify-between items-center text-sm p-2 rounded-md bg-background/50">
@@ -104,13 +107,54 @@ const PropertyCard = ({ property }: { property: Property }) => {
     )
 }
 
+const AssignLeaseDialog = ({ lease, properties, onAssign, isOpen, onOpenChange }: { lease: Lease, properties: Property[], onAssign: (propertyId: number) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
+    const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Assign Lease: {lease.tenantName}</DialogTitle>
+                    <DialogDescription>Select an available and suitable property to assign this lease to.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <Label htmlFor="property-select">Available Properties</Label>
+                    <Select onValueChange={setSelectedPropertyId}>
+                        <SelectTrigger id="property-select">
+                            <SelectValue placeholder="Select a property..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {properties.map(prop => (
+                                <SelectItem key={prop.id} value={String(prop.id)}>
+                                    {prop.name} (Lvl {prop[`${prop.type.toLowerCase()}Level` as keyof Property] as number}) - {prop.systemName}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <DialogClose asChild><Button onClick={() => onAssign(Number(selectedPropertyId))} disabled={!selectedPropertyId}>Confirm Lease</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 export default function LandlordPage() {
-    const { gameState, handlePurchaseProperty } = useGame();
+    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases } = useGame();
+    const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
 
     if (!gameState) return null;
 
     const { playerStats } = gameState;
-    const { properties } = playerStats;
+    const { properties, availableLeases, activeLeases } = playerStats;
+    
+    const idleProperties = properties.filter(p => p.status === 'Idle' && !activeLeases.some(l => l.propertyId === p.id));
+    
+    const getAssignableProperties = (lease: Lease) => {
+        return idleProperties.filter(p => p.type === lease.propertyType && p[`${p.type.toLowerCase()}Level` as keyof Property] >= lease.requiredLevel);
+    };
 
     return (
         <div className="space-y-6">
@@ -159,15 +203,66 @@ export default function LandlordPage() {
 
              <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg">Lease Management</CardTitle>
-                    <CardDescription>Find tenants and manage your leases.</CardDescription>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <FileText className="text-primary"/>
+                        Lease Management
+                    </CardTitle>
+                    <CardDescription>Find tenants and manage your leases. New proposals are generated based on your property portfolio.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                     <Button>
-                        <UserPlus className="mr-2"/> Find Tenants
+                <CardContent className="space-y-4">
+                    <Button onClick={handleFindTenants} disabled={isGeneratingLeases || idleProperties.length === 0}>
+                        {isGeneratingLeases ? <Loader2 className="animate-spin mr-2"/> : <UserPlus className="mr-2"/>}
+                        {idleProperties.length === 0 ? "No Available Properties" : "Find Tenants"}
                     </Button>
+
+                    {activeLeases && activeLeases.length > 0 && (
+                        <div className="space-y-2 pt-4">
+                            <h4 className="font-semibold">Active Leases</h4>
+                            {activeLeases.map(lease => {
+                                const property = properties.find(p => p.id === lease.propertyId);
+                                return (
+                                <div key={lease.id} className="p-3 rounded-md border bg-background/50">
+                                    <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
+                                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                                        <span>Rent: {lease.rent.toLocaleString()}¢</span>
+                                        <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
+                                    </div>
+                                </div>
+                            )})}
+                        </div>
+                    )}
+                    
+                    {availableLeases && availableLeases.length > 0 && (
+                        <div className="space-y-2 pt-4">
+                            <h4 className="font-semibold">Available Lease Proposals</h4>
+                             {availableLeases.map(lease => {
+                                const assignableProps = getAssignableProperties(lease);
+                                return (
+                                <div key={lease.id} className="p-3 rounded-md border bg-background/50 flex justify-between items-center">
+                                    <div>
+                                        <p className="font-semibold text-sm">{lease.tenantName}</p>
+                                        <p className="text-xs text-muted-foreground">{lease.description}</p>
+                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢ | Term: {lease.duration}h</p>
+                                    </div>
+                                    <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
+                                        Assign
+                                    </Button>
+                                </div>
+                            )})}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
+            {selectedLease && (
+                <AssignLeaseDialog 
+                    isOpen={!!selectedLease}
+                    onOpenChange={() => setSelectedLease(null)}
+                    lease={selectedLease}
+                    properties={getAssignableProperties(selectedLease)}
+                    onAssign={(propertyId) => handleAssignLease(selectedLease.id, propertyId)}
+                />
+            )}
         </div>
     );
 }

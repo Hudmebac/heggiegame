@@ -39,10 +39,15 @@ import {
   GenerateRecreationPartnershipOffersInputSchema,
   type GenerateRecreationPartnershipOffersInput,
   type GenerateRecreationPartnershipOffersOutput,
+  GenerateLeaseProposalsInputSchema,
+  type GenerateLeaseProposalsInput,
+  type GenerateLeaseProposalsOutput,
 } from '@/lib/schemas';
 import { simulateMarket } from '@/lib/utils';
 import { generateQuests } from '@/lib/generation/quests';
 import { generateTraders } from '@/lib/generation/traders';
+import { generateLeaseProposals as genLeaseProposals } from '@/ai/flows/generate-lease-proposals';
+
 
 // Import the JSON file directly
 import promoCodes from '@/lib/promo-codes.json';
@@ -213,3 +218,9 @@ export async function redeemPromoCode(code: string): Promise<{ tokens: number } 
         return { error: 'Could not validate promo code at this time.' };
     }
 }
+
+export async function generateLeaseProposals(input: GenerateLeaseProposalsInput): Promise<GenerateLeaseProposalsOutput> {
+    const validatedInput = GenerateLeaseProposalsInputSchema.parse(input);
+    return genLeaseProposals(validatedInput);
+}
+
