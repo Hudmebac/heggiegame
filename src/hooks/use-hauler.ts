@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
 import { STATIC_TRADE_CONTRACTS } from '@/lib/trade-contracts';
 import { ROUTES, SYSTEMS } from '@/lib/systems';
-import { cargoUpgrades, fuelUpgrades, weaponUpgrades, droneUpgrades, powerCoreUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, fuelUpgrades, weaponUpgrades, droneUpgrades, powerCoreUpgrades, hullUpgrades } from '@/lib/upgrades';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 

@@ -3,9 +3,9 @@
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
-import type { GameState, Pirate, EncounterResult, PlayerStats, PlayerShip, Difficulty } from '@/lib/types';
+import type { GameState, Pirate, EncounterResult, PlayerStats, PlayerShip, Difficulty, TradeRouteContract } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { hullUpgrades } from '@/lib/upgrades';
+import { hullUpgrades, weaponUpgrades, shieldUpgrades } from '@/lib/upgrades';
 import { runPirateScan } from '@/app/actions';
 import { initialShip } from '@/lib/ships';
 import { syncActiveShipStats, calculateCargoValue } from '@/lib/utils';
@@ -20,11 +20,10 @@ async function resolveEncounter(input: {
     pirateThreatLevel: 'Low' | 'Medium' | 'High' | 'Critical';
     hasGunner: boolean;
     hasNegotiator: boolean;
-    shipHealth: number;
-    weaponLevel: number;
-    shieldLevel: number;
+    ship: PlayerShip;
+    contract?: TradeRouteContract;
 }): Promise<EncounterResult> {
-    const { action, playerNetWorth, pirateThreatLevel, hasGunner, hasNegotiator, shipHealth, weaponLevel, shieldLevel } = input;
+    const { action, playerNetWorth, pirateThreatLevel, hasGunner, hasNegotiator, ship, contract } = input;
     
     let success = false;
     let outcome: EncounterResult['outcome'] = 'failure';
@@ -36,19 +35,30 @@ async function resolveEncounter(input: {
     const threatModifier = { 'Low': 0.8, 'Medium': 1, 'High': 1.25, 'Critical': 1.6 }[pirateThreatLevel];
 
     if (action === 'fight') {
-        const combatScore = (shipHealth / 100) * (weaponLevel + shieldLevel) * (hasGunner ? 1.5 : 1);
+        const combatScore = (ship.health / 100) * (ship.weaponLevel + ship.shieldLevel) * (hasGunner ? 1.5 : 1);
         const pirateScore = 15 * threatModifier;
         success = combatScore > pirateScore * (Math.random() + 0.5);
 
         if (success) {
             outcome = 'success';
             narrative = `With a brilliant maneuver, you outgunned ${input.pirateName}, sending them retreating into the void.`;
-            damageTaken = Math.round((Math.random() * 20) / (shieldLevel * 0.5));
+            damageTaken = Math.round((Math.random() * 20) / (ship.shieldLevel * 0.5));
         } else {
             outcome = 'failure';
             narrative = `The battle was fierce, but ${input.pirateName}'s vessel was too strong. You were forced to jettison some cargo to escape.`;
-            damageTaken = Math.round(20 + Math.random() * 30 * threatModifier);
+            
+            // Intensify damage if under-equipped
+            let damageMultiplier = 1;
+            if (contract?.minWeaponLevel && ship.weaponLevel < contract.minWeaponLevel) damageMultiplier += 0.5;
+            if (contract?.minHullLevel && ship.hullLevel < contract.minHullLevel) damageMultiplier += 0.5;
+            if (contract?.minShieldLevel && ship.shieldLevel < contract.minShieldLevel) damageMultiplier += 0.5;
+
+            damageTaken = Math.round((20 + Math.random() * 30 * threatModifier) * damageMultiplier);
             cargoLost = Math.round(input.playerCargo * (0.1 + Math.random() * 0.2));
+            
+            if (contract?.riskLevel === 'Critical' && damageMultiplier > 1) {
+                damageTaken = 999; // Destroy ship
+            }
         }
     } else if (action === 'evade') {
         success = Math.random() > (0.4 * threatModifier);
@@ -135,6 +145,26 @@ export function useEncounters(
 
     startEncounterResolution(async () => {
         try {
+             // Determine which ship is actually on the mission
+            let shipForEncounter: PlayerShip | undefined = activeShip;
+            let contractForEncounter: TradeRouteContract | undefined = undefined;
+
+            if (pirate.missionId && pirate.missionType === 'trade') {
+                const mission = gameState.playerStats.tradeContracts.find(m => m.id === pirate.missionId);
+                if (mission?.assignedShipInstanceId) {
+                    shipForEncounter = gameState.playerStats.fleet.find(s => s.instanceId === mission.assignedShipInstanceId);
+                    contractForEncounter = mission;
+                }
+            } else if (pirate.missionId && pirate.missionType === 'escort') {
+                // ... handle other mission types ...
+            }
+
+            if (!shipForEncounter) {
+                console.error("Encounter occurred but could not find the assigned ship.");
+                return;
+            }
+
+
             const result = await resolveEncounter({
                 action,
                 playerNetWorth: gameState.playerStats.netWorth,
@@ -143,9 +173,8 @@ export function useEncounters(
                 pirateThreatLevel: pirate.threatLevel,
                 hasGunner: gameState.crew.some(c => c.role === 'Gunner'),
                 hasNegotiator: gameState.crew.some(c => c.role === 'Negotiator'),
-                shipHealth: activeShip.health,
-                weaponLevel: activeShip.weaponLevel,
-                shieldLevel: activeShip.shieldLevel,
+                ship: shipForEncounter,
+                contract: contractForEncounter,
             });
 
             // This state update will happen in the background
@@ -159,19 +188,7 @@ export function useEncounters(
                 
                 newPlayerStats.netWorth -= result.creditsLost;
                 
-                let shipInstanceId = activeShip.instanceId;
-                 if (pirate.missionId && pirate.missionType && pirate.missionType !== 'trade') {
-                    const missionsKey = `${pirate.missionType}s` as 'escortMissions' | 'tradeContracts' | 'taxiMissions' | 'militaryMissions';
-                    const mission = (prev.playerStats as any)[missionsKey]?.find((m: any) => m.id === pirate.missionId);
-                    if(mission?.assignedShipInstanceId) {
-                        shipInstanceId = mission.assignedShipInstanceId;
-                    }
-                } else if (pirate.missionId && pirate.missionType === 'trade') {
-                     const mission = (prev.playerStats.tradeContracts || []).find(m => m.id === pirate.missionId);
-                      if(mission?.assignedShipInstanceId) {
-                        shipInstanceId = mission.assignedShipInstanceId;
-                    }
-                }
+                let shipInstanceId = shipForEncounter!.instanceId;
                 
                 const fleet = [...newPlayerStats.fleet];
                 const shipIndex = fleet.findIndex(s => s.instanceId === shipInstanceId);
@@ -186,7 +203,9 @@ export function useEncounters(
                             return { ...prev, isGameOver: true };
                         } else {
                             setTimeout(() => toast({ variant: "destructive", title: "Ship Destroyed!", description: "You have been reborn in the Sol system with a new vessel." }), 0);
-                            newPlayerStats = handleRebirth(newPlayerStats, prev.difficulty);
+                            // handle rebirth for that specific ship, maybe remove it from fleet
+                            const newFleet = prev.playerStats.fleet.filter(s => s.instanceId !== ship.instanceId);
+                            newPlayerStats.fleet = newFleet.length > 0 ? newFleet : [initialShip]; // Ensure player always has a ship
                         }
                     } else {
                         ship.status = ship.health < (hullUpgrades[ship.hullLevel - 1]?.health || 100) / 2 ? 'repair_needed' : 'operational';
