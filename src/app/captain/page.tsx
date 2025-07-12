@@ -32,8 +32,8 @@ import ShareProgressDialog from '@/app/components/share-progress-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import CooldownTimer from '@/app/components/cooldown-timer';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
+import AssetOverviewChartCompact from '@/app/components/asset-overview-chart-compact';
 
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
@@ -116,10 +116,8 @@ function PlayerProfile() {
     const whatsAppExpiry = (playerStats.lastWhatsappShare || 0) + whatsAppCooldown;
     const isWhatsAppOnCooldown = now < whatsAppExpiry;
     
-    const careerData = CAREER_DATA.find(c => c.id === gameState.playerStats.career);
-
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="flex flex-col h-full">
             <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -173,61 +171,64 @@ function PlayerProfile() {
                         </div>
                     )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
-                        <Share2 className="mr-2" /> Sync
-                    </Button>
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                                <RefreshCw className="mr-2" />
-                                Reset
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>This action cannot be undone. This will permanently delete your game progress and start a new game.</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleResetGame}>Confirm Reset</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-                 <div className="grid grid-cols-2 gap-2">
-                     <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700" disabled={isFbOnCooldown}>
-                                {isFbOnCooldown ? <CooldownTimer expiry={fbExpiry} /> : 'Share for 1M¢'}
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Share to Facebook</AlertDialogTitle>
-                                <AlertDialogDescription>Copy the message below and paste it into your Facebook post to receive 1,000,000 tokens!</AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <div className="p-4 bg-muted rounded-md text-sm italic border">
-                                {shareText}
-                            </div>
-                            <AlertDialogFooter className="w-full grid grid-cols-2 gap-2">
-                                <Button onClick={handleCopyToClipboard}><Copy className="mr-2" /> Copy Text</Button>
-                                <AlertDialogAction onClick={handleShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                    <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={onShareToWhatsapp} disabled={isWhatsAppOnCooldown}>
-                        {isWhatsAppOnCooldown ? <CooldownTimer expiry={whatsAppExpiry} /> : <><WhatsAppIcon className="mr-2" /> Share for 1M¢</>}
-                    </Button>
-                </div>
-                 <div className="grid grid-cols-1">
-                    <Button asChild variant="outline">
-                        <Link href="/captain/history-events">
-                            <ScrollText className="mr-2" />
-                            History &amp; Progress
-                        </Link>
-                    </Button>
+                <div className="mt-auto space-y-2">
+                    <AssetOverviewChartCompact assetHistory={playerStats.assetHistory || []} />
+                    <div className="grid grid-cols-1">
+                        <Button asChild variant="outline">
+                            <Link href="/captain/history-events">
+                                <ScrollText className="mr-2" />
+                                History &amp; Progress
+                            </Link>
+                        </Button>
+                    </div>
+                     <div className="grid grid-cols-2 gap-2">
+                        <Button variant="secondary" onClick={() => setIsShareDialogOpen(true)}>
+                            <Share2 className="mr-2" /> Sync
+                        </Button>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">
+                                    <RefreshCw className="mr-2" />
+                                    Reset
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This action cannot be undone. This will permanently delete your game progress and start a new game.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleResetGame}>Confirm Reset</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                     <div className="grid grid-cols-2 gap-2">
+                         <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
+                            <AlertDialogTrigger asChild>
+                               <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700" disabled={isFbOnCooldown}>
+                                    {isFbOnCooldown ? <CooldownTimer expiry={fbExpiry} /> : 'Share for 1M¢'}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Share to Facebook</AlertDialogTitle>
+                                    <AlertDialogDescription>Copy the message below and paste it into your Facebook post to receive 1,000,000 tokens!</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <div className="p-4 bg-muted rounded-md text-sm italic border">
+                                    {shareText}
+                                </div>
+                                <AlertDialogFooter className="w-full grid grid-cols-2 gap-2">
+                                    <Button onClick={handleCopyToClipboard}><Copy className="mr-2" /> Copy Text</Button>
+                                    <AlertDialogAction onClick={handleShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={onShareToWhatsapp} disabled={isWhatsAppOnCooldown}>
+                            {isWhatsAppOnCooldown ? <CooldownTimer expiry={whatsAppExpiry} /> : <><WhatsAppIcon className="mr-2" /> Share for 1M¢</>}
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
              <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
@@ -348,61 +349,62 @@ export default function CaptainPage() {
 
   return (
     <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            <div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
+            <div className="lg:col-span-2 xl:col-span-1">
                 <PlayerProfile />
             </div>
-            <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                <Coins className="text-primary"/>
-                                Finances
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Cash on Hand</span>
-                                <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
-                            </div>
-                            <div className="flex justify-between items-center font-semibold pt-2 border-t mt-2">
-                                <span className="text-foreground">Total Net Worth</span>
-                                <span className="font-mono text-primary">{totalNetWorth.toLocaleString()} ¢</span>
-                            </div>
-                            <Link href="/bank" passHref>
-                                <Button className="w-full mt-2" variant="outline">
-                                    <Landmark className="mr-2" />
-                                    Galactic Bank
-                                </Button>
-                            </Link>
-                            <Link href="/captain/get-tokens" passHref>
-                                <Button className="w-full mt-2">
-                                    <Coins className="mr-2"/>
-                                    Get Tokens
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                <Trophy className="text-primary"/>
-                                Ranking
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Global Rank</span>
-                                <span className="font-mono text-primary">#{leaderboardRank}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Fleet Size</span>
-                                <span className="font-mono text-primary">{playerStats.fleet.length}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+            
+            <div className="lg:col-span-2 xl:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Coins className="text-primary"/>
+                            Finances
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Cash on Hand</span>
+                            <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
+                        </div>
+                        <div className="flex justify-between items-center font-semibold pt-2 border-t mt-2">
+                            <span className="text-foreground">Total Net Worth</span>
+                            <span className="font-mono text-primary">{totalNetWorth.toLocaleString()} ¢</span>
+                        </div>
+                        <Link href="/bank" passHref>
+                            <Button className="w-full mt-2" variant="outline">
+                                <Landmark className="mr-2" />
+                                Galactic Bank
+                            </Button>
+                        </Link>
+                        <Link href="/captain/get-tokens" passHref>
+                            <Button className="w-full mt-2">
+                                <Coins className="mr-2"/>
+                                Get Tokens
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Trophy className="text-primary"/>
+                            Ranking
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Global Rank</span>
+                            <span className="font-mono text-primary">#{leaderboardRank}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Fleet Size</span>
+                            <span className="font-mono text-primary">{playerStats.fleet.length}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+                
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
@@ -410,7 +412,7 @@ export default function CaptainPage() {
                             Reputation
                         </CardTitle>
                         <CardDescription>
-                            Your standing influences mission availability and rewards.
+                            Influences mission availability and rewards.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -428,14 +430,42 @@ export default function CaptainPage() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+
+                {careerInfo && (
+                    <Card className="md:col-span-1">
+                        <CardHeader>
+                             <CardTitle className="font-headline text-lg flex items-center gap-2">
+                                {CareerIcon && <CareerIcon className="text-primary" />}
+                                Career: {careerInfo.name}
+                            </CardTitle>
+                            <CardDescription>{careerInfo.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-xs">
+                             <div>
+                                <h4 className="font-semibold text-sm">Perks:</h4>
+                                <ul className="list-disc list-inside text-muted-foreground">
+                                    {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-sm">Risks:</h4>
+                                <ul className="list-disc list-inside text-muted-foreground">
+                                    {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                                </ul>
+                            </div>
+                            <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
+                        </CardContent>
+                    </Card>
+                )}
+                
+                <Card className="md:col-span-1">
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
                             <Handshake className="text-primary"/>
                             Diplomacy
                         </CardTitle>
                         <CardDescription>
-                            Your political allegiances and standing with the major galactic powers.
+                            Your political allegiances.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -461,117 +491,76 @@ export default function CaptainPage() {
                         <Button className="w-full mt-2" variant="outline" onClick={() => setIsFactionDialogOpen(true)}>Manage Allegiance</Button>
                     </CardContent>
                 </Card>
-            </div>
-            <div className="lg:col-span-2">
-                <Accordion type="single" collapsible className="w-full space-y-6">
-                 {careerInfo && (
-                    <Card>
-                        <AccordionItem value="career" className="border-b-0">
-                            <AccordionTrigger className="p-6">
-                                <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                    {CareerIcon && <CareerIcon className="text-primary" />}
-                                    Career: {careerInfo.name}
-                                </CardTitle>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-6 pb-6">
-                                <CardDescription className="mb-4">{careerInfo.description}</CardDescription>
-                                <div className="space-y-2">
-                                    <div>
-                                        <h4 className="font-semibold text-sm">Perks:</h4>
-                                        <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                            {careerInfo.perks.map((perk, i) => <li key={i}>{perk}</li>)}
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-sm">Risks:</h4>
-                                        <ul className="list-disc list-inside text-xs text-muted-foreground">
-                                            {careerInfo.risks.map((risk, i) => <li key={i}>{risk}</li>)}
-                                        </ul>
-                                    </div>
-                                    <Button className="w-full mt-4" variant="outline" onClick={() => setIsCareerChangeOpen(true)}>Change Career</Button>
+                
+                <Card className="md:col-span-1 lg:col-span-1">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Shield className="text-primary"/>
+                            Insurance Policies
+                        </CardTitle>
+                        <CardDescription>One-time asset protection premiums.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {Object.values(insurancePolicies).map(policy => (
+                            <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50 border">
+                                <div>
+                                    <h4 className="font-semibold text-sm">{policy.name}</h4>
                                 </div>
-                            </AccordionContent>
-                        </AccordionItem>
-                    </Card>
-                 )}
-                 <Card>
-                    <AccordionItem value="insurance" className="border-b-0">
-                        <AccordionTrigger className="p-6">
-                            <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                <Shield className="text-primary"/>
-                                Insurance Policies
-                            </CardTitle>
-                        </AccordionTrigger>
-                        <AccordionContent className="px-6 pb-6">
-                            <CardDescription className="mb-4">Protect your assets against the dangers of the galaxy. Premiums are a one-time payment.</CardDescription>
-                            <div className="space-y-4">
-                                {Object.values(insurancePolicies).map(policy => (
-                                    <div key={policy.name} className="flex items-center justify-between p-3 rounded-md bg-card/50">
-                                    <div className="flex items-start gap-3">
-                                            <policy.icon className="h-5 w-5 text-primary/70 mt-1 flex-shrink-0" />
-                                            <div>
-                                                <h4 className="font-semibold">{policy.name}</h4>
-                                                <p className="text-xs text-muted-foreground">{policy.description}</p>
-                                            </div>
-                                    </div>
-                                    {playerStats.insurance[policy.type] ? (
-                                        <span className="text-sm font-bold text-green-400 whitespace-nowrap">Active</span>
-                                    ) : (
-                                        <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
-                                            Purchase ({policy.cost.toLocaleString()}¢)
-                                        </Button>
-                                    )}
-                                    </div>
-                                ))}
+                                {playerStats.insurance[policy.type] ? (
+                                    <span className="text-xs font-bold text-green-400 whitespace-nowrap">ACTIVE</span>
+                                ) : (
+                                    <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
+                                        {policy.cost.toLocaleString()}¢
+                                    </Button>
+                                )}
                             </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                 </Card>
-                 <Card>
-                    <AccordionItem value="portfolio" className="border-b-0">
-                        <AccordionTrigger className="p-6">
-                            <CardTitle className="font-headline text-lg flex items-center gap-2">
-                                <Briefcase className="text-primary"/>
-                                Business Portfolio
-                            </CardTitle>
-                        </AccordionTrigger>
-                        <AccordionContent className="p-0 pb-6">
-                            <CardDescription className="px-6 mb-4">Overview of your income-generating assets across the galaxy.</CardDescription>
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Asset</TableHead>
-                                            <TableHead className="text-right">Level</TableHead>
-                                            <TableHead className="text-right">Bots</TableHead>
-                                            <TableHead className="text-right">Income/sec</TableHead>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+             <div className="lg:col-span-2 xl:col-span-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline text-lg flex items-center gap-2">
+                            <Briefcase className="text-primary"/>
+                            Business Portfolio
+                        </CardTitle>
+                        <CardDescription>Overview of your income-generating assets across the galaxy.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Asset</TableHead>
+                                        <TableHead className="text-right">Level</TableHead>
+                                        <TableHead className="text-right">Bots</TableHead>
+                                        <TableHead className="text-right">Income/sec</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {portfolio.map(asset => (
+                                        <TableRow key={asset.name}>
+                                            <TableCell className="font-medium flex items-center gap-2">
+                                                <asset.icon className="h-4 w-4 text-muted-foreground" />
+                                                {asset.name}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono">{asset.level}</TableCell>
+                                            <TableCell className="text-right font-mono">{asset.bots}</TableCell>
+                                            <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
                                         </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {portfolio.map(asset => (
-                                            <TableRow key={asset.name}>
-                                                <TableCell className="font-medium flex items-center gap-2">
-                                                    <asset.icon className="h-4 w-4 text-muted-foreground" />
-                                                    {asset.name}
-                                                </TableCell>
-                                                <TableCell className="text-right font-mono">{asset.level}</TableCell>
-                                                <TableCell className="text-right font-mono">{asset.bots}</TableCell>
-                                                <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                    <TableFooter>
-                                        <TableRow>
-                                            <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
-                                            <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
-                                        </TableRow>
-                                    </TableFooter>
-                                </Table>
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                 </Card>
-                </Accordion>
+                                    ))}
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
+                                        <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
         <ChangeCareerDialog isOpen={isCareerChangeOpen} onOpenChange={setIsCareerChangeOpen} />
@@ -579,3 +568,4 @@ export default function CaptainPage() {
     </div>
   );
 }
+
