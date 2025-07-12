@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollText, Hourglass, Star, Filter, LucideIcon, Briefcase, LandPlot, Package, Rocket, Handshake, Route, ShoppingCart, Shield } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { format, formatRelative, subDays } from 'date-fns';
+import { format, formatRelative, subDays, startOfDay, startOfHour } from 'date-fns';
 import type { GameEventType, GameEvent } from "@/lib/types";
 import ReputationChart from "@/app/components/reputation-chart";
 import HistorySummary from '@/app/components/history-summary';
@@ -18,16 +18,22 @@ import { CAREER_DATA } from '@/lib/careers';
 import CashFlowChart from '@/app/components/cash-flow-chart';
 import CargoValueChart from '@/app/components/cargo-value-chart';
 
-const groupEventsByDay = (events: GameEvent[]) => {
+const groupEvents = (events: GameEvent[]) => {
     return events.reduce((acc, event) => {
-        const dateKey = format(new Date(event.timestamp), 'yyyy-MM-dd');
+        const dateKey = format(startOfDay(new Date(event.timestamp)), 'yyyy-MM-dd');
+        const hourKey = format(startOfHour(new Date(event.timestamp)), 'yyyy-MM-dd HH:00');
+
         if (!acc[dateKey]) {
-            acc[dateKey] = [];
+            acc[dateKey] = { date: startOfDay(new Date(event.timestamp)), hours: {} };
         }
-        acc[dateKey].push(event);
+        if (!acc[dateKey].hours[hourKey]) {
+            acc[dateKey].hours[hourKey] = [];
+        }
+        acc[dateKey].hours[hourKey].push(event);
         return acc;
-    }, {} as Record<string, GameEvent[]>);
+    }, {} as Record<string, { date: Date; hours: Record<string, GameEvent[]> }>);
 };
+
 
 const filterCategories: { title: string; filters: { type: GameEventType | 'all'; label: string; icon: LucideIcon }[] }[] = [
     {
@@ -85,17 +91,19 @@ export default function HistoryEventsPage() {
     });
 
     const sortedEvents = filteredEvents.sort((a, b) => b.timestamp - a.timestamp);
-    const groupedEvents = groupEventsByDay(sortedEvents);
+    const groupedEvents = groupEvents(sortedEvents);
     const today = new Date();
 
-    const getRelativeDate = (date: string) => {
+    const getRelativeDate = (date: string | Date) => {
         try {
             const d = new Date(date);
             return formatRelative(d, today);
         } catch (error) {
-            return date;
+            return String(date);
         }
     }
+
+    const dateKeys = Object.keys(groupedEvents).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
     return (
         <div className="space-y-6">
@@ -151,52 +159,61 @@ export default function HistoryEventsPage() {
                             </div>
                         ))}
                     </div>
-                    {Object.keys(groupedEvents).length > 0 ? (
-                        <Accordion type="single" collapsible defaultValue={Object.keys(groupedEvents)[0]}>
-                            {Object.entries(groupedEvents).map(([date, events]) => (
-                                <AccordionItem key={date} value={date} className='border-b'>
+                    {dateKeys.length > 0 ? (
+                        <Accordion type="single" collapsible defaultValue={dateKeys[0]}>
+                            {dateKeys.map(dateKey => {
+                                const day = groupedEvents[dateKey];
+                                const hourKeys = Object.keys(day.hours).sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
+                                return (
+                                <AccordionItem key={dateKey} value={dateKey} className='border-b'>
                                     <AccordionTrigger>
                                         <div className="text-left">
-                                            <p className="font-semibold">{format(new Date(date), 'MMMM do, yyyy')}</p>
-                                            <p className="text-xs text-muted-foreground capitalize">{getRelativeDate(date)}</p>
+                                            <p className="font-semibold">{format(day.date, 'MMMM do, yyyy')}</p>
+                                            <p className="text-xs text-muted-foreground capitalize">{getRelativeDate(day.date)}</p>
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent>
                                         <div className="pl-4 border-l-2 border-primary/20 space-y-4">
-                                            {events.map(event => {
-                                                const Icon = EventIconMap[event.type];
-                                                return (
-                                                <div key={event.id} className="flex items-start gap-3">
-                                                    <Icon className="h-5 w-5 text-primary/80 mt-1 flex-shrink-0"/>
-                                                    <div>
-                                                        <p className="text-sm">{event.description}</p>
-                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                            <span>{format(new Date(event.timestamp), 'HH:mm')}</span>
-                                                            {event.value !== 0 && (
-                                                                <>
-                                                                <span>&bull;</span>
-                                                                <span className={event.value > 0 ? 'text-green-400' : 'text-destructive'}>
-                                                                    {event.value > 0 ? '+' : ''}{event.value.toLocaleString()}¢
-                                                                </span>
-                                                                </>
-                                                            )}
-                                                            {(event.reputationChange ?? 0) !== 0 && (
-                                                                <>
-                                                                <span>&bull;</span>
-                                                                <span className={(event.reputationChange ?? 0) > 0 ? 'text-sky-400' : 'text-orange-400'}>
-                                                                    {event.reputationChange! > 0 ? '+' : ''}{event.reputationChange} Rep
-                                                                </span>
-                                                                </>
-                                                            )}
-                                                            {event.isMilestone && <Star className="h-3 w-3 text-amber-400" />}
-                                                        </div>
-                                                    </div>
+                                            {hourKeys.map(hourKey => (
+                                                <div key={hourKey} className="ml-4 pl-4 border-l-2 border-border/50">
+                                                    <h4 className="text-xs font-semibold text-muted-foreground -ml-4 pl-1 pb-2">{format(new Date(hourKey), 'p')}</h4>
+                                                     {day.hours[hourKey].map(event => {
+                                                        const Icon = EventIconMap[event.type];
+                                                        return (
+                                                            <div key={event.id} className="flex items-start gap-3 mb-4">
+                                                                <Icon className="h-5 w-5 text-primary/80 mt-1 flex-shrink-0"/>
+                                                                <div>
+                                                                    <p className="text-sm">{event.description}</p>
+                                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                        <span>{format(new Date(event.timestamp), 'HH:mm')}</span>
+                                                                        {event.value !== 0 && (
+                                                                            <>
+                                                                            <span>&bull;</span>
+                                                                            <span className={event.value > 0 ? 'text-green-400' : 'text-destructive'}>
+                                                                                {event.value > 0 ? '+' : ''}{event.value.toLocaleString()}¢
+                                                                            </span>
+                                                                            </>
+                                                                        )}
+                                                                        {(event.reputationChange ?? 0) !== 0 && (
+                                                                            <>
+                                                                            <span>&bull;</span>
+                                                                            <span className={(event.reputationChange ?? 0) > 0 ? 'text-sky-400' : 'text-orange-400'}>
+                                                                                {event.reputationChange! > 0 ? '+' : ''}{event.reputationChange} Rep
+                                                                            </span>
+                                                                            </>
+                                                                        )}
+                                                                        {event.isMilestone && <Star className="h-3 w-3 text-amber-400" />}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                     })}
                                                 </div>
-                                            )})}
+                                            ))}
                                         </div>
                                     </AccordionContent>
                                 </AccordionItem>
-                            ))}
+                            )})}
                         </Accordion>
                     ) : (
                          <div className="min-h-[200px] flex flex-col items-center justify-center text-center p-8">
@@ -212,5 +229,3 @@ export default function HistoryEventsPage() {
         </div>
     );
 }
-
-

@@ -3,10 +3,11 @@
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
-import type { GameState, Property, PropertyType, Lease } from '@/lib/types';
+import type { GameState, Property, PropertyType, Lease, GameEvent, FactionId } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { generateLeaseProposals } from '@/app/actions';
+import { FACTIONS_DATA } from '@/lib/factions';
 
 export function useLandlord(
     gameState: GameState | null,
@@ -56,7 +57,7 @@ export function useLandlord(
             
             setTimeout(() => toast({ title: 'Property Acquisition Started!', description: `Finalizing purchase of new ${type} property. ETA: 10 seconds.` }), 0);
 
-            const newEvent = {
+            const newEvent: GameEvent = {
                 id: `evt_prop_purchase_${Date.now()}`,
                 timestamp: Date.now(),
                 type: 'Purchase' as const,
@@ -123,7 +124,7 @@ export function useLandlord(
             
             setTimeout(() => toast({ title: `Upgrading ${property.name}`, description: `ETA: 20 seconds.` }), 0);
 
-            const newEvent = {
+            const newEvent: GameEvent = {
                 id: `evt_prop_upgrade_${Date.now()}`,
                 timestamp: Date.now(),
                 type: 'Upgrade' as const,
@@ -211,7 +212,7 @@ export function useLandlord(
             const newProperties = [...prev.playerStats.properties];
             newProperties[propertyIndex] = property;
             
-            const newEvent = {
+            const newEvent: GameEvent = {
                 id: `evt_lease_assign_${Date.now()}_${propertyId}`,
                 timestamp: Date.now(),
                 type: 'Lease' as const,
@@ -274,7 +275,6 @@ export function useLandlord(
                 const now = Date.now();
                 let eventsToAdd: GameEvent[] = [];
                 
-                // Handle lease payments and expirations
                 const activeLeases = newPlayerStats.activeLeases || [];
                 const newlyCompletedLeases: Lease[] = [];
 
@@ -293,13 +293,22 @@ export function useLandlord(
                         const rentToCollect = intervalsToPay * lease.rent;
 
                         newPlayerStats.netWorth += rentToCollect;
+                        
+                        const newReputation = { ...newPlayerStats.factionReputation };
+                        FACTIONS_DATA.forEach(faction => {
+                            if (faction.id !== 'Independent') {
+                                newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
+                            }
+                        });
+                        newPlayerStats.factionReputation = newReputation;
+
                         eventsToAdd.push({
-                            id: `evt_rent_${lease.propertyId}_${now + Math.random()}`,
+                            id: `evt_rent_${lease.propertyId}_${performance.now()}`,
                             timestamp: now,
                             type: 'Lease',
                             description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
                             value: rentToCollect,
-                            reputationChange: 0,
+                            reputationChange: 0.5 * intervalsToPay,
                             isMilestone: false,
                         });
                         
@@ -310,6 +319,7 @@ export function useLandlord(
                 }).filter((l): l is Lease => l !== null);
                 
                 if (newlyCompletedLeases.length > 0) {
+                    stateChanged = true;
                     newlyCompletedLeases.forEach(lease => {
                         const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
                         if(propIndex > -1) {
@@ -317,11 +327,35 @@ export function useLandlord(
                         }
                     });
                 }
-
+                
                 if (eventsToAdd.length > 0 || newlyCompletedLeases.length > 0) {
                     stateChanged = true;
                     newPlayerStats.activeLeases = stillActiveLeases;
                     newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
+                }
+
+                const newProperties = [...newPlayerStats.properties];
+                let propStateChanged = false;
+                newProperties.forEach((prop, index) => {
+                    if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
+                        stateChanged = true;
+                        propStateChanged = true;
+                        const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
+                        if(prop.upgradingComponent === 'Purchase') {
+                            const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                            (newProp as any)[upgradeKey] = 1;
+                            toast({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` });
+                        } else {
+                             const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                             (newProp as any)[upgradeKey] = (newProp[upgradeKey] as number) + 1;
+                             toast({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` });
+                        }
+                        newProperties[index] = newProp;
+                    }
+                });
+
+                if (propStateChanged) {
+                    newPlayerStats.properties = newProperties;
                 }
                 
                 return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
@@ -329,7 +363,7 @@ export function useLandlord(
         }, 1000); // Check every second
 
         return () => clearInterval(interval);
-    }, [setGameState]);
+    }, [setGameState, toast]);
 
     return {
         handlePurchaseProperty,
