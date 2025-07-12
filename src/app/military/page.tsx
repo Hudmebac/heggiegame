@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -9,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import type { MilitaryMission } from '@/lib/types';
 import AssaultMinigame from '@/app/components/assault-minigame';
 import DefenceMinigame from '@/app/components/defence-minigame';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -35,6 +37,11 @@ export default function MilitaryPage() {
     const availableMissions = militaryMissions.filter(m => m.status === 'Available');
     const activeMission = militaryMissions.find(m => m.status === 'Active');
 
+    const cooldown = 60 * 1000; // 60 seconds
+    const lastGeneration = playerStats.lastMilitaryMissionGeneration || 0;
+    const isCooldownActive = Date.now() < lastGeneration + cooldown;
+    const cooldownExpiry = lastGeneration + cooldown;
+
     return (
         <div className="space-y-6">
             <Card>
@@ -48,10 +55,11 @@ export default function MilitaryPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={handleGenerateMilitaryMissions} disabled={isGeneratingMissions}>
+                    <Button onClick={handleGenerateMilitaryMissions} disabled={isGeneratingMissions || isCooldownActive || !!activeMission}>
                         {isGeneratingMissions ? <Loader2 className="mr-2 animate-spin" /> : <FileText className="mr-2" />}
-                        Scan for New Directives
+                        {isCooldownActive ? <CooldownTimer expiry={cooldownExpiry} /> : 'Scan for New Directives'}
                     </Button>
+                    {!!activeMission && <p className="text-xs text-amber-400 mt-2">Cannot scan for new directives while on an active mission.</p>}
                 </CardContent>
             </Card>
 

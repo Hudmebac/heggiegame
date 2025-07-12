@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 export default function TaxiPage() {
     const { gameState, handleGenerateTaxiMissions, handleAcceptTaxiMission, isGeneratingMissions } = useGame();
@@ -26,6 +27,12 @@ export default function TaxiPage() {
         'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
     };
 
+    const hasActiveMission = activeMissions.length > 0;
+    const cooldown = 60 * 1000; // 60 seconds
+    const lastGeneration = playerStats.lastTaxiMissionGeneration || 0;
+    const isCooldownActive = Date.now() < lastGeneration + cooldown;
+    const cooldownExpiry = lastGeneration + cooldown;
+
     return (
         <div className="space-y-6">
             <Card>
@@ -39,10 +46,11 @@ export default function TaxiPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={handleGenerateTaxiMissions} disabled={isGeneratingMissions}>
+                    <Button onClick={handleGenerateTaxiMissions} disabled={isGeneratingMissions || isCooldownActive || hasActiveMission}>
                         {isGeneratingMissions ? <Loader2 className="mr-2 animate-spin" /> : <FileText className="mr-2" />}
-                        Scan for New Fares
+                        {isCooldownActive ? <CooldownTimer expiry={cooldownExpiry} /> : 'Scan for New Fares'}
                     </Button>
+                    {hasActiveMission && <p className="text-xs text-amber-400 mt-2">Cannot scan for new fares while on an active mission.</p>}
                 </CardContent>
             </Card>
 
@@ -115,7 +123,7 @@ export default function TaxiPage() {
                                         <p className="flex items-center gap-2"><Coins className="h-4 w-4 text-amber-300" /> Fare: <span className="font-mono text-amber-300">{mission.fare.toLocaleString()}¢ (+{mission.bonus.toLocaleString()}¢)</span></p>
                                         <p className="flex items-center gap-2 text-muted-foreground"><Hourglass className="h-4 w-4" /> Duration: {mission.duration}s</p>
                                     </div>
-                                    <Button onClick={() => handleAcceptTaxiMission(mission.id)}>Accept Fare</Button>
+                                    <Button onClick={() => handleAcceptTaxiMission(mission.id)} disabled={hasActiveMission}>Accept Fare</Button>
                                 </CardContent>
                             </Card>
                         ))

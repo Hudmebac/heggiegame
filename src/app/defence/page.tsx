@@ -12,6 +12,7 @@ import type { PlayerShip } from '@/lib/types';
 import DefenceMinigame from '@/app/components/defence-minigame';
 import AssaultMinigame from '@/app/components/assault-minigame';
 import { hullUpgrades } from '@/lib/upgrades';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -83,6 +84,11 @@ export default function DefencePage() {
     const assignedShipIds = new Set(activeMissions.map(m => m.assignedShipInstanceId));
     const hasAvailableShips = playerStats.fleet.some(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
 
+    const cooldown = 60 * 1000; // 60 seconds
+    const lastGeneration = playerStats.lastEscortMissionGeneration || 0;
+    const isCooldownActive = Date.now() < lastGeneration + cooldown;
+    const cooldownExpiry = lastGeneration + cooldown;
+
     return (
         <div className="space-y-6">
             <Card>
@@ -96,10 +102,11 @@ export default function DefencePage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={handleGenerateEscortMissions} disabled={isGeneratingMissions}>
+                    <Button onClick={handleGenerateEscortMissions} disabled={isGeneratingMissions || isCooldownActive || !hasAvailableShips}>
                         {isGeneratingMissions ? <Loader2 className="mr-2 animate-spin" /> : <FileText className="mr-2" />}
-                        Scan for Escort Contracts
+                        {isCooldownActive ? <CooldownTimer expiry={cooldownExpiry} /> : 'Scan for Escort Contracts'}
                     </Button>
+                     {!hasAvailableShips && <p className="text-xs text-amber-400 mt-2">All ships are currently assigned. A ship must be available to scan for new contracts.</p>}
                 </CardContent>
             </Card>
 

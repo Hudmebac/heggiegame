@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { hullUpgrades } from '@/lib/upgrades';
 import { cn } from '@/lib/utils';
 import type { PlayerShip } from '@/lib/types';
+import CooldownTimer from '@/app/components/cooldown-timer';
 
 
 const riskColorMap = {
@@ -77,6 +78,11 @@ export default function HaulerPage() {
     const assignedShipIds = new Set(activeContracts.map(m => m.assignedShipInstanceId));
     const hasAvailableShips = playerStats.fleet.some(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
 
+    const cooldown = 60 * 1000; // 60 seconds
+    const lastGeneration = playerStats.lastHaulerContractGeneration || 0;
+    const isCooldownActive = Date.now() < lastGeneration + cooldown;
+    const cooldownExpiry = lastGeneration + cooldown;
+
     return (
         <div className="space-y-6">
             <Card>
@@ -90,10 +96,11 @@ export default function HaulerPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button onClick={handleGenerateContracts} disabled={isGeneratingContracts}>
+                    <Button onClick={handleGenerateContracts} disabled={isGeneratingContracts || isCooldownActive || !hasAvailableShips}>
                         {isGeneratingContracts ? <Loader2 className="mr-2 animate-spin" /> : <FileText className="mr-2" />}
-                        Scan for New Contracts
+                        {isCooldownActive ? <CooldownTimer expiry={cooldownExpiry} /> : 'Scan for New Contracts'}
                     </Button>
+                    {!hasAvailableShips && <p className="text-xs text-amber-400 mt-2">All ships are currently assigned. A ship must be available to scan for new contracts.</p>}
                 </CardContent>
             </Card>
             
