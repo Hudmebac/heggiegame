@@ -4,7 +4,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket, Wrench, Fuel, HeartPulse, PenSquare } from 'lucide-react';
+import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket, Wrench, Fuel, HeartPulse, PenSquare, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ import ShipOutfittingDialog from '../components/ship-outfitting-dialog';
 import { useState } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cargoUpgrades, hullUpgrades, weaponUpgrades, droneUpgrades, fuelUpgrades, shieldUpgrades, advancedUpgrades } from '@/lib/upgrades';
 
 const riskColorMap = {
@@ -23,12 +24,6 @@ const riskColorMap = {
     'High': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
 };
-
-const missionTypeIcons: Record<string, React.ElementType> = {
-    'VIP Escort': ShieldCheck,
-    'Cargo Convoy': Truck,
-    'Data Runner': FileText,
-}
 
 const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: PlayerShip, onRename: (id: number, newName: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [newName, setNewName] = useState(ship.name);
