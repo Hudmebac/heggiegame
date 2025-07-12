@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useCallback, useTransition, useEffect, useState } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -141,8 +142,10 @@ export function usePlayerActions(
             
             const fleet = [...prev.playerStats.fleet];
             const shipToRepair = {...fleet[shipIndex]};
-            const maxHealth = hullUpgrades[shipToRepair.hullLevel - 1]?.health || 100;
-
+            const hullUpgrade = hullUpgrades[shipToRepair.hullLevel - 1];
+            if (!hullUpgrade) return prev;
+            
+            const maxHealth = hullUpgrade.health;
             const damageToRepair = maxHealth - shipToRepair.health;
             if (damageToRepair <= 0) return prev;
 
@@ -269,7 +272,7 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
-    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore') => {
+    const handleUpgradeShip = useCallback((shipInstanceId: number, upgradeType: ShipUpgradeType) => {
         setGameState(prev => {
             if (!prev) return null;
             const fleet = [...prev.playerStats.fleet];
@@ -277,47 +280,82 @@ export function usePlayerActions(
             if (shipIndex === -1) return prev;
 
             const shipToUpgrade = { ...fleet[shipIndex] };
-            const upgradeMap = {
-                cargo: { levels: cargoUpgrades, current: shipToUpgrade.cargoLevel },
-                weapon: { levels: weaponUpgrades, current: shipToUpgrade.weaponLevel },
-                shield: { levels: shieldUpgrades, current: shipToUpgrade.shieldLevel },
-                hull: { levels: hullUpgrades, current: shipToUpgrade.hullLevel },
-                fuel: { levels: fuelUpgrades, current: shipToUpgrade.fuelLevel },
-                sensor: { levels: sensorUpgrades, current: shipToUpgrade.sensorLevel },
-                drone: { levels: droneUpgrades, current: shipToUpgrade.droneLevel },
-                powerCore: { levels: powerCoreUpgrades, current: shipToUpgrade.powerCoreLevel },
-            };
 
-            const upgradeInfo = upgradeMap[upgradeType];
-            if (upgradeInfo.current >= upgradeInfo.levels.length) {
+            if (shipToUpgrade.status !== 'operational') {
+                setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Ship must be available. Current status: ${shipToUpgrade.status}.` }), 0);
+                return prev;
+            }
+            
+            const upgradeMap = { cargo: cargoUpgrades, weapon: weaponUpgrades, shield: shieldUpgrades, hull: hullUpgrades, fuel: fuelUpgrades, sensor: sensorUpgrades, drone: droneUpgrades, powerCore: powerCoreUpgrades };
+            const upgrades = upgradeMap[upgradeType];
+            const currentLevel = (shipToUpgrade as any)[`${upgradeType}Level`] as number;
+
+            if (currentLevel >= upgrades.length) {
                 setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Already at max level." }), 0);
                 return prev;
             }
-            const currentTierCost = upgradeInfo.levels[upgradeInfo.current - 1]?.cost || 0;
-            const nextTierCost = upgradeInfo.levels[upgradeInfo.current].cost;
-            const cost = nextTierCost - currentTierCost;
+            const nextLevel = currentLevel + 1;
+            const cost = (upgrades[nextLevel - 1]?.cost || 0) - (upgrades[currentLevel - 1]?.cost || 0);
 
             if (prev.playerStats.netWorth < cost) {
                 setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${cost.toLocaleString()}¢.` }), 0);
                 return prev;
             }
 
-            (shipToUpgrade as any)[`${upgradeType}Level`] += 1;
-            fleet[shipIndex] = shipToUpgrade;
-            const newCash = prev.playerStats.netWorth - cost;
-            let newPlayerStats = { 
-                ...prev.playerStats, 
-                netWorth: newCash, 
-                fleet,
-                cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50),
-            };
+            shipToUpgrade.status = 'upgrading';
+            shipToUpgrade.upgradingComponent = upgradeType;
+            shipToUpgrade.upgradeStartTime = Date.now();
+            shipToUpgrade.upgradeDuration = nextLevel * 1000; // e.g. level 15 takes 15 seconds
 
+            fleet[shipIndex] = shipToUpgrade;
+            
+            const newCash = prev.playerStats.netWorth - cost;
+            let newPlayerStats = { ...prev.playerStats, netWorth: newCash, fleet, cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50) };
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
-            setTimeout(() => toast({ title: `${upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1)} Upgraded!`, description: `Your ${shipToUpgrade.name}'s ${upgradeType} is now Mk. ${shipToUpgrade[`${upgradeType}Level` as keyof PlayerShip]}.` }), 0);
+            setTimeout(() => toast({ title: "Upgrade Started!", description: `Upgrading ${shipToUpgrade.name}'s ${upgradeType}. Time: ${nextLevel}s.` }), 0);
             
             return { ...prev, playerStats: newPlayerStats };
         });
+    }, [setGameState, toast]);
+
+    // Handle timed upgrades
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setGameState(prev => {
+                if (!prev || !prev.playerStats.fleet.some(s => s.status === 'upgrading')) return prev;
+                
+                let stateChanged = false;
+                const newFleet = prev.playerStats.fleet.map(ship => {
+                    if (ship.status === 'upgrading' && ship.upgradeStartTime && ship.upgradeDuration && ship.upgradingComponent) {
+                        if (Date.now() > ship.upgradeStartTime + ship.upgradeDuration) {
+                            stateChanged = true;
+                            const upgradeType = ship.upgradingComponent;
+                            (ship as any)[`${upgradeType}Level`] += 1;
+                            ship.status = 'operational';
+                            ship.upgradeStartTime = undefined;
+                            ship.upgradeDuration = undefined;
+                            ship.upgradingComponent = undefined;
+
+                            setTimeout(() => toast({
+                                title: "Upgrade Complete!",
+                                description: `Your ${ship.name}'s ${upgradeType} is now Mk. ${(ship as any)[`${upgradeType}Level`]}.`
+                            }), 0);
+                        }
+                    }
+                    return ship;
+                });
+
+                if (stateChanged) {
+                    let newPlayerStats = { ...prev.playerStats, fleet: newFleet };
+                    newPlayerStats = syncActiveShipStats(newPlayerStats);
+                    return { ...prev, playerStats: newPlayerStats };
+                }
+
+                return prev;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
     }, [setGameState, toast]);
 
     const handleDowngradeShip = useCallback((shipInstanceId: number, upgradeType: 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore') => {

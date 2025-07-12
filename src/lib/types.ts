@@ -108,12 +108,17 @@ export interface BankAccount {
     lastFluctuation: number; // timestamp
 }
 
+export type ShipUpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore';
+
 export interface PlayerShip {
   instanceId: number;
   shipId: string;
   name: string;
   health: number;
-  status: 'operational' | 'repair_needed';
+  status: 'operational' | 'repair_needed' | 'upgrading' | 'on_mission';
+  upgradeStartTime?: number;
+  upgradeDuration?: number;
+  upgradingComponent?: ShipUpgradeType;
   weaponLevel: number;
   shieldLevel: number;
   hullLevel: number;
