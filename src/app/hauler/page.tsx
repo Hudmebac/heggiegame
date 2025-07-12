@@ -51,6 +51,8 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, netWorth, shi
                                 <h4 className="font-semibold text-sm">{ship.name}</h4>
                                 {isAssigned ? (
                                     <Badge variant="outline" className="text-amber-400 border-amber-500/30">On Contract</Badge>
+                                ) : ship.status === 'upgrading' ? (
+                                    <Badge variant="outline" className="text-cyan-400 border-cyan-500/30">Upgrading...</Badge>
                                 ) : ship.status === 'repair_needed' ? (
                                     <Badge variant="destructive">Repair Needed</Badge>
                                 ) : (
@@ -58,12 +60,12 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, netWorth, shi
                                 )}
                             </div>
                              <div className="text-xs text-muted-foreground space-y-1 mt-2 flex-grow">
-                                <p>{isAssigned ? `Hauling to ${mission?.toSystem}` : "Awaiting orders"}</p>
+                                <p>{isAssigned ? `Hauling to ${mission?.toSystem}` : ship.status === 'upgrading' ? `Upgrading: ${ship.upgradingComponent}` : "Awaiting orders"}</p>
                                 <Progress value={((ship.health || 0) / maxHealth) * 100} indicatorClassName={cn((ship.health || 0) < maxHealth * 0.25 ? 'bg-destructive' : (ship.health || 0) < maxHealth * 0.5 ? 'bg-yellow-500' : 'bg-green-400')} />
                                 <div className="text-right font-mono">{(ship.health || 0).toFixed(0)} / {maxHealth} HP</div>
                             </div>
                              <div className="flex justify-end gap-2 mt-4">
-                                <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)}>
+                                <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                     <Wrench className="mr-2" /> Outfit
                                 </Button>
                                 {ship.status === 'repair_needed' && (
