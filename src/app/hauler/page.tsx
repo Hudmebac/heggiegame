@@ -36,7 +36,8 @@ const FleetStatus = ({ fleet, activeContracts }: { fleet: PlayerShip[], activeCo
                 {fleet.map(ship => {
                     const isAssigned = assignedShipIds.has(ship.instanceId);
                     const mission = isAssigned ? activeContracts.find(m => m.assignedShipInstanceId === ship.instanceId) : null;
-                    const maxHealth = hullUpgrades[ship.hullLevel - 1]?.health || 100;
+                    const hullUpgrade = hullUpgrades[ship.hullLevel - 1];
+                    const maxHealth = hullUpgrade?.health || 100;
 
                     return (
                         <div key={ship.instanceId} className={cn("p-3 rounded-md border", isAssigned ? "bg-muted/50 border-amber-500/30" : ship.status === 'repair_needed' ? 'bg-destructive/10 border-destructive/30' : "bg-card/50")}>
