@@ -77,6 +77,7 @@ export default function HaulerPage() {
 
     const assignedShipIds = new Set(activeContracts.map(m => m.assignedShipInstanceId));
     const hasAvailableShips = playerStats.fleet.some(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
+    const activeShipCargoCapacity = playerStats.maxCargo;
 
     const cooldown = 60 * 1000; // 60 seconds
     const lastGeneration = playerStats.lastHaulerContractGeneration || 0;
@@ -157,28 +158,37 @@ export default function HaulerPage() {
                             <p>Scanning galactic logistics network...</p>
                         </div>
                     ) : availableContracts.length > 0 ? (
-                        availableContracts.map(contract => (
+                        availableContracts.map(contract => {
+                            const requiresMoreCargo = contract.quantity > activeShipCargoCapacity;
+                            return (
                             <Card key={contract.id} className="bg-card/50">
                                 <CardHeader>
-                                     <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <span className="font-semibold">{contract.fromSystem}</span>
-                                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-semibold">{contract.toSystem}</span>
+                                     <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-semibold">{contract.fromSystem}</span>
+                                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                                <span className="font-semibold">{contract.toSystem}</span>
+                                            </div>
+                                            <CardDescription className="flex items-center gap-2 pt-1"><Package className="h-4 w-4" /> {contract.quantity} units of {contract.cargo}</CardDescription>
                                         </div>
                                         <Badge variant="outline" className={riskColorMap[contract.riskLevel]}>{contract.riskLevel} Risk</Badge>
                                     </div>
-                                    <CardDescription className="flex items-center gap-2 pt-1"><Package className="h-4 w-4" /> {contract.quantity} units of {contract.cargo}</CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex justify-between items-center">
                                     <div className="text-sm space-y-1">
                                         <p className="flex items-center gap-2"><Coins className="h-4 w-4 text-amber-300" /> Payout: <span className="font-mono text-amber-300">{contract.payout.toLocaleString()}¢</span></p>
                                         <p className="flex items-center gap-2 text-muted-foreground"><Hourglass className="h-4 w-4" /> Duration: {contract.duration}s</p>
                                     </div>
-                                    <Button onClick={() => handleAcceptContract(contract.id)} disabled={!hasAvailableShips}>Accept Contract</Button>
+                                    <div>
+                                        {requiresMoreCargo && <p className="text-xs text-destructive text-right mb-1">Requires {contract.quantity}t cargo</p>}
+                                        <Button onClick={() => handleAcceptContract(contract.id)} disabled={!hasAvailableShips || requiresMoreCargo}>
+                                            {requiresMoreCargo ? 'Insufficient Cargo' : 'Accept Contract'}
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
-                        ))
+                        )})
                     ) : (
                         <p className="text-center text-muted-foreground p-8">No contracts available. Try scanning for new ones.</p>
                     )}
