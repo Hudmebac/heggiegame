@@ -347,7 +347,7 @@ export function usePlayerActions(
             shipToUpgrade.status = 'upgrading';
             shipToUpgrade.upgradingComponent = upgradeType;
             shipToUpgrade.upgradeStartTime = Date.now();
-            shipToUpgrade.upgradeDuration = nextLevel * 1000;
+            shipToUpgrade.upgradeDuration = 5000;
 
             fleet[shipIndex] = shipToUpgrade;
             
@@ -355,7 +355,7 @@ export function usePlayerActions(
             let newPlayerStats = { ...prev.playerStats, netWorth: newCash, fleet, cashInHandHistory: [...prev.playerStats.cashInHandHistory, newCash].slice(-50) };
             if (shipIndex === 0) newPlayerStats = syncActiveShipStats(newPlayerStats);
             
-            setTimeout(() => toast({ title: "Upgrade Started!", description: `Upgrading ${shipToUpgrade.name}'s ${upgradeType}. Time: ${nextLevel}s.` }), 0);
+            setTimeout(() => toast({ title: "Upgrade Started!", description: `Upgrading ${shipToUpgrade.name}'s ${upgradeType}. Time: 5s.` }), 0);
             
             return { ...prev, playerStats: newPlayerStats };
         });
@@ -979,3 +979,5 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
+
+    
