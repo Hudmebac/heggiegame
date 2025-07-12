@@ -1,9 +1,8 @@
 
-
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
-import type { PlayerShip, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade, DroneUpgrade } from '@/lib/types';
+import type { PlayerShip, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade, DroneUpgrade, ShipUpgradeType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, AdvancedLeveledUpgrade } from '@/lib/upgrades';
@@ -17,12 +16,11 @@ import CooldownTimer from '@/app/components/cooldown-timer';
 
 
 interface ShipOutfittingDialogProps {
-  shipInstanceId: number;
+  shipInstanceId: number | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type UpgradeType = 'cargo' | 'weapon' | 'shield' | 'hull' | 'fuel' | 'sensor' | 'drone' | 'powerCore';
 type UpgradeInfo = (CargoUpgrade | WeaponUpgrade | ShieldUpgrade | HullUpgrade | FuelUpgrade | SensorUpgrade | DroneUpgrade | AdvancedLeveledUpgrade);
 
 const advancedIconMap: Record<AdvancedToggleableUpgrade['id'], React.ElementType> = {
@@ -45,12 +43,15 @@ const advancedIconMap: Record<AdvancedToggleableUpgrade['id'], React.ElementType
 export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenChange }: ShipOutfittingDialogProps) {
   const { gameState, handleUpgradeShip, handleDowngradeShip, handlePurchaseAdvancedModule } = useGame();
 
-  if (!gameState) return null;
-
-  const ship = gameState.playerStats.fleet.find(s => s.instanceId === shipInstanceId);
-  const { playerStats } = gameState;
+  const ship = gameState?.playerStats.fleet.find(s => s.instanceId === shipInstanceId);
   
-  if (!ship) return null;
+  if (!gameState || !ship) {
+      return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange} />
+      );
+  }
+
+  const { playerStats } = gameState;
 
   const getUpgradeCost = (currentLevel: number, upgrades: { level: number; cost: number }[]) => {
     if (currentLevel >= upgrades.length) return Infinity;
@@ -68,7 +69,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     return Math.round((currentTier.cost - prevTier.cost) * 0.7);
   };
   
-  const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: UpgradeType, label: string, currentLevel: number, upgrades: UpgradeInfo[], icon: React.ElementType }) => {
+  const UpgradeRow = ({ type, label, currentLevel, upgrades, icon: Icon }: { type: ShipUpgradeType, label: string, currentLevel: number, upgrades: UpgradeInfo[], icon: React.ElementType }) => {
     const level = currentLevel || 1;
     const cost = getUpgradeCost(level, upgrades);
     const refund = getDowngradeValue(level, upgrades);
@@ -130,7 +131,7 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
                   {isInstalled ? (
                       <span className="flex items-center gap-2 text-sm text-green-400 font-semibold"><CheckCircle className="h-4 w-4"/> Installed</span>
                   ) : (
-                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford}>
+                      <Button size="sm" onClick={() => handlePurchaseAdvancedModule(ship.instanceId, upgrade.id)} disabled={!canAfford || ship.status !== 'operational'}>
                         <Wrench className="mr-2" />
                         Purchase ({upgrade.cost.toLocaleString()}¢)
                       </Button>
