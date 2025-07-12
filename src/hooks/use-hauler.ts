@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
 import { STATIC_TRADE_CONTRACTS } from '@/lib/trade-contracts';
 import { ROUTES, SYSTEMS } from '@/lib/systems';
-import { cargoUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, fuelUpgrades, weaponUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 
@@ -71,8 +71,16 @@ export function useHauler(
             const timePenalty = (300 / contractTemplate.duration); // Shorter duration = higher payout
             const repModifier = 1 + (playerStats.reputation / 200);
 
+            let requirementsBonus = 0;
+            if (contractTemplate.minFuelLevel) requirementsBonus += contractTemplate.minFuelLevel * 2000;
+            if (contractTemplate.minWeaponLevel) requirementsBonus += contractTemplate.minWeaponLevel * 3000;
+            if (contractTemplate.minHullLevel) requirementsBonus += contractTemplate.minHullLevel * 2500;
+            if (contractTemplate.minDroneLevel) requirementsBonus += contractTemplate.minDroneLevel * 4000;
+            if (contractTemplate.requiredAdvancedSystems) requirementsBonus += contractTemplate.requiredAdvancedSystems.length * 100000;
+
+
             const basePayout = contractTemplate.payout * baseMultiplier;
-            const dynamicPayout = Math.round((basePayout + distanceBonus + quantityBonus) * timePenalty * repModifier);
+            const dynamicPayout = Math.round((basePayout + distanceBonus + quantityBonus + requirementsBonus) * timePenalty * repModifier);
 
 
             return {
@@ -101,7 +109,7 @@ export function useHauler(
     });
   }, [gameState, setGameState, toast]);
   
-  const handleAcceptContract = useCallback((contractId: string) => {
+  const handleAcceptContract = useCallback((contractId: string, assignedShipId?: number) => {
     setGameState(prev => {
         if(!prev) return null;
         
@@ -110,17 +118,10 @@ export function useHauler(
             setTimeout(() => toast({ variant: "destructive", title: "Mission Not Found", description: "This contract is no longer available." }), 0);
             return prev;
         }
-
-        const assignedShipIds = new Set(prev.playerStats.tradeContracts.filter(m => m.status === 'Active' && m.assignedShipInstanceId).map(m => m.assignedShipInstanceId));
-
-        const availableShip = prev.playerStats.fleet.find(s => {
-            const shipBase = SHIPS_FOR_SALE.find(base => base.id === s.shipId);
-            const cargoCapacity = cargoUpgrades[s.cargoLevel-1]?.capacity ?? shipBase?.baseCargo ?? 0;
-            return s.status === 'operational' && !assignedShipIds.has(s.instanceId) && cargoCapacity >= contract.quantity;
-        });
-
-        if (!availableShip) {
-            setTimeout(() => toast({ variant: "destructive", title: "No Suitable Ship", description: "No operational ships with sufficient cargo space are available." }), 0);
+        
+        const shipToAssign = assignedShipId ? prev.playerStats.fleet.find(s => s.instanceId === assignedShipId) : null;
+        if (!shipToAssign) {
+            setTimeout(() => toast({ variant: "destructive", title: "Assignment Failed", description: "Could not find a suitable ship to assign." }), 0);
             return prev;
         }
 
@@ -130,8 +131,8 @@ export function useHauler(
                 status: 'Active' as const, 
                 startTime: Date.now(), 
                 progress: 0,
-                assignedShipInstanceId: availableShip.instanceId,
-                assignedShipName: availableShip.name,
+                assignedShipInstanceId: shipToAssign.instanceId,
+                assignedShipName: shipToAssign.name,
             } : c
         );
         

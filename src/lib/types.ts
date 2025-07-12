@@ -1,5 +1,7 @@
 
 
+import type { AdvancedToggleableUpgrade } from "./upgrades";
+
 export type Career = 'Hauler' | 'Taxi Pilot' | 'Landlord' | 'Trader' | 'Defender' | 'Fighter' | 'Galactic Official' | 'Heggie Contractor' | 'Unselected';
 export type ItemCategory = 'Biological' | 'Industrial' | 'Pleasure' | 'Food' | 'Military' | 'Technology' | 'Minerals' | 'Illegal' | 'Marketing' | 'Scientific' | 'Robotic';
 export type ItemRarity = 'Plentiful' | 'Common' | 'Accessible' | 'Uncommon' | 'Rare' | 'Ultra Rare' | 'Mythic';
@@ -172,7 +174,12 @@ export interface TradeRouteContract {
   startTime?: number; // To calculate progress
   duration: number; // in seconds
   assignedShipInstanceId?: number | null;
-  assignedShipName?: string
+  assignedShipName?: string;
+  minFuelLevel?: number;
+  minWeaponLevel?: number;
+  minHullLevel?: number;
+  minDroneLevel?: number;
+  requiredAdvancedSystems?: AdvancedToggleableUpgrade['id'][];
 }
 
 export interface TaxiMission {
@@ -236,6 +243,16 @@ export interface DiplomaticMission {
   progress?: number;
   startTime?: number;
   duration: number;
+  assignedStaffId?: string;
+}
+
+export interface Staff {
+  id: string;
+  name: string;
+  role: string;
+  salary: number;
+  hiringFee: number;
+  successRate: number; // 0 to 1
 }
 
 export interface Warehouse {
@@ -345,10 +362,16 @@ export interface PlayerStats {
 
   // Career Specific
   tradeContracts: TradeRouteContract[];
+  lastHaulerContractGeneration?: number;
   taxiMissions: TaxiMission[];
+  lastTaxiMissionGeneration?: number;
   escortMissions: EscortMission[];
+  lastEscortMissionGeneration?: number;
   militaryMissions: MilitaryMission[];
+  lastMilitaryMissionGeneration?: number;
   diplomaticMissions: DiplomaticMission[];
+  lastDiplomaticMissionGeneration?: number;
+  staff: Staff[];
 }
 
 export interface PriceHistory {

@@ -4,14 +4,14 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket } from 'lucide-react';
+import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket, Wrench, Fuel, Shield, Bot, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { hullUpgrades } from '@/lib/upgrades';
+import { hullUpgrades, fuelUpgrades, weaponUpgrades, droneUpgrades } from '@/lib/upgrades';
 import { cn } from '@/lib/utils';
-import type { PlayerShip } from '@/lib/types';
+import type { PlayerShip, TradeRouteContract } from '@/lib/types';
 import CooldownTimer from '@/app/components/cooldown-timer';
-
+import { SHIPS_FOR_SALE } from '@/lib/ships';
 
 const riskColorMap = {
     'Low': 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -64,6 +64,38 @@ const FleetStatus = ({ fleet, activeContracts }: { fleet: PlayerShip[], activeCo
     );
 };
 
+const checkRequirements = (ship: PlayerShip, contract: TradeRouteContract): { met: boolean; reasons: string[] } => {
+    const reasons: string[] = [];
+    
+    const cargoCapacity = cargoUpgrades[ship.cargoLevel-1]?.capacity ?? SHIPS_FOR_SALE.find(s => s.id === ship.shipId)?.baseCargo ?? 0;
+    if (contract.quantity > cargoCapacity) {
+        reasons.push(`Requires ${contract.quantity}t cargo space (ship has ${cargoCapacity}t).`);
+    }
+    
+    if (contract.minFuelLevel && ship.fuelLevel < contract.minFuelLevel) {
+        reasons.push(`Requires Fuel Lvl ${contract.minFuelLevel}.`);
+    }
+    if (contract.minWeaponLevel && ship.weaponLevel < contract.minWeaponLevel) {
+        reasons.push(`Requires Weapons Lvl ${contract.minWeaponLevel}.`);
+    }
+    if (contract.minHullLevel && ship.hullLevel < contract.minHullLevel) {
+        reasons.push(`Requires Hull Lvl ${contract.minHullLevel}.`);
+    }
+    if (contract.minDroneLevel && ship.droneLevel < contract.minDroneLevel) {
+        reasons.push(`Requires Drone Lvl ${contract.minDroneLevel}.`);
+    }
+    if (contract.requiredAdvancedSystems) {
+        for (const sysId of contract.requiredAdvancedSystems) {
+            if (!ship[sysId]) {
+                 const sysName = sysId.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                reasons.push(`Requires ${sysName} module.`);
+            }
+        }
+    }
+
+    return { met: reasons.length === 0, reasons };
+}
+
 
 export default function HaulerPage() {
     const { gameState, handleGenerateContracts, handleAcceptContract, isGeneratingContracts } = useGame();
@@ -77,13 +109,26 @@ export default function HaulerPage() {
     const activeContracts = tradeContracts.filter(c => c.status === 'Active');
 
     const assignedShipIds = new Set(activeContracts.map(m => m.assignedShipInstanceId));
-    const hasAvailableShips = playerStats.fleet.some(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
-    const activeShipCargoCapacity = playerStats.maxCargo;
+    const availableShips = playerStats.fleet.filter(s => s.status === 'operational' && !assignedShipIds.has(s.instanceId));
+    const hasAvailableShips = availableShips.length > 0;
 
     const cooldown = 60 * 1000; // 60 seconds
     const lastGeneration = playerStats.lastHaulerContractGeneration || 0;
     const isCooldownActive = Date.now() < lastGeneration + cooldown;
     const cooldownExpiry = lastGeneration + cooldown;
+
+    const canAcceptContract = (contract: TradeRouteContract): { can: boolean, shipId?: number, reasons?: string[] } => {
+        for (const ship of availableShips) {
+            const { met, reasons } = checkRequirements(ship, contract);
+            if(met) return { can: true, shipId: ship.instanceId };
+        }
+        // If no ship meets requirements, return reasons from the first available ship for feedback
+        if(availableShips.length > 0) {
+            const { reasons } = checkRequirements(availableShips[0], contract);
+            return { can: false, reasons };
+        }
+        return { can: false, reasons: ["No operational ships available."] };
+    }
 
     return (
         <div className="space-y-6">
@@ -160,7 +205,7 @@ export default function HaulerPage() {
                         </div>
                     ) : availableContracts.length > 0 ? (
                         availableContracts.map(contract => {
-                            const requiresMoreCargo = contract.quantity > activeShipCargoCapacity;
+                            const acceptance = canAcceptContract(contract);
                             return (
                             <Card key={contract.id} className="bg-card/50">
                                 <CardHeader>
@@ -175,6 +220,13 @@ export default function HaulerPage() {
                                         </div>
                                         <Badge variant="outline" className={riskColorMap[contract.riskLevel]}>{contract.riskLevel} Risk</Badge>
                                     </div>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground pt-2">
+                                        {contract.minFuelLevel && <span className="flex items-center gap-1"><Fuel/> Lvl {contract.minFuelLevel}+</span>}
+                                        {contract.minWeaponLevel && <span className="flex items-center gap-1"><Shield/> Lvl {contract.minWeaponLevel}+</span>}
+                                        {contract.minHullLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minHullLevel}+</span>}
+                                        {contract.minDroneLevel && <span className="flex items-center gap-1"><Bot/> Lvl {contract.minDroneLevel}+</span>}
+                                        {contract.requiredAdvancedSystems && contract.requiredAdvancedSystems.map(sys => <span key={sys} className="flex items-center gap-1"><CheckCircle/> {sys.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>)}
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="flex justify-between items-center">
                                     <div className="text-sm space-y-1">
@@ -182,9 +234,13 @@ export default function HaulerPage() {
                                         <p className="flex items-center gap-2 text-muted-foreground"><Hourglass className="h-4 w-4" /> Duration: {contract.duration}s</p>
                                     </div>
                                     <div>
-                                        {requiresMoreCargo && <p className="text-xs text-destructive text-right mb-1">Requires {contract.quantity}t cargo</p>}
-                                        <Button onClick={() => handleAcceptContract(contract.id)} disabled={!hasAvailableShips || requiresMoreCargo}>
-                                            {requiresMoreCargo ? 'Insufficient Cargo' : 'Accept Contract'}
+                                        {!acceptance.can && acceptance.reasons && (
+                                            <div className="text-xs text-destructive text-right mb-1">
+                                                {acceptance.reasons.map(reason => <p key={reason}>{reason}</p>)}
+                                            </div>
+                                        )}
+                                        <Button onClick={() => handleAcceptContract(contract.id, acceptance.shipId)} disabled={!acceptance.can}>
+                                            Accept Contract
                                         </Button>
                                     </div>
                                 </CardContent>

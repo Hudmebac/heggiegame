@@ -1,4 +1,5 @@
 import type { TradeRouteContract } from '@/lib/types';
+import type { AdvancedToggleableUpgrade } from './upgrades';
 
 // This is a list of contract templates. The final 'id', 'fromSystem', and 'toSystem' will be generated dynamically.
 export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem' | 'toSystem' | 'status'>[] = [
@@ -31,6 +32,7 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 25000,
         riskLevel: 'Medium',
         duration: 300,
+        minHullLevel: 2,
     },
     {
         cargo: 'Medical Supplies (Standard)',
@@ -45,6 +47,7 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 45000,
         riskLevel: 'Medium',
         duration: 220,
+        minFuelLevel: 2
     },
     // High Risk
     {
@@ -53,6 +56,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 75000,
         riskLevel: 'High',
         duration: 350,
+        minWeaponLevel: 3,
+        minDroneLevel: 1,
     },
     {
         cargo: 'Precursor Artifacts (Salvaged)',
@@ -60,6 +65,7 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 100000,
         riskLevel: 'High',
         duration: 280,
+        requiredAdvancedSystems: ['anomalyAnalyzer'],
     },
     // Critical Risk
     {
@@ -68,5 +74,7 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 150000,
         riskLevel: 'Critical',
         duration: 400,
+        minWeaponLevel: 5,
+        requiredAdvancedSystems: ['stealthPlating'],
     },
 ];
