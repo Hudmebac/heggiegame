@@ -14,4 +14,4 @@ import '@/ai/flows/generate-recreation-partnership-offers.ts';
 import '@/ai/flows/generate-bank-partnership-offers.ts';
 import '@/ai/flows/negotiate-trade-route.ts';
 import '@/ai/flows/generate-lease-proposals.ts';
-
+import '@/ai/flows/generate-property-listings.ts';

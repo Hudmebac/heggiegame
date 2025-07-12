@@ -308,6 +308,16 @@ export interface PropertySaleOffer {
     narrative: string;
 }
 
+export interface NpcPropertySale {
+    id: string;
+    name: string;
+    type: PropertyType;
+    systemName: string;
+    level: number;
+    askingPrice: number;
+    description: string;
+}
+
 export interface Lease {
   id: string;
   propertyId: number;
@@ -337,10 +347,11 @@ export interface PlayerStats {
   insurance: InsurancePolicies;
   warehouses: Warehouse[];
   properties: Property[];
+  propertySaleOffers?: PropertySaleOffer[];
+  npcPropertySales?: NpcPropertySale[];
   leases: Lease[];
   availableLeases?: Lease[];
   activeLeases: Lease[];
-  propertySaleOffers?: PropertySaleOffer[];
   events: GameEvent[];
   assetHistory: AssetSnapshot[];
   cashInHandHistory: number[];
@@ -441,6 +452,7 @@ export interface PlayerStats {
   lastDiplomaticMissionGeneration?: number;
   staff: Staff[];
   lastLeaseGeneration?: number;
+  lastNpcPropertyGeneration?: number;
 }
 
 export interface PriceHistory {

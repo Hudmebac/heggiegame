@@ -42,11 +42,15 @@ import {
   GenerateLeaseProposalsInputSchema,
   type GenerateLeaseProposalsInput,
   type GenerateLeaseProposalsOutput,
+  GeneratePropertyListingsInputSchema,
+  type GeneratePropertyListingsInput,
+  type GeneratePropertyListingsOutput,
 } from '@/lib/schemas';
 import { simulateMarket } from '@/lib/utils';
 import { generateQuests } from '@/lib/generation/quests';
 import { generateTraders } from '@/lib/generation/traders';
 import { generateLeaseProposals as genLeaseProposals } from '@/ai/flows/generate-lease-proposals';
+import { generatePropertyListings as genPropertyListings } from '@/ai/flows/generate-property-listings';
 
 
 // Import the JSON file directly
@@ -224,3 +228,7 @@ export async function generateLeaseProposals(input: GenerateLeaseProposalsInput)
     return genLeaseProposals(validatedInput);
 }
 
+export async function generatePropertyListings(input: GeneratePropertyListingsInput): Promise<GeneratePropertyListingsOutput> {
+    const validatedInput = GeneratePropertyListingsInputSchema.parse(input);
+    return genPropertyListings(validatedInput);
+}

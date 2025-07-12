@@ -414,3 +414,25 @@ export const GenerateLeaseProposalsOutputSchema = z.object({
     leases: z.array(LeaseSchema).describe("An array of generated lease proposals."),
 });
 export type GenerateLeaseProposalsOutput = z.infer<typeof GenerateLeaseProposalsOutputSchema>;
+
+// Schemas for generate-property-listings
+export const NpcPropertySaleSchema = z.object({
+    id: z.string().describe("A unique identifier for the property listing."),
+    name: z.string().describe("A creative and evocative name for the property."),
+    type: z.enum(['Residential', 'Commercial', 'Industrial', 'Recreational', 'Military']).describe("The type of property."),
+    systemName: z.string().describe("The system the property is located in."),
+    level: z.number().min(1).max(10).describe("The upgrade level of the property."),
+    askingPrice: z.number().describe("The asking price in credits."),
+    description: z.string().describe("A short, flavourful description of the property."),
+});
+
+export const GeneratePropertyListingsInputSchema = z.object({
+    count: z.number().describe("The number of property listings to generate."),
+    systemName: z.string().describe("The system where the properties are located."),
+});
+export type GeneratePropertyListingsInput = z.infer<typeof GeneratePropertyListingsInputSchema>;
+
+export const GeneratePropertyListingsOutputSchema = z.object({
+    properties: z.array(NpcPropertySaleSchema).describe("An array of generated property listings."),
+});
+export type GeneratePropertyListingsOutput = z.infer<typeof GeneratePropertyListingsOutputSchema>;
