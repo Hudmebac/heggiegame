@@ -33,19 +33,13 @@ export function usePlayerActions(
         });
     }, [setGameState]);
 
-    const handleGenerateBio = useCallback((): string | null => {
-        let newBio: string | null = null;
+    const handleGenerateBio = useCallback((callback: (newBio: string) => void) => {
         startBioGenerationTransition(() => {
-            setGameState(prev => {
-                if (!prev) return null;
-                const generatedBio = bios[Math.floor(Math.random() * bios.length)].replace(/{Captain}/g, prev.playerStats.name);
-                newBio = generatedBio;
-                setTimeout(() => toast({ title: "Bio Generated", description: "Your captain's story has been updated." }), 0);
-                return { ...prev, playerStats: { ...prev.playerStats, bio: generatedBio } };
-            });
+            if (!gameState) return;
+            const generatedBio = bios[Math.floor(Math.random() * bios.length)].replace(/{Captain}/g, gameState.playerStats.name);
+            callback(generatedBio);
         });
-        return newBio;
-    }, [setGameState, toast]);
+    }, [gameState]);
     
     const setPlayerBio = useCallback((bio: string) => {
         setGameState(prev => {

@@ -83,10 +83,11 @@ function PlayerProfile() {
     };
 
     const handleGenerateNewBioInEdit = () => {
-        const newBio = handleGenerateBio();
-        if (newBio) {
-            setBio(newBio);
-        }
+        handleGenerateBio((newBio) => {
+            if (newBio) {
+                setBio(newBio);
+            }
+        });
     };
 
     const handleAvatarSelect = (avatarUrl: string) => {
