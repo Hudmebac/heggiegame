@@ -2,7 +2,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock } from "./types";
+import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock, ItemRarity } from "./types";
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from './upgrades';
@@ -98,6 +98,16 @@ export const PLANET_TYPE_MODIFIERS: Record<PlanetType, number> = {
     'Barren': 0.8,
     'Ice Giant': 0.95,
     'Gas Giant': 0.85,
+};
+
+export const RARITY_SUPPLY_RANGES: Record<ItemRarity, { base: number; range: number }> = {
+    'Plentiful': { base: 5000, range: 5000 },
+    'Common': { base: 1000, range: 4000 },
+    'Accessible': { base: 500, range: 500 },
+    'Uncommon': { base: 100, range: 400 },
+    'Rare': { base: 20, range: 80 },
+    'Ultra Rare': { base: 5, range: 15 },
+    'Mythic': { base: 1, range: 4 },
 };
 
 export function simulateMarket(

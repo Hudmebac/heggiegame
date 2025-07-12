@@ -8,7 +8,8 @@ import { runMarketSimulation, runPirateScan, runEventGeneration } from '@/app/ac
 import { STATIC_ITEMS } from '@/lib/items';
 import { useToast } from '@/hooks/use-toast';
 import { pirateNames, shipTypes } from '@/lib/pirates';
-import { calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS } from '@/lib/utils';
+import { calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, RARITY_SUPPLY_RANGES } from '@/lib/utils';
+
 
 function generateRandomPirate(hasNavigator: boolean): Pirate {
     const weightedThreats: Pirate['threatLevel'][] = hasNavigator
@@ -21,16 +22,6 @@ function generateRandomPirate(hasNavigator: boolean): Pirate {
         threatLevel: threat,
     };
 }
-
-const RARITY_SUPPLY_RANGES: Record<ItemRarity, { base: number; range: number }> = {
-    'Plentiful': { base: 5000, range: 5000 },
-    'Common': { base: 1000, range: 4000 },
-    'Accessible': { base: 500, range: 500 },
-    'Uncommon': { base: 100, range: 400 },
-    'Rare': { base: 20, range: 80 },
-    'Ultra Rare': { base: 5, range: 15 },
-    'Mythic': { base: 1, range: 4 },
-};
 
 export function useTravel(
     gameState: GameState | null,

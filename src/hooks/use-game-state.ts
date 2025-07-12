@@ -13,7 +13,7 @@ import { CAREER_DATA } from '@/lib/careers';
 import { bios } from '@/lib/bios';
 import { INITIAL_STOCKS } from '@/lib/stocks';
 import { useToast } from '@/hooks/use-toast';
-import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, syncActiveShipStats } from '@/lib/utils';
+import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, syncActiveShipStats, RARITY_SUPPLY_RANGES } from '@/lib/utils';
 import pako from 'pako';
 
 const formatStardate = (date: Date): string => {
