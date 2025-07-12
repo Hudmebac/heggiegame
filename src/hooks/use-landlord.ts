@@ -209,12 +209,13 @@ export function useLandlord(
             newProperties[propertyIndex] = property;
             
             const newEvent = {
-                id: `evt_lease_assign_${Date.now()}`,
+                id: `evt_lease_assign_${Date.now()}_${propertyId}`,
                 timestamp: Date.now(),
                 type: 'Lease' as const,
                 description: `Signed a ${lease.duration}h lease with ${lease.tenantName} for "${property.name}".`,
                 value: 0,
-                isMilestone: false,
+                reputationChange: 0,
+                isMilestone: true,
             };
 
             setTimeout(() => toast({ title: 'Lease Signed!', description: `${lease.tenantName} is now leasing ${property.name}.` }), 0);
@@ -288,7 +289,7 @@ export function useLandlord(
 
                         newPlayerStats.netWorth += rentToCollect;
                         newPlayerStats.events.push({
-                            id: `evt_rent_${Date.now()}_${lease.propertyId}`,
+                            id: `evt_rent_${lease.propertyId}_${Date.now() + Math.random()}`,
                             timestamp: Date.now(),
                             type: 'Lease',
                             description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
