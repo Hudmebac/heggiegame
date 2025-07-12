@@ -5,7 +5,7 @@ import { useCallback, useState, useEffect } from 'react';
 import type { GameState, Property, PropertyType, Lease, GameEvent, FactionId, PropertySaleOffer } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
-import { generateLeaseProposals } from '@/app/actions';
+import { generateLeaseProposals, generatePropertyListings } from '@/app/actions';
 import { FACTIONS_DATA } from '@/lib/factions';
 import { calculatePropertyValue } from '@/lib/utils';
 import { traderNames } from '@/lib/traders';
@@ -59,7 +59,7 @@ export function useLandlord(
             setTimeout(() => toast({ title: 'Property Acquisition Started!', description: `Finalizing purchase of new ${type} property. ETA: 10 seconds.` }), 0);
 
             const newEvent: GameEvent = {
-                id: `evt_prop_purchase_${Date.now()}`,
+                id: `evt_prop_purchase_${Date.now()}_${Math.random()}`,
                 timestamp: Date.now(),
                 type: 'Purchase' as const,
                 description: `Purchased a new ${type} property in ${prev.currentSystem}.`,
@@ -126,7 +126,7 @@ export function useLandlord(
             setTimeout(() => toast({ title: `Upgrading ${property.name}`, description: `ETA: 20 seconds.` }), 0);
 
             const newEvent: GameEvent = {
-                id: `evt_prop_upgrade_${Date.now()}`,
+                id: `evt_prop_upgrade_${Date.now()}_${Math.random()}`,
                 timestamp: Date.now(),
                 type: 'Upgrade' as const,
                 description: `Upgraded "${property.name}" to Level ${currentLevel + 1}.`,
@@ -214,7 +214,7 @@ export function useLandlord(
             newProperties[propertyIndex] = property;
             
             const newEvent: GameEvent = {
-                id: `evt_lease_assign_${Date.now()}_${propertyId}`,
+                id: `evt_lease_assign_${Date.now()}_${property.id}`,
                 timestamp: Date.now(),
                 type: 'Lease' as const,
                 description: `Signed a ${lease.duration}h lease with ${lease.tenantName} for "${property.name}".`,
@@ -316,7 +316,7 @@ export function useLandlord(
             const propertySold = prev.playerStats.properties.find(p => p.id === offer.propertyId);
 
             newPlayerStats.events.push({
-                id: `evt_prop_sale_${Date.now()}_${offer.offerId}`,
+                id: `evt_prop_sale_${Date.now()}_${offer.propertyId}_${Math.random()}`,
                 timestamp: Date.now(),
                 type: 'Purchase', // Logged as a 'purchase' for the buyer, shows as income for player
                 description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
@@ -349,6 +349,47 @@ export function useLandlord(
         });
     }, [setGameState]);
 
+    const handlePurchaseNpcProperty = useCallback((property: Property) => {
+        setGameState(prev => {
+            if (!prev) return null;
+
+            const cost = calculatePropertyValue(property);
+             if (prev.playerStats.netWorth < cost) {
+                setTimeout(() => toast({ variant: 'destructive', title: 'Purchase Failed', description: 'Insufficient funds.' }), 0);
+                return prev;
+            }
+
+            const newProperty: Property = {
+                ...property,
+                id: Date.now(),
+                status: 'Idle',
+                systemName: prev.currentSystem,
+            };
+
+            const newPlayerStats = {
+                ...prev.playerStats,
+                netWorth: prev.playerStats.netWorth - cost,
+                properties: [...prev.playerStats.properties, newProperty],
+                npcPropertySales: prev.playerStats.npcPropertySales?.filter(p => p.id !== property.id)
+            };
+
+            const newEvent: GameEvent = {
+                id: `evt_prop_purchase_${Date.now()}_${Math.random()}`,
+                timestamp: Date.now(),
+                type: 'Purchase' as const,
+                description: `Purchased "${property.name}" in ${prev.currentSystem}.`,
+                value: -cost,
+                reputationChange: 1,
+                isMilestone: true,
+            };
+            newPlayerStats.events.push(newEvent);
+            
+            setTimeout(() => toast({ title: 'Property Acquired!', description: `You have successfully purchased ${property.name}.` }), 0);
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
     useEffect(() => {
         const interval = setInterval(() => {
             setGameState(prev => {
@@ -360,71 +401,61 @@ export function useLandlord(
                 let eventsToAdd: GameEvent[] = [];
                 
                 const activeLeases = newPlayerStats.activeLeases || [];
-                const newlyCompletedLeases: Lease[] = [];
-
+                
                 if(activeLeases.length > 0) {
-                    stateChanged = true;
+                    const stillActiveLeases: Lease[] = [];
                     
-                    const stillActiveLeases = activeLeases.map(lease => {
+                    activeLeases.forEach(lease => {
                         const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
                         if (now >= leaseEndTime) {
-                            newlyCompletedLeases.push(lease);
-                            return null;
-                        }
-    
-                        const rentIntervalMs = 2 * 60 * 1000;
-                        const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                        
-                        if (timeSinceLastRent >= rentIntervalMs) {
+                            const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
+                            if(propIndex > -1) {
+                                newPlayerStats.properties[propIndex].status = 'Idle';
+                            }
+                            stateChanged = true;
+                        } else {
+                            const rentIntervalMs = 2 * 60 * 1000;
+                            const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
                             const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
-                            const rentToCollect = intervalsToPay * lease.rent;
-    
-                            newPlayerStats.netWorth += rentToCollect;
                             
-                            const newReputation = { ...newPlayerStats.factionReputation };
-                            FACTIONS_DATA.forEach(faction => {
-                                if (faction.id !== 'Independent') {
-                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
-                                }
-                            });
-                            newPlayerStats.factionReputation = newReputation;
-    
-                            eventsToAdd.push({
-                                id: `evt_rent_${lease.propertyId}_${performance.now()}`,
-                                timestamp: now,
-                                type: 'Lease',
-                                description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
-                                value: rentToCollect,
-                                reputationChange: 0.5 * intervalsToPay,
-                                isMilestone: false,
-                            });
-                            
-                            return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs };
-                        }
-    
-                        return lease;
-                    }).filter((l): l is Lease => l !== null);
-
-                    newPlayerStats.activeLeases = stillActiveLeases;
-                }
-                
-                if (newlyCompletedLeases.length > 0) {
-                    stateChanged = true;
-                    newlyCompletedLeases.forEach(lease => {
-                        const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
-                        if(propIndex > -1) {
-                            newPlayerStats.properties[propIndex].status = 'Idle';
+                            if (intervalsToPay > 0) {
+                                const rentToCollect = intervalsToPay * lease.rent;
+                                newPlayerStats.netWorth += rentToCollect;
+                                
+                                const newReputation = { ...newPlayerStats.factionReputation };
+                                FACTIONS_DATA.forEach(faction => {
+                                    if (faction.id !== 'Independent') {
+                                        newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
+                                    }
+                                });
+                                newPlayerStats.factionReputation = newReputation;
+        
+                                eventsToAdd.push({
+                                    id: `evt_rent_${lease.propertyId}_${performance.now()}`,
+                                    timestamp: now,
+                                    type: 'Lease',
+                                    description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
+                                    value: rentToCollect,
+                                    reputationChange: 0.5 * intervalsToPay,
+                                    isMilestone: false,
+                                });
+                                
+                                lease.lastRentCollection = (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs;
+                                stateChanged = true;
+                            }
+                            stillActiveLeases.push(lease);
                         }
                     });
+
+                    newPlayerStats.activeLeases = stillActiveLeases;
                 }
                 
                 if (eventsToAdd.length > 0) {
                     newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
                 }
 
-                const newProperties = [...newPlayerStats.properties];
                 let propStateChanged = false;
-                newProperties.forEach((prop, index) => {
+                const newProperties = [...newPlayerStats.properties].map(prop => {
                     if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
                         stateChanged = true;
                         propStateChanged = true;
@@ -438,8 +469,9 @@ export function useLandlord(
                              (newProp as any)[upgradeKey] = (newProp[upgradeKey] as number) + 1;
                              toast({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` });
                         }
-                        newProperties[index] = newProp;
+                        return newProp;
                     }
+                    return prop;
                 });
 
                 if (propStateChanged) {
@@ -463,8 +495,7 @@ export function useLandlord(
         handleListPropertyForSale,
         handleAcceptPropertyOffer,
         handleDeclinePropertyOffer,
+        handlePurchaseNpcProperty,
         isGeneratingLeases,
     };
 }
-
-    
