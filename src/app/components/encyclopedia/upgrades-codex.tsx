@@ -36,12 +36,12 @@ export default function UpgradesCodex() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <UpgradeCard title="Cargo Upgrades" icon={Package} upgrades={cargoUpgrades} unit="t" />
-            <UpgradeCard title="Weapon Upgrades" icon={Crosshair} upgrades={weaponUpgrades} />
-            <UpgradeCard title="Shield Upgrades" icon={ShieldCheck} upgrades={shieldUpgrades} />
-            <UpgradeCard title="Hull Upgrades" icon={HeartPulse} upgrades={hullUpgrades} />
-            <UpgradeCard title="Fuel Upgrades" icon={Fuel} upgrades={fuelUpgrades} unit=" SU" />
-            <UpgradeCard title="Sensor Upgrades" icon={Radar} upgrades={sensorUpgrades} />
-            <UpgradeCard title="Drone Upgrades" icon={Bot} upgrades={droneUpgrades} />
+            <UpgradeCard title="Weapon Systems" icon={Crosshair} upgrades={weaponUpgrades} />
+            <UpgradeCard title="Shield Generators" icon={ShieldCheck} upgrades={shieldUpgrades} />
+            <UpgradeCard title="Hull Integrity" icon={HeartPulse} upgrades={hullUpgrades} />
+            <UpgradeCard title="Fuel Tanks" icon={Fuel} upgrades={fuelUpgrades} unit=" SU" />
+            <UpgradeCard title="Sensor Suites" icon={Radar} upgrades={sensorUpgrades} />
+            <UpgradeCard title="Drone Bays" icon={Bot} upgrades={droneUpgrades} />
             <UpgradeCard title="Passenger Comfort" icon={Sparkles} upgrades={passengerComfortUpgrades} />
             <UpgradeCard title="Passenger Security" icon={ShieldAlert} upgrades={passengerSecurityUpgrades} />
             <UpgradeCard title="Passenger Service Packs" icon={PackageCheck} upgrades={passengerPacksUpgrades} />
