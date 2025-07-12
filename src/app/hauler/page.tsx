@@ -123,7 +123,7 @@ const FleetStatus = ({ fleet, activeContracts, onOutfit, onRepair, onRefuel, onR
                                     <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
                                         <Wrench className="mr-2" /> Outfit
                                     </Button>
-                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status !== 'operational'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
+                                    <Button size="sm" variant="secondary" onClick={() => onRepair(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status !== 'repair_needed'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
                                     <Button size="sm" variant="secondary" onClick={() => onRefuel(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
                                 </div>
                             </div>
