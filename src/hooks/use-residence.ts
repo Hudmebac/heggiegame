@@ -66,7 +66,7 @@ export function useResidence(
         return prev;
       }
       
-      const upgradeCost = calculateCost(playerStats.residenceLevel + 1, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * landlordDiscount * costModifier);
+      const upgradeCost = calculateCost(playerStats.residenceLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * landlordDiscount * costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -98,7 +98,7 @@ export function useResidence(
         return prev;
       }
       
-      const botCost = calculateCost(playerStats.residenceAutoClickerBots + 1, botConfig.starterPrice, botConfig.growth, difficultyModifier * landlordDiscount * costModifier);
+      const botCost = calculateCost(playerStats.residenceAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * landlordDiscount * costModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

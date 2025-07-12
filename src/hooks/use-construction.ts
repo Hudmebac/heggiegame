@@ -65,7 +65,7 @@ export function useConstruction(
         return prev;
       }
 
-      const upgradeCost = calculateCost(playerStats.constructionLevel + 1, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
+      const upgradeCost = calculateCost(playerStats.constructionLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -96,7 +96,7 @@ export function useConstruction(
         return prev;
       }
       
-      const botCost = calculateCost(playerStats.constructionAutoClickerBots + 1, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
+      const botCost = calculateCost(playerStats.constructionAutoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);

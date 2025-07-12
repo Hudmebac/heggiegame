@@ -67,7 +67,7 @@ export function useBar(
         return prev;
       }
       
-      const upgradeCost = calculateCost(playerStats.barLevel + 1, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
+      const upgradeCost = calculateCost(playerStats.barLevel, upgradeConfig.starterPrice, upgradeConfig.growth, difficultyModifier * costModifier);
 
       if (playerStats.netWorth < upgradeCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: `Not enough credits. You need ${upgradeCost.toLocaleString()}¢.` }), 0);
@@ -98,7 +98,7 @@ export function useBar(
         return prev;
       }
 
-      const botCost = calculateCost(playerStats.autoClickerBots + 1, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
+      const botCost = calculateCost(playerStats.autoClickerBots, botConfig.starterPrice, botConfig.growth, difficultyModifier * costModifier);
 
       if (playerStats.netWorth < botCost) {
         setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: `Not enough credits. You need ${botCost.toLocaleString()}¢.` }), 0);
