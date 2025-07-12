@@ -10,7 +10,7 @@ import Link from "next/link";
 const changelogData = [
     {
         version: "v1.4.0 - 'Foundations'",
-        date: "Startdate: Epsilon 4525.07.13",
+        date: "Startdate: Echo 4525.07.12",
         changes: [
             "Introduced the 'Landlord' career path, allowing players to build a real estate empire.",
             "Players can now purchase various types of properties (Residential, Commercial, etc.) in different systems.",
