@@ -213,6 +213,22 @@ export function useLandlord(
         });
     }, [setGameState, toast]);
 
+    const handleIgnoreLease = useCallback((leaseId: string) => {
+        setGameState(prev => {
+            if (!prev || !prev.playerStats.availableLeases) return prev;
+
+            const newAvailableLeases = prev.playerStats.availableLeases.filter(l => l.id !== leaseId);
+            
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    availableLeases: newAvailableLeases,
+                }
+            }
+        });
+    }, [setGameState]);
+
 
     return {
         handlePurchaseProperty,
@@ -220,6 +236,7 @@ export function useLandlord(
         handleFindTenants,
         handleAssignLease,
         handleRenameProperty,
+        handleIgnoreLease,
         isGeneratingLeases,
     };
 }

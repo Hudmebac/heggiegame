@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare } from 'lucide-react';
+import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare, X } from 'lucide-react';
 import type { Property, PropertyType, Lease } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
@@ -129,7 +129,7 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                     </div>
                 ) : (
                      <Accordion type="single" collapsible disabled={property.status !== 'Idle'}>
-                        <AccordionItem value="upgrades">
+                        <AccordionItem value="upgrades" className="border-b-0">
                             <AccordionTrigger>Show Upgrades</AccordionTrigger>
                             <AccordionContent>
                                 <UpgradeDialog property={property} />
@@ -213,7 +213,7 @@ const RenamePropertyDialog = ({ property, onRename, isOpen, onOpenChange }: { pr
 }
 
 export default function LandlordPage() {
-    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty } = useGame();
+    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty, handleIgnoreLease } = useGame();
     const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
     const [renamingProperty, setRenamingProperty] = useState<Property | null>(null);
 
@@ -338,9 +338,14 @@ export default function LandlordPage() {
                                         <p className="text-xs text-muted-foreground">{lease.description}</p>
                                         <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/2mins | Term: {lease.duration}h</p>
                                     </div>
-                                    <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
-                                        Assign
-                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                        <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
+                                            Assign
+                                        </Button>
+                                        <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleIgnoreLease(lease.id)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             )})}
                         </div>
