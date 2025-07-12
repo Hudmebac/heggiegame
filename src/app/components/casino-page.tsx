@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { Spade, Dice5, Gem, Trophy, Ticket, Loader2, Timer, Info, Rocket, Circle, Globe } from 'lucide-react';
 import type { CasinoGameType } from '@/lib/types';
 import CooldownTimer from './cooldown-timer';
@@ -126,6 +127,8 @@ const GameCard = ({ gameType }: { gameType: CasinoGameType }) => {
   const canAfford = gameState.playerStats.netWorth >= stake;
   const isCooldownActive = Date.now() < lastPlayed + cooldown * 1000;
   const isDisabled = isLoading || isCooldownActive || !canAfford || isLotteryPlayed;
+  
+  const effectiveMaxStake = Math.min(maxStake, gameState.playerStats.netWorth);
 
   const handlePlay = async () => {
     setIsLoading(true);
@@ -141,11 +144,8 @@ const GameCard = ({ gameType }: { gameType: CasinoGameType }) => {
     });
   };
 
-  const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    if (!isNaN(value)) {
-      setStake(Math.max(minStake, Math.min(maxStake, value)));
-    }
+  const handleStakeChange = (value: number) => {
+    setStake(Math.max(minStake, Math.min(effectiveMaxStake, value)));
   }
 
   return (
@@ -162,16 +162,32 @@ const GameCard = ({ gameType }: { gameType: CasinoGameType }) => {
       <CardContent className="space-y-4">
         <div>
           <Label htmlFor={`${gameType}-stake`}>Stake (Min: {minStake.toLocaleString()}¢, Max: {maxStake.toLocaleString()}¢)</Label>
-          <Input 
-            id={`${gameType}-stake`}
-            type="number" 
-            value={stake} 
-            onChange={handleStakeChange}
-            min={minStake}
-            max={maxStake}
-            step={minStake}
-            disabled={isLoading || isLottery}
-          />
+          <div className="flex items-center gap-2 mt-1">
+            <Input 
+              id={`${gameType}-stake`}
+              type="number" 
+              value={stake} 
+              onChange={(e) => handleStakeChange(parseInt(e.target.value, 10) || minStake)}
+              min={minStake}
+              max={effectiveMaxStake}
+              step={minStake}
+              disabled={isLoading || isLottery}
+              className="w-full"
+            />
+            <Button variant="outline" size="sm" onClick={() => handleStakeChange(minStake)} disabled={isLottery}>Min</Button>
+            <Button variant="outline" size="sm" onClick={() => handleStakeChange(effectiveMaxStake)} disabled={isLottery}>Max</Button>
+          </div>
+          {!isLottery && (
+            <Slider
+                value={[stake]}
+                onValueChange={(value) => handleStakeChange(value[0])}
+                min={minStake}
+                max={effectiveMaxStake}
+                step={Math.max(10, Math.round((effectiveMaxStake-minStake)/100))}
+                className="mt-3"
+                disabled={isLoading}
+            />
+          )}
         </div>
         <Button className="w-full" onClick={handlePlay} disabled={isDisabled}>
           {isLoading && <Loader2 className="mr-2 animate-spin" />}
