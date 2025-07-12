@@ -83,7 +83,7 @@ export interface BarContract {
   partners: BarPartner[];
 }
 
-export type CasinoGameType = 'slots' | 'table' | 'poker' | 'vip' | 'sportsbook' | 'lottery';
+export type CasinoGameType = 'slots' | 'table' | 'poker' | 'vip' | 'sportsbook' | 'lottery' | 'droneRacing' | 'spaceRoulette' | 'gravityWorldCup';
 
 export interface CasinoState {
     lastPlayed: { [key in CasinoGameType]?: number };

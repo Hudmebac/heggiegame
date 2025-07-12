@@ -104,4 +104,43 @@ export const casinoNarratives: Record<string, { win: string[]; loss: string[]; b
       "Your lottery ticket purchase enters you into a 'second chance' drawing, which you win!",
     ],
   },
+  droneRacing: {
+    win: [
+        "Your chosen drone navigates the final chicane perfectly, taking first place by a nose cone!",
+        "A spectacular boost on the final stretch secures the win! The crowd goes wild."
+    ],
+    loss: [
+        "A catastrophic engine failure sends your drone spiraling out of the race.",
+        "Outmaneuvered! A rival drone cuts you off at the last turn, snatching victory away."
+    ],
+    bonus: [
+        "Your drone also set a new lap record, earning a massive bonus from the race organizers!"
+    ],
+  },
+  spaceRoulette: {
+    win: [
+        "The zero-G ball bounces off three bumpers before landing exactly on your number. Incredible!",
+        "A cluster bet pays off as the ball settles in your chosen sector of the wheel."
+    ],
+    loss: [
+        "The ball floats agonizingly close to your number before a stray cosmic ray nudges it into the adjacent slot.",
+        "A complete miss. The ball seems to actively avoid your chosen color and number."
+    ],
+    bonus: [
+        "You've hit the 'Supernova' bonus, a rare event that triples the payout of the entire table!"
+    ],
+  },
+  gravityWorldCup: {
+      win: [
+          "An unbelievable upset! The long-shot team you bet on has won the Gravity World Cup!",
+          "Your faith in the champions was well-placed. A dominant performance secures your hefty payout."
+      ],
+      loss: [
+          "A heartbreaking last-second goal means your betting slip is now just a piece of paper.",
+          "The team you backed was eliminated in the first round. A disastrous result for your wallet."
+      ],
+      bonus: [
+          "Not only did your team win, but your pick for 'Top Scorer' also came through, netting you a colossal bonus!"
+      ]
+  }
 };

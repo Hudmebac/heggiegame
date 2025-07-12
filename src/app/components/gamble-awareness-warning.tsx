@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,13 +38,7 @@ export default function GambleAwarenessWarning() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
         )}>
             <div className="flex items-center gap-4 p-4 rounded-lg bg-yellow-400 text-black shadow-lg max-w-md">
-                <Image 
-                    src="/images/misc/take-time-to-think.png"
-                    alt="Take time to think"
-                    width={80}
-                    height={80}
-                    className="flex-shrink-0"
-                />
+                <AlertTriangle className="h-12 w-12 text-black flex-shrink-0" />
                 <p className="font-semibold">{message}</p>
             </div>
         </div>
