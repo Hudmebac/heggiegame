@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
@@ -147,6 +148,43 @@ export function useHauler(
 
   }, [setGameState, toast]);
 
+    const handleSalvageShip = useCallback((instanceId: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const fleet = [...prev.playerStats.fleet];
+            const shipIndex = fleet.findIndex(s => s.instanceId === instanceId);
+            if (shipIndex === -1 || fleet[shipIndex].status !== 'destroyed') return prev;
+
+            const salvagedShip = { ...fleet[shipIndex] };
+            
+            // Halve all upgrade levels, rounding down. Minimum level is 1.
+            salvagedShip.cargoLevel = Math.max(1, Math.floor(salvagedShip.cargoLevel / 2));
+            salvagedShip.weaponLevel = Math.max(1, Math.floor(salvagedShip.weaponLevel / 2));
+            salvagedShip.shieldLevel = Math.max(1, Math.floor(salvagedShip.shieldLevel / 2));
+            salvagedShip.hullLevel = Math.max(1, Math.floor(salvagedShip.hullLevel / 2));
+            salvagedShip.fuelLevel = Math.max(1, Math.floor(salvagedShip.fuelLevel / 2));
+            salvagedShip.sensorLevel = Math.max(1, Math.floor(salvagedShip.sensorLevel / 2));
+            salvagedShip.droneLevel = Math.max(1, Math.floor(salvagedShip.droneLevel / 2));
+            salvagedShip.powerCoreLevel = Math.max(1, Math.floor(salvagedShip.powerCoreLevel / 2));
+            
+            // Set health to 1 and status to repair_needed
+            salvagedShip.health = 1;
+            salvagedShip.status = 'repair_needed';
+
+            fleet[shipIndex] = salvagedShip;
+
+            setTimeout(() => toast({ title: "Salvage Successful", description: `${salvagedShip.name} recovered, but sustained heavy system damage. Repairs and refits are required.` }), 0);
+
+            return {
+                ...prev,
+                playerStats: {
+                    ...prev.playerStats,
+                    fleet
+                }
+            };
+        });
+    }, [setGameState, toast]);
+
   // This hook now manages the lifecycle of active trade contracts
   useEffect(() => {
     const interval = setInterval(() => {
@@ -208,10 +246,24 @@ export function useHauler(
             newPlayerStats.netWorth += payout;
             newPlayerStats.reputation += repChange;
 
-            // Consume fuel from the assigned ship
+            // Consume fuel and apply wear-and-tear
             const fuelConsumed = contract.requiredFuel || 0;
+            const maxHealth = hullUpgrades[assignedShip.hullLevel - 1]?.health || 100;
+            const wearAndTear = Math.max(1, Math.round(maxHealth * (Math.random() * 0.02 + 0.01))); // 1-3% damage
+
             if(shipIndex > -1) {
                 newFleet[shipIndex].fuel = Math.max(0, (newFleet[shipIndex].fuel || 0) - fuelConsumed);
+                const newHealth = Math.max(0, newFleet[shipIndex].health - wearAndTear);
+                if (newHealth <= 0) {
+                    newFleet[shipIndex].health = 0;
+                    newFleet[shipIndex].status = 'destroyed';
+                    setTimeout(() => toast({ variant: 'destructive', title: "Ship Lost!", description: `${newFleet[shipIndex].name} suffered catastrophic failure upon arrival.` }), 0);
+                } else {
+                    newFleet[shipIndex].health = newHealth;
+                    if(newHealth < maxHealth / 2 && newFleet[shipIndex].status === 'operational') {
+                        newFleet[shipIndex].status = 'repair_needed';
+                    }
+                }
             }
 
             newEvents.push({
@@ -254,6 +306,7 @@ export function useHauler(
   return {
     handleGenerateContracts,
     handleAcceptContract,
+    handleSalvageShip,
     isGeneratingContracts,
   };
 }

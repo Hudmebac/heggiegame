@@ -5,7 +5,7 @@
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket, Wrench, Fuel, HeartPulse, PenSquare, ShieldCheck } from 'lucide-react';
+import { Truck, Package, Coins, ArrowRight, CheckCircle, Hourglass, Loader2, FileText, Rocket, Wrench, Fuel, HeartPulse, PenSquare, ShieldCheck, Sword, Scale, Clipboard, Info, Recycle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -14,8 +14,7 @@ import CooldownTimer from '@/app/components/cooldown-timer';
 import { SHIPS_FOR_SALE } from '@/lib/ships';
 import ShipOutfittingDialog from '../components/ship-outfitting-dialog';
 import { useState } from 'react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cargoUpgrades, hullUpgrades, weaponUpgrades, droneUpgrades, fuelUpgrades, shieldUpgrades, advancedUpgrades } from '@/lib/upgrades';
@@ -67,7 +66,7 @@ interface FleetStatusProps {
 }
 
 const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
-    const { gameState, handleRepairFleetShip, handleRefuelFleetShip, handleRenameShip } = game;
+    const { gameState, handleRepairFleetShip, handleRefuelFleetShip, handleRenameShip, handleSalvageShip } = game;
     const [renamingShip, setRenamingShip] = useState<PlayerShip | null>(null);
 
     if (!gameState) return null;
@@ -106,7 +105,7 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                         const cargoInfo = cargoUpgrades[ship.cargoLevel - 1];
 
                         return (
-                            <div key={ship.instanceId} className={cn("p-4 rounded-md border flex flex-col", isAssigned ? "bg-muted/50 border-amber-500/30" : ship.status === 'repair_needed' ? 'bg-destructive/10 border-destructive/30' : "bg-card/50")}>
+                            <div key={ship.instanceId} className={cn("p-4 rounded-md border flex flex-col", isAssigned ? "bg-muted/50 border-amber-500/30" : ship.status === 'repair_needed' ? 'bg-destructive/10 border-destructive/30' : "bg-card/50", ship.status === 'destroyed' && 'bg-destructive/30 border-destructive')}>
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-2">
                                         <h4 className="font-semibold text-sm">{ship.name}</h4>
@@ -120,6 +119,8 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                                         </Badge>
                                     ) : ship.status === 'repair_needed' ? (
                                         <Badge variant="destructive">Repair Needed</Badge>
+                                    ) : ship.status === 'destroyed' ? (
+                                        <Badge variant="destructive">Destroyed</Badge>
                                     ) : (
                                         <Badge variant="outline" className="text-green-400 border-green-500/30">Available</Badge>
                                     )}
@@ -139,11 +140,17 @@ const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
                                 </div>
 
                                 <div className="flex justify-end gap-2 mt-4">
-                                    <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
-                                        <Wrench className="mr-2" /> Outfit
-                                    </Button>
-                                    <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
-                                    <Button size="sm" variant="secondary" onClick={() => handleRefuelFleetShip(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
+                                    {ship.status === 'destroyed' ? (
+                                        <Button size="sm" variant="destructive" onClick={() => handleSalvageShip(ship.instanceId)}><Recycle className="mr-2"/> Salvage Wreck</Button>
+                                    ) : (
+                                        <>
+                                            <Button variant="outline" size="sm" onClick={() => onOutfit(ship.instanceId)} disabled={ship.status !== 'operational'}>
+                                                <Wrench className="mr-2" /> Outfit
+                                            </Button>
+                                            <Button size="sm" variant="secondary" onClick={() => handleRepairFleetShip(ship.instanceId)} disabled={!shipDamage || !canAffordShipRepair || ship.status === 'upgrading'}>Repair ({shipRepairCost.toLocaleString()}¢)</Button>
+                                            <Button size="sm" variant="secondary" onClick={() => handleRefuelFleetShip(ship.instanceId)} disabled={!fuelNeeded || !canAffordRefuel}>Refuel ({shipRefuelCost.toLocaleString()}¢)</Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         )
@@ -163,14 +170,19 @@ const checkRequirements = (ship: PlayerShip, contract: TradeRouteContract): { me
         reasons.push(`Requires ${contract.quantity}t cargo space (ship has ${cargoCapacity}t).`);
     }
     
-    if (contract.minFuelLevel && ship.fuelLevel < contract.minFuelLevel) {
-        reasons.push(`Requires Fuel Lvl ${contract.minFuelLevel}.`);
+    const fuelCapacity = fuelUpgrades[ship.fuelLevel-1]?.capacity ?? SHIPS_FOR_SALE.find(s => s.id === ship.shipId)?.baseFuel ?? 0;
+    if (contract.requiredFuel && (ship.fuel || 0) < contract.requiredFuel) {
+        reasons.push(`Requires ${contract.requiredFuel} SU fuel (ship has ${ship.fuel?.toFixed(0)} SU).`);
     }
+
+    const hullHealth = hullUpgrades[ship.hullLevel-1]?.health ?? 100;
+    const requiredHealth = hullHealth * (contract.minHullPercentage || 0);
+    if(ship.health < requiredHealth) {
+        reasons.push(`Requires ${requiredHealth.toFixed(0)} HP (ship has ${ship.health.toFixed(0)} HP).`);
+    }
+    
     if (contract.minWeaponLevel && ship.weaponLevel < contract.minWeaponLevel) {
         reasons.push(`Requires Weapons Lvl ${contract.minWeaponLevel}.`);
-    }
-    if (contract.minHullLevel && ship.hullLevel < contract.minHullLevel) {
-        reasons.push(`Requires Hull Lvl ${contract.minHullLevel}.`);
     }
     if (contract.minDroneLevel && ship.droneLevel < contract.minDroneLevel) {
         reasons.push(`Requires Drone Lvl ${contract.minDroneLevel}.`);
@@ -322,9 +334,9 @@ export default function HaulerPage() {
                                         <Badge variant="outline" className={riskColorMap[contract.riskLevel]}>{contract.riskLevel} Risk</Badge>
                                     </div>
                                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground pt-2">
-                                        {contract.minFuelLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minFuelLevel}+ Fuel</span>}
+                                        <span className="flex items-center gap-1"><Fuel/> Requires {contract.requiredFuel} Fuel</span>
+                                        <span className="flex items-center gap-1"><HeartPulse/> Requires {(contract.minHullPercentage*100).toFixed(0)}% Hull</span>
                                         {contract.minWeaponLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minWeaponLevel}+ Weapons</span>}
-                                        {contract.minHullLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minHullLevel}+ Hull</span>}
                                         {contract.minDroneLevel && <span className="flex items-center gap-1"><Wrench/> Lvl {contract.minDroneLevel}+ Drones</span>}
                                         {contract.requiredAdvancedSystems && contract.requiredAdvancedSystems.map(sys => <span key={sys} className="flex items-center gap-1"><CheckCircle/> {advancedUpgrades.find(u => u.id === sys)?.name || sys}</span>)}
                                     </div>

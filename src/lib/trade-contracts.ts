@@ -1,3 +1,4 @@
+
 import type { TradeRouteContract } from '@/lib/types';
 import type { AdvancedToggleableUpgrade } from './upgrades';
 
@@ -10,6 +11,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 8000,
         riskLevel: 'Low',
         duration: 200,
+        requiredFuel: 20,
+        minHullPercentage: 0.8,
     },
     {
         cargo: 'Industrial Components (Standard)',
@@ -17,6 +20,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 12000,
         riskLevel: 'Low',
         duration: 250,
+        requiredFuel: 25,
+        minHullPercentage: 0.8,
     },
     {
         cargo: 'Water Purifiers (Standard)',
@@ -24,6 +29,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 9500,
         riskLevel: 'Low',
         duration: 180,
+        requiredFuel: 15,
+        minHullPercentage: 0.8,
     },
     // Medium Risk
     {
@@ -32,7 +39,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 25000,
         riskLevel: 'Medium',
         duration: 300,
-        minHullLevel: 2,
+        minHullPercentage: 0.9,
+        requiredFuel: 40,
     },
     {
         cargo: 'Medical Supplies (Standard)',
@@ -40,6 +48,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 30000,
         riskLevel: 'Medium',
         duration: 260,
+        requiredFuel: 30,
+        minHullPercentage: 0.9,
     },
     {
         cargo: 'Computer Components (Refined)',
@@ -47,7 +57,9 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         payout: 45000,
         riskLevel: 'Medium',
         duration: 220,
-        minFuelLevel: 2
+        minFuelLevel: 2,
+        requiredFuel: 50,
+        minHullPercentage: 0.9,
     },
     // High Risk
     {
@@ -58,6 +70,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         duration: 350,
         minWeaponLevel: 3,
         minDroneLevel: 1,
+        requiredFuel: 60,
+        minHullPercentage: 1,
     },
     {
         cargo: 'Precursor Artifacts (Salvaged)',
@@ -66,6 +80,8 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         riskLevel: 'High',
         duration: 280,
         requiredAdvancedSystems: ['anomalyAnalyzer'],
+        requiredFuel: 70,
+        minHullPercentage: 1,
     },
     // Critical Risk
     {
@@ -76,5 +92,7 @@ export const STATIC_TRADE_CONTRACTS: Omit<TradeRouteContract, 'id' | 'fromSystem
         duration: 400,
         minWeaponLevel: 5,
         requiredAdvancedSystems: ['stealthPlating'],
+        requiredFuel: 100,
+        minHullPercentage: 1,
     },
 ];

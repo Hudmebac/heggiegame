@@ -115,7 +115,7 @@ export interface PlayerShip {
   shipId: string;
   name: string;
   health: number;
-  status: 'operational' | 'repair_needed' | 'upgrading' | 'on_mission';
+  status: 'operational' | 'repair_needed' | 'upgrading' | 'on_mission' | 'destroyed';
   upgradeStartTime?: number;
   upgradeDuration?: number;
   upgradingComponent?: ShipUpgradeType;
@@ -141,6 +141,7 @@ export interface PlayerShip {
   terraformToolkit: boolean;
   thermalRegulator: boolean;
   diplomaticUplink: boolean;
+  fuel?: number;
 }
 
 export interface InsurancePolicies {
@@ -180,9 +181,9 @@ export interface TradeRouteContract {
   duration: number; // in seconds
   assignedShipInstanceId?: number | null;
   assignedShipName?: string;
-  minFuelLevel?: number;
+  requiredFuel: number;
+  minHullPercentage: number;
   minWeaponLevel?: number;
-  minHullLevel?: number;
   minDroneLevel?: number;
   requiredAdvancedSystems?: AdvancedToggleableUpgrade['id'][];
 }
