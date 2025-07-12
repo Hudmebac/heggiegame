@@ -263,6 +263,20 @@ export function useGameState() {
                     setGameState(null);
                     return;
                 }
+
+                const currentStardate = formatStardate(new Date());
+                const savedStardate = savedProgress.playerStats.stardate;
+                const isNewDay = currentStardate !== savedStardate;
+
+                if (isNewDay) {
+                    // Reset daily-limited features
+                    if(savedProgress.playerStats.casino) {
+                        savedProgress.playerStats.casino.dailyLotteryTicketPurchased = false;
+                    }
+                    savedProgress.playerStats.stardate = currentStardate;
+                    toast({ title: "New Stardate", description: `Welcome to Stardate ${currentStardate}. Daily activities have been reset.` });
+                }
+
                 const currentSystem = SYSTEMS.find(s => s.name === savedProgress.currentSystem) || SYSTEMS[0];
                 const currentPlanetName = savedProgress.currentPlanet && currentSystem.planets.find(p => p.name === savedProgress.currentPlanet) ? savedProgress.currentPlanet : currentSystem.planets[0].name;
 
