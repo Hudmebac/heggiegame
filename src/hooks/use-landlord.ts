@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
@@ -315,7 +316,7 @@ export function useLandlord(
             const propertySold = prev.playerStats.properties.find(p => p.id === offer.propertyId);
 
             newPlayerStats.events.push({
-                id: `evt_prop_sale_${Date.now()}`,
+                id: `evt_prop_sale_${Date.now()}_${offer.offerId}`,
                 timestamp: Date.now(),
                 type: 'Purchase', // Logged as a 'purchase' for the buyer, shows as income for player
                 description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
@@ -361,46 +362,51 @@ export function useLandlord(
                 const activeLeases = newPlayerStats.activeLeases || [];
                 const newlyCompletedLeases: Lease[] = [];
 
-                const stillActiveLeases = activeLeases.map(lease => {
-                    const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
-                    if (now >= leaseEndTime) {
-                        newlyCompletedLeases.push(lease);
-                        return null;
-                    }
-
-                    const rentIntervalMs = 2 * 60 * 1000;
-                    const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
+                if(activeLeases.length > 0) {
+                    stateChanged = true;
                     
-                    if (timeSinceLastRent >= rentIntervalMs) {
-                        stateChanged = true;
-                        const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
-                        const rentToCollect = intervalsToPay * lease.rent;
-
-                        newPlayerStats.netWorth += rentToCollect;
+                    const stillActiveLeases = activeLeases.map(lease => {
+                        const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
+                        if (now >= leaseEndTime) {
+                            newlyCompletedLeases.push(lease);
+                            return null;
+                        }
+    
+                        const rentIntervalMs = 2 * 60 * 1000;
+                        const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
                         
-                        const newReputation = { ...newPlayerStats.factionReputation };
-                        FACTIONS_DATA.forEach(faction => {
-                            if (faction.id !== 'Independent') {
-                                newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
-                            }
-                        });
-                        newPlayerStats.factionReputation = newReputation;
+                        if (timeSinceLastRent >= rentIntervalMs) {
+                            const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
+                            const rentToCollect = intervalsToPay * lease.rent;
+    
+                            newPlayerStats.netWorth += rentToCollect;
+                            
+                            const newReputation = { ...newPlayerStats.factionReputation };
+                            FACTIONS_DATA.forEach(faction => {
+                                if (faction.id !== 'Independent') {
+                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
+                                }
+                            });
+                            newPlayerStats.factionReputation = newReputation;
+    
+                            eventsToAdd.push({
+                                id: `evt_rent_${lease.propertyId}_${performance.now()}`,
+                                timestamp: now,
+                                type: 'Lease',
+                                description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
+                                value: rentToCollect,
+                                reputationChange: 0.5 * intervalsToPay,
+                                isMilestone: false,
+                            });
+                            
+                            return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs };
+                        }
+    
+                        return lease;
+                    }).filter((l): l is Lease => l !== null);
 
-                        eventsToAdd.push({
-                            id: `evt_rent_${lease.propertyId}_${performance.now()}`,
-                            timestamp: now,
-                            type: 'Lease',
-                            description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
-                            value: rentToCollect,
-                            reputationChange: 0.5 * intervalsToPay,
-                            isMilestone: false,
-                        });
-                        
-                        return { ...lease, lastRentCollection: (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs };
-                    }
-
-                    return lease;
-                }).filter((l): l is Lease => l !== null);
+                    newPlayerStats.activeLeases = stillActiveLeases;
+                }
                 
                 if (newlyCompletedLeases.length > 0) {
                     stateChanged = true;
@@ -412,8 +418,7 @@ export function useLandlord(
                     });
                 }
                 
-                if (eventsToAdd.length > 0 || newlyCompletedLeases.length > 0) {
-                    newPlayerStats.activeLeases = stillActiveLeases;
+                if (eventsToAdd.length > 0) {
                     newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
                 }
 
@@ -461,3 +466,5 @@ export function useLandlord(
         isGeneratingLeases,
     };
 }
+
+    
