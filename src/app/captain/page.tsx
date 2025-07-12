@@ -139,7 +139,7 @@ function PlayerProfile() {
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="p-4 bg-background/50 rounded-lg min-h-[140px]">
+                <div className="p-4 bg-background/50 rounded-lg">
                     {isEditingBio ? (
                         <div className="space-y-2">
                             <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="h-24" />
@@ -344,11 +344,11 @@ export default function CaptainPage() {
 
   return (
     <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="xl:col-span-2">
                 <PlayerProfile />
             </div>
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6 xl:col-span-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader>
@@ -519,7 +519,7 @@ export default function CaptainPage() {
                     </CardContent>
                 </Card>
             </div>
-            <div className="lg:col-span-4">
+            <div className="xl:col-span-4">
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline text-lg flex items-center gap-2">
