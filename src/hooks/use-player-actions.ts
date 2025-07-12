@@ -373,7 +373,8 @@ export function usePlayerActions(
                         if (Date.now() > ship.upgradeStartTime + ship.upgradeDuration) {
                             stateChanged = true;
                             const upgradeType = ship.upgradingComponent;
-                            (ship as any)[`${upgradeType}Level`] += 1;
+                            const levelKey = `${upgradeType}Level` as keyof PlayerShip;
+                            (ship as any)[levelKey] += 1;
                             ship.status = 'operational';
                             ship.upgradeStartTime = undefined;
                             ship.upgradeDuration = undefined;
@@ -381,7 +382,7 @@ export function usePlayerActions(
 
                             setTimeout(() => toast({
                                 title: "Upgrade Complete!",
-                                description: `Your ${ship.name}'s ${upgradeType} is now Mk. ${(ship as any)[`${upgradeType}Level`]}.`
+                                description: `Your ${ship.name}'s ${upgradeType} is now Mk. ${(ship as any)[levelKey]}.`
                             }), 0);
                         }
                     }
@@ -979,5 +980,7 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
+
+    
 
     
