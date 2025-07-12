@@ -28,7 +28,7 @@ export function useLandlord(
 
             const cost = costMap[type];
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: 'destructive', title: 'Purchase Failed', description: `Insufficient funds. You need ${cost.toLocaleString()}¢.` });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Purchase Failed', description: `Insufficient funds. You need ${cost.toLocaleString()}¢.` }), 0);
                 return prev;
             }
 
@@ -48,7 +48,7 @@ export function useLandlord(
                 upgradingComponent: 'Purchase',
             };
             
-            toast({ title: 'Property Acquisition Started!', description: `Finalizing purchase of new ${type} property. ETA: 10 seconds.` });
+            setTimeout(() => toast({ title: 'Property Acquisition Started!', description: `Finalizing purchase of new ${type} property. ETA: 10 seconds.` }), 0);
 
             return {
                 ...prev,
@@ -72,7 +72,7 @@ export function useLandlord(
             const property = { ...newProperties[propIndex] };
 
             if(property.status !== 'Idle') {
-                toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Property is currently busy.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Property is currently busy.' }), 0);
                 return prev;
             }
             
@@ -82,14 +82,14 @@ export function useLandlord(
             
             const currentLevel = (property[upgradeKey] as number) || 0;
             if (currentLevel >= upgradeData.upgrades.length) {
-                toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Property is at max level.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Property is at max level.' }), 0);
                 return prev;
             }
             
             const cost = upgradeData.upgrades[currentLevel].cost - (upgradeData.upgrades[currentLevel-1]?.cost || 0);
 
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Insufficient funds.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Upgrade Failed', description: 'Insufficient funds.' }), 0);
                 return prev;
             }
 
@@ -99,7 +99,7 @@ export function useLandlord(
             property.upgradingComponent = type;
             newProperties[propIndex] = property;
             
-            toast({ title: `Upgrading ${property.name}`, description: `ETA: 20 seconds.` });
+            setTimeout(() => toast({ title: `Upgrading ${property.name}`, description: `ETA: 20 seconds.` }), 0);
 
             return {
                 ...prev,
@@ -153,7 +153,7 @@ export function useLandlord(
             const property = { ...prev.playerStats.properties[propertyIndex] };
 
             if (property.status !== 'Idle') {
-                toast({ variant: 'destructive', title: 'Assignment Failed', description: 'Property is not available.' });
+                setTimeout(() => toast({ variant: 'destructive', title: 'Assignment Failed', description: 'Property is not available.' }), 0);
                 return prev;
             }
 
@@ -168,7 +168,7 @@ export function useLandlord(
             const newProperties = [...prev.playerStats.properties];
             newProperties[propertyIndex] = property;
 
-            toast({ title: 'Lease Signed!', description: `${lease.tenantName} is now leasing ${property.name}.` });
+            setTimeout(() => toast({ title: 'Lease Signed!', description: `${lease.tenantName} is now leasing ${property.name}.` }), 0);
             
             return {
                 ...prev,
