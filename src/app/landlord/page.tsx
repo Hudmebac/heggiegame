@@ -10,7 +10,7 @@ import type { Property, PropertyType, Lease } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import CooldownTimer from '@/app/components/cooldown-timer';
+import CooldownTimer from '@/components/cooldown-timer';
 import {
   Accordion,
   AccordionContent,
@@ -71,7 +71,11 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
 const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenameClick: (property: Property) => void }) => {
     const { gameState } = useGame();
     const Icon = propertyTypeConfig.find(p => p.type === property.type)?.icon || LandPlot;
-    const currentLevel = property[`${property.type.toLowerCase()}Level` as keyof Property] as number || 0;
+    
+    const upgradeKey = `${property.type.toLowerCase()}Level` as keyof Property;
+    const currentLevel = (property[upgradeKey] as number) || 0;
+    const upgradeData = propertyUpgrades[property.type.toLowerCase() as keyof typeof propertyUpgrades];
+    const currentUpgradeName = upgradeData?.upgrades[currentLevel - 1]?.upgrade || 'Base';
 
     const activeLease = gameState?.playerStats.activeLeases.find(l => l.propertyId === property.id);
     const leaseProgress = activeLease ? (Date.now() - activeLease.startTime) / (activeLease.duration * 3600 * 1000) * 100 : 0;
@@ -99,7 +103,7 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                     {statusBadge}
                 </CardTitle>
                 <CardDescription>
-                    {property.type} Property - Level {currentLevel} - {property.systemName}
+                    Lvl {currentLevel}: {currentUpgradeName} - {property.systemName}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -108,7 +112,7 @@ const PropertyCard = ({ property, onRenameClick }: { property: Property, onRenam
                         <p className="text-xs text-cyan-400 text-center">Upgrading: {property.upgradingComponent}</p>
                         <Progress value={ (1 - ((property.upgradeStartTime + property.upgradeDuration) - Date.now()) / property.upgradeDuration) * 100 } indicatorClassName="bg-cyan-400" />
                         <p className="text-xs text-muted-foreground text-center">
-                            <CooldownTimer expiry={property.upgradeStartTime + property.upgradeDuration} />
+                            <CooldownTimer expiry={property.upgradeStartTime + property.upgradeDuration} onCompleteText="Finalising Upgrades"/>
                         </p>
                     </div>
                 ) : activeLease ? (
@@ -269,7 +273,7 @@ export default function LandlordPage() {
                                                 <span className="font-semibold">{type} Properties ({propertiesOfType.length})</span>
                                             </div>
                                        </AccordionTrigger>
-                                       <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                       <AccordionContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
                                            {propertiesOfType.map(prop => <PropertyCard key={prop.id} property={prop} onRenameClick={setRenamingProperty} />)}
                                        </AccordionContent>
                                    </AccordionItem>

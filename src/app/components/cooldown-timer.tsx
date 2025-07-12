@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 
-const CooldownTimer = ({ expiry }: { expiry: number }) => {
+const CooldownTimer = ({ expiry, onCompleteText = "Ready" }: { expiry: number, onCompleteText?: string }) => {
     const [remaining, setRemaining] = useState(expiry - Date.now());
 
     useEffect(() => {
@@ -14,7 +15,7 @@ const CooldownTimer = ({ expiry }: { expiry: number }) => {
     }, [expiry]);
 
     if (remaining <= 0) {
-        return <span>Ready</span>;
+        return <span>{onCompleteText}</span>;
     }
 
     const totalSeconds = Math.floor(remaining / 1000);
