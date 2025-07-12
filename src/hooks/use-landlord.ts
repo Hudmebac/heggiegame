@@ -316,7 +316,7 @@ export function useLandlord(
             const propertySold = prev.playerStats.properties.find(p => p.id === offer.propertyId);
 
             newPlayerStats.events.push({
-                id: `evt_prop_sale_${Date.now()}_${offer.propertyId}_${Math.random()}`,
+                id: `evt_prop_sale_${offer.offerId}`,
                 timestamp: Date.now(),
                 type: 'Purchase', // Logged as a 'purchase' for the buyer, shows as income for player
                 description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
