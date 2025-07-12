@@ -6,13 +6,13 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Rocket, PenSquare, Wrench, Fuel, HeartPulse, Recycle, ShieldCheck, Sparkles } from 'lucide-react';
+import { CarTaxiFront, UserCheck, Coins, ArrowRight, Hourglass, Loader2, FileText, Rocket, PenSquare, Wrench, Fuel, HeartPulse, Recycle, ShieldCheck, Sparkles, PackageCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { PlayerShip, TaxiMission } from '@/lib/types';
 import CooldownTimer from '@/app/components/cooldown-timer';
-import ShipOutfittingDialog from '@/app/components/ship-outfitting-dialog';
+import ShipOutfittingDialog from '../components/ship-outfitting-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -168,6 +168,16 @@ const checkRequirements = (ship: PlayerShip, mission: TaxiMission): { met: boole
     if(ship.health < requiredHealth) {
         reasons.push(`Requires ${requiredHealth.toFixed(0)} HP (ship has ${ship.health.toFixed(0)} HP).`);
     }
+
+    if (mission.minComfortLevel && ship.passengerComfortLevel < mission.minComfortLevel) {
+        reasons.push(`Requires Comfort Lvl ${mission.minComfortLevel}.`);
+    }
+    if (mission.minSecurityLevel && ship.passengerSecurityLevel < mission.minSecurityLevel) {
+        reasons.push(`Requires Security Lvl ${mission.minSecurityLevel}.`);
+    }
+    if (mission.minPacksLevel && ship.passengerPacksLevel < mission.minPacksLevel) {
+        reasons.push(`Requires Service Lvl ${mission.minPacksLevel}.`);
+    }
     
     return { met: reasons.length === 0, reasons };
 }
@@ -299,6 +309,11 @@ export default function TaxiPage() {
                                         <span>{mission.fromSystem}</span>
                                         <ArrowRight className="h-4 w-4 text-muted-foreground" />
                                         <span>{mission.toSystem}</span>
+                                    </div>
+                                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground pt-2">
+                                        {mission.minComfortLevel && <span className="flex items-center gap-1"><Sparkles className="h-3 w-3 text-cyan-400"/> Comfort Lvl {mission.minComfortLevel}+</span>}
+                                        {mission.minSecurityLevel && <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-orange-400"/> Security Lvl {mission.minSecurityLevel}+</span>}
+                                        {mission.minPacksLevel && <span className="flex items-center gap-1"><PackageCheck className="h-3 w-3 text-green-400"/> Service Lvl {mission.minPacksLevel}+</span>}
                                     </div>
                                 </CardHeader>
                                 <CardContent className="flex justify-between items-center">

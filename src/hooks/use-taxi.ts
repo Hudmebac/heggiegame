@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useCallback, useEffect, useTransition } from 'react';
@@ -130,9 +131,14 @@ export function useTaxi(
           if (index === -1 || shipIndex === -1) return;
 
           const assignedShip = newFleet[shipIndex];
+          
+          const powerCoreBonus = 1 + ((assignedShip.powerCoreLevel - 1) * 0.05);
+          const overdriveBonus = assignedShip.overdriveEngine ? 1.1 : 1;
+          const stabilizerBonus = assignedShip.warpStabilizer ? 1.05 : 1;
+          const timeModifier = powerCoreBonus * overdriveBonus * stabilizerBonus;
 
           const elapsed = (now - (mission.startTime || now)) / 1000;
-          const progress = Math.min(100, (elapsed / mission.duration) * 100);
+          const progress = Math.min(100, (elapsed / (mission.duration / timeModifier)) * 100);
           
           if (updatedMissions[index].progress !== progress) {
             updatedMissions[index].progress = progress;
@@ -143,7 +149,8 @@ export function useTaxi(
             updatedMissions[index].status = 'Completed';
             updatedMissions[index].assignedShipInstanceId = null;
             
-            const totalPayout = mission.fare + mission.bonus;
+            const earnedBonus = elapsed < mission.duration;
+            const totalPayout = mission.fare + (earnedBonus ? mission.bonus : 0);
             const repChange = 1;
             newPlayerStats.netWorth += totalPayout;
             newPlayerStats.reputation += repChange;
@@ -174,7 +181,11 @@ export function useTaxi(
                 isMilestone: false,
             });
 
-            setTimeout(() => toast({ title: "Fare Complete!", description: `Dropped off ${mission.passengerName} in ${mission.toSystem}. You earned ${totalPayout.toLocaleString()}¢.` }), 0);
+            const toastDescription = earnedBonus 
+                ? `Dropped off ${mission.passengerName} in ${mission.toSystem}. You earned ${totalPayout.toLocaleString()}¢, including a time bonus!`
+                : `Dropped off ${mission.passengerName} in ${mission.toSystem}. You earned ${mission.fare.toLocaleString()}¢.`;
+            
+            setTimeout(() => toast({ title: "Fare Complete!", description: toastDescription }), 0);
           }
         });
 
@@ -188,6 +199,32 @@ export function useTaxi(
 
     return () => clearInterval(interval);
   }, [setGameState, toast]);
+
+    const checkRequirements = (ship: PlayerShip, mission: TaxiMission): { met: boolean; reasons: string[] } => {
+        const reasons: string[] = [];
+        
+        if (mission.requiredFuel && (ship.fuel || 0) < mission.requiredFuel) {
+            reasons.push(`Requires ${mission.requiredFuel} SU fuel (ship has ${ship.fuel?.toFixed(0)} SU).`);
+        }
+
+        const hullHealth = hullUpgrades[ship.hullLevel - 1]?.health || 100;
+        const requiredHealth = hullHealth * (mission.minHullPercentage || 0);
+        if(ship.health < requiredHealth) {
+            reasons.push(`Requires ${requiredHealth.toFixed(0)} HP (ship has ${ship.health.toFixed(0)} HP).`);
+        }
+
+        if (mission.minComfortLevel && ship.passengerComfortLevel < mission.minComfortLevel) {
+            reasons.push(`Requires Comfort Lvl ${mission.minComfortLevel}.`);
+        }
+        if (mission.minSecurityLevel && ship.passengerSecurityLevel < mission.minSecurityLevel) {
+            reasons.push(`Requires Security Lvl ${mission.minSecurityLevel}.`);
+        }
+        if (mission.minPacksLevel && ship.passengerPacksLevel < mission.minPacksLevel) {
+            reasons.push(`Requires Service Lvl ${mission.minPacksLevel}.`);
+        }
+        
+        return { met: reasons.length === 0, reasons };
+    }
 
   return {
     handleGenerateTaxiMissions,
