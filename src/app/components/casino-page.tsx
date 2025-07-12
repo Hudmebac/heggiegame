@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Spade, Dice5, Gem, Trophy, Ticket, Loader2, Timer } from 'lucide-react';
 import type { CasinoGameType } from '@/lib/types';
 import CooldownTimer from './cooldown-timer';
+import GambleAwarenessWarning from './gamble-awareness-warning';
 
 const gameConfig: Record<
   CasinoGameType,
@@ -143,6 +144,7 @@ const GameCard = ({ gameType }: { gameType: CasinoGameType }) => {
 export default function CasinoPage() {
   return (
     <div className="space-y-6">
+      <GambleAwarenessWarning />
       <div>
         <h2 className="text-2xl font-headline text-slate-200 tracking-wider">The Casino Floor</h2>
         <p className="text-muted-foreground">Fortune favors the bold. Place your stakes and see what fate has in store.</p>
