@@ -9,7 +9,7 @@ export type ItemGrade = 'Salvaged' | 'Standard' | 'Refined' | 'Experimental' | '
 export type FactionId = 'Independent' | 'Federation of Sol' | 'Corporate Hegemony' | 'Veritas Concord' | 'Frontier Alliance' | 'Independent Miners Guild';
 export type StockCategory = 'Technology' | 'Industrial' | 'Ship Manufacturing' | 'Finance' | 'Consumer Services' | 'Real Estate' | 'Energy' | 'Medical';
 
-export type GameEventType = 'Trade' | 'Combat' | 'Upgrade' | 'Mission' | 'System' | 'Career' | 'Faction' | 'Purchase';
+export type GameEventType = 'Trade' | 'Combat' | 'Upgrade' | 'Mission' | 'System' | 'Career' | 'Faction' | 'Purchase' | 'Lease';
 
 export interface GameEvent {
   id: string;

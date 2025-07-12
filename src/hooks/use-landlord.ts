@@ -187,6 +187,15 @@ export function useLandlord(
             property.status = 'Leased';
             const newProperties = [...prev.playerStats.properties];
             newProperties[propertyIndex] = property;
+            
+            const newEvent = {
+                id: `evt_lease_assign_${Date.now()}`,
+                timestamp: Date.now(),
+                type: 'Lease' as const,
+                description: `Signed a ${lease.duration}h lease with ${lease.tenantName} for "${property.name}".`,
+                value: 0,
+                isMilestone: false,
+            };
 
             setTimeout(() => toast({ title: 'Lease Signed!', description: `${lease.tenantName} is now leasing ${property.name}.` }), 0);
             
@@ -197,6 +206,7 @@ export function useLandlord(
                     properties: newProperties,
                     activeLeases: [...(prev.playerStats.activeLeases || []), newLease],
                     availableLeases: prev.playerStats.availableLeases?.filter(l => l.id !== leaseId),
+                    events: [...prev.playerStats.events, newEvent],
                 }
             };
         });
