@@ -269,7 +269,7 @@ export function usePlayerActions(
                     timestamp: Date.now(),
                     type: 'Purchase',
                     description: `Purchased a new ship: ${ship.name}.`,
-                    value: -cost,
+                    value: -ship.cost,
                     reputationChange: 1,
                     isMilestone: true,
                 }],
@@ -330,12 +330,13 @@ export function usePlayerActions(
             if (!upgrades) return prev;
 
             const currentLevel = (shipToUpgrade as any)[`${upgradeType}Level`] as number;
+            const nextLevel = currentLevel + 1;
 
             if (currentLevel >= upgrades.length) {
                 setTimeout(() => toast({ variant: "destructive", title: "Upgrade Failed", description: "Already at max level." }), 0);
                 return prev;
             }
-            const nextLevel = currentLevel + 1;
+            
             const cost = (upgrades[nextLevel - 1]?.cost || 0) - (upgrades[currentLevel - 1]?.cost || 0);
 
             if (prev.playerStats.netWorth < cost) {
@@ -346,7 +347,7 @@ export function usePlayerActions(
             shipToUpgrade.status = 'upgrading';
             shipToUpgrade.upgradingComponent = upgradeType;
             shipToUpgrade.upgradeStartTime = Date.now();
-            shipToUpgrade.upgradeDuration = nextLevel * 1000; // e.g. level 15 takes 15 seconds
+            shipToUpgrade.upgradeDuration = nextLevel * 1000;
 
             fleet[shipIndex] = shipToUpgrade;
             
