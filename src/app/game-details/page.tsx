@@ -9,6 +9,17 @@ import Link from "next/link";
 
 const changelogData = [
     {
+        version: "v1.3.4 - 'First Class'",
+        date: "Startdate: Delta 4525.07.14",
+        changes: [
+            "Introduced a new suite of 'Passenger Systems' upgrades for all ships, including Comfort, Security, and Service Packs.",
+            "Overhauled the Taxi Pilot career to create a more engaging and strategic gameplay loop.",
+            "Taxi fares now have specific requirements for passenger system levels, with higher payouts for more demanding clients.",
+            "Mission completion time for Taxi fares is now dynamically calculated based on the assigned ship's Power Core and advanced propulsion modules, making it easier to earn time-based bonuses.",
+            "Updated the Taxi Fleet Status UI to display key passenger and power system levels for each ship, allowing for easier fleet management."
+        ]
+    },
+    {
         version: "v1.3.3 - 'Logistics & Consequences'",
         date: "Startdate: Charlie 4525.07.13",
         changes: [
