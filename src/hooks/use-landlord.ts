@@ -18,9 +18,17 @@ export function useLandlord(
         setGameState(prev => {
             if (!prev) return null;
 
-            const cost = 10000; // Placeholder cost
+            const costMap: Record<PropertyType, number> = {
+                'Residential': 250000,
+                'Commercial': 1000000,
+                'Industrial': 1750000,
+                'Recreational': 2250000,
+                'Military': 5000000,
+            };
+
+            const cost = costMap[type];
             if (prev.playerStats.netWorth < cost) {
-                toast({ variant: 'destructive', title: 'Purchase Failed', description: 'Insufficient funds.' });
+                toast({ variant: 'destructive', title: 'Purchase Failed', description: `Insufficient funds. You need ${cost.toLocaleString()}¢.` });
                 return prev;
             }
 
