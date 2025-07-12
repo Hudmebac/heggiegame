@@ -2,7 +2,7 @@
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
-import type { PlayerShip, CargoUpgrade, WeaponUpgrade, ShieldUpgrade, HullUpgrade, FuelUpgrade, SensorUpgrade, DroneUpgrade, ShipUpgradeType } from '@/lib/types';
+import type { PlayerShip, ShipUpgradeType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, AdvancedLeveledUpgrade } from '@/lib/upgrades';
@@ -78,7 +78,8 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     const currentUpgrade = upgrades[level - 1];
     const nextUpgrade = level < upgrades.length ? upgrades[level] : null;
 
-    const isUpgradingThis = ship.status === 'upgrading' && ship.upgradingComponent === type;
+    const isCurrentlyUpgrading = ship.status === 'upgrading';
+    const isThisComponentUpgrading = isCurrentlyUpgrading && ship.upgradingComponent === type;
 
     if (!currentUpgrade) {
         return null;
@@ -100,13 +101,13 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
         </div>
         
         <div className="flex items-center gap-2 md:justify-end md:col-span-1">
-          {level > 1 && <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)} disabled={ship.status !== 'operational'}>Sell ({refund.toLocaleString()}¢)</Button>}
-          {isUpgradingThis && ship.upgradeStartTime && ship.upgradeDuration ? (
+          {level > 1 && <Button variant="outline" size="sm" onClick={() => handleDowngradeShip(ship.instanceId, type)} disabled={isCurrentlyUpgrading}>Sell ({refund.toLocaleString()}¢)</Button>}
+          {isThisComponentUpgrading && ship.upgradeStartTime && ship.upgradeDuration ? (
             <div className="text-xs font-mono text-cyan-400 h-9 px-3 flex items-center">
                 <CooldownTimer expiry={ship.upgradeStartTime + ship.upgradeDuration} />
             </div>
           ) : nextUpgrade ? (
-            <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford || ship.status !== 'operational'}>{`Upgrade (${cost.toLocaleString()}¢)`}</Button>
+            <Button size="sm" onClick={() => handleUpgradeShip(ship.instanceId, type)} disabled={!canAfford || isCurrentlyUpgrading}>{`Upgrade (${cost.toLocaleString()}¢)`}</Button>
           ) : (
             <Button size="sm" disabled>Max</Button>
           )}
@@ -182,3 +183,4 @@ export default function ShipOutfittingDialog({ shipInstanceId, isOpen, onOpenCha
     </Dialog>
   );
 }
+
