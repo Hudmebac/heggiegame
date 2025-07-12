@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useGame } from '@/app/components/game-provider';
@@ -24,6 +25,12 @@ const riskColorMap = {
     'High': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     'Critical': 'bg-red-500/20 text-red-400 border-red-500/30',
 };
+
+const missionTypeIcons: Record<string, React.ElementType> = {
+    'VIP Escort': ShieldCheck,
+    'Cargo Convoy': Truck,
+    'Data Runner': FileText,
+}
 
 const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: PlayerShip, onRename: (id: number, newName: string) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [newName, setNewName] = useState(ship.name);
@@ -56,12 +63,11 @@ const RenameShipDialog = ({ ship, onRename, isOpen, onOpenChange }: { ship: Play
 interface FleetStatusProps {
     game: ReturnType<typeof useGame>;
     onOutfit: (instanceId: number) => void;
-    onRenameShip: (instanceId: number, newName: string) => void;
 }
 
-const FleetStatus = ({ game, onOutfit, onRenameShip }: FleetStatusProps) => {
+const FleetStatus = ({ game, onOutfit }: FleetStatusProps) => {
+    const { gameState, handleRepairFleetShip, handleRefuelFleetShip, handleRenameShip } = game;
     const [renamingShip, setRenamingShip] = useState<PlayerShip | null>(null);
-    const { gameState, handleRepairFleetShip, handleRefuelFleetShip } = game;
 
     if (!gameState) return null;
 
@@ -87,7 +93,7 @@ const FleetStatus = ({ game, onOutfit, onRenameShip }: FleetStatusProps) => {
                         
                         const hullUpgrade = hullUpgrades[ship.hullLevel - 1];
                         const maxHealth = hullUpgrade?.health || 100;
-                        const shipDamage = maxHealth - ship.health;
+                        const shipDamage = maxHealth - (ship.health || maxHealth);
                         const shipRepairCost = Math.round(shipDamage * (playerStats.insurance.ship ? 25 : 50));
                         const canAffordShipRepair = playerStats.netWorth >= shipRepairCost;
 
@@ -141,7 +147,7 @@ const FleetStatus = ({ game, onOutfit, onRenameShip }: FleetStatusProps) => {
                     })}
                 </CardContent>
             </Card>
-            {renamingShip && <RenameShipDialog ship={renamingShip} onRename={onRenameShip} isOpen={!!renamingShip} onOpenChange={() => setRenamingShip(null)}/>}
+            {renamingShip && <RenameShipDialog ship={renamingShip} onRename={handleRenameShip} isOpen={!!renamingShip} onOpenChange={() => setRenamingShip(null)}/>}
         </>
     );
 };
@@ -181,7 +187,7 @@ const checkRequirements = (ship: PlayerShip, contract: TradeRouteContract): { me
 
 export default function HaulerPage() {
     const game = useGame();
-    const { gameState, handleGenerateContracts, handleAcceptContract, handleRenameShip, isGeneratingContracts } = game;
+    const { gameState, handleGenerateContracts, handleAcceptContract, isGeneratingContracts } = game;
     const [outfittingShipId, setOutfittingShipId] = useState<number | null>(null);
 
     if (!gameState) return null;
@@ -238,7 +244,6 @@ export default function HaulerPage() {
             <FleetStatus 
                 game={game}
                 onOutfit={setOutfittingShipId}
-                onRenameShip={handleRenameShip}
             />
 
             {activeContracts.length > 0 && (

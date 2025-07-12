@@ -174,6 +174,44 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleRefuelFleetShip = useCallback((instanceId: number) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const shipIndex = prev.playerStats.fleet.findIndex(s => s.instanceId === instanceId);
+            if (shipIndex === -1) return prev;
+
+            const fleet = [...prev.playerStats.fleet];
+            const shipToRefuel = { ...fleet[shipIndex] };
+
+            const fuelUpgrade = fuelUpgrades[shipToRefuel.fuelLevel - 1];
+            if (!fuelUpgrade) return prev;
+
+            const maxFuel = fuelUpgrade.capacity;
+            const fuelNeeded = maxFuel - (shipToRefuel.fuel || 0);
+            if (fuelNeeded <= 0) return prev;
+
+            const fuelPrice = 2;
+            const totalCost = Math.round(fuelNeeded * fuelPrice);
+
+            if (prev.playerStats.netWorth < totalCost) {
+                setTimeout(() => toast({ variant: "destructive", title: "Refuel Failed", description: `Insufficient funds. Cost: ${totalCost.toLocaleString()}¢` }), 0);
+                return prev;
+            }
+
+            shipToRefuel.fuel = maxFuel;
+            fleet[shipIndex] = shipToRefuel;
+
+            let newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - totalCost, fleet };
+            if (instanceId === newPlayerStats.fleet[0].instanceId) {
+                newPlayerStats = syncActiveShipStats(newPlayerStats);
+            }
+            
+            setTimeout(() => toast({ title: "Refuel Complete", description: `Refueled ${shipToRefuel.name} for ${totalCost.toLocaleString()}¢.` }), 0);
+
+            return { ...prev, playerStats: newPlayerStats };
+        });
+    }, [setGameState, toast]);
+
     const handleHireCrew = useCallback((crewId: string) => {
         setGameState(prev => {
             if (!prev) return null;
@@ -217,6 +255,7 @@ export function usePlayerActions(
                 powerCoreLevel: 1, overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
                 gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
                 health: hullUpgrades[0].health,
+                fuel: fuelUpgrades[0].capacity,
                 status: 'operational',
             };
             const newCash = prev.playerStats.netWorth - ship.cost;
@@ -885,6 +924,16 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleRenameShip = useCallback((instanceId: number, newName: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const fleet = prev.playerStats.fleet.map(ship => 
+                ship.instanceId === instanceId ? { ...ship, name: newName } : ship
+            );
+            return { ...prev, playerStats: { ...prev.playerStats, fleet } };
+        });
+    }, [setGameState]);
+
     return {
         isGeneratingBio,
         handleSetAvatar,
@@ -896,6 +945,7 @@ export function usePlayerActions(
         handleRefuel,
         handleRepairShip,
         handleRepairFleetShip,
+        handleRefuelFleetShip,
         handleHireCrew,
         handleFireCrew,
         handlePurchaseShip,
@@ -918,5 +968,6 @@ export function usePlayerActions(
         handleMarketFrenzyMinigameScore,
         handleHolotagMinigameScore,
         handleKeypadCrackerMinigameScore,
+        handleRenameShip,
     };
 }
