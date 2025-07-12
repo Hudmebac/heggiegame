@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp } from 'lucide-react';
+import { Coins, Trophy, Handshake, Briefcase, Martini, Home, Landmark, Factory, Building2, Ticket, Heart, Shield, Package, LucideIcon, User, RefreshCw, PenSquare, Share2, ScrollText, Edit, Copy, TrendingUp, CircleUserRound } from 'lucide-react';
 import { barThemes } from '@/lib/bar-themes';
 import { residenceThemes } from '@/lib/residence-themes';
 import { commerceThemes } from '@/lib/commerce-themes';
@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import CooldownTimer from '@/app/components/cooldown-timer';
 import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
+import FacebookIcon from '@/app/components/icons/facebook-icon';
 import AssetOverviewChartCompact from '@/app/components/asset-overview-chart-compact';
 
 
@@ -208,7 +209,7 @@ function PlayerProfile() {
                          <AlertDialog open={isFBConsentOpen} onOpenChange={setIsFBConsentOpen}>
                             <AlertDialogTrigger asChild>
                                <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700" disabled={isFbOnCooldown}>
-                                    {isFbOnCooldown ? <CooldownTimer expiry={fbExpiry} /> : 'Share for 1M¢'}
+                                    {isFbOnCooldown ? <CooldownTimer expiry={fbExpiry} /> : <><FacebookIcon className="h-5 w-5"/> <span className="font-bold">1M</span><Coins className="h-4 w-4 text-amber-300"/></>}
                                 </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -226,7 +227,7 @@ function PlayerProfile() {
                             </AlertDialogContent>
                         </AlertDialog>
                         <Button variant="secondary" className="bg-green-600 text-white hover:bg-green-700" onClick={onShareToWhatsapp} disabled={isWhatsAppOnCooldown}>
-                            {isWhatsAppOnCooldown ? <CooldownTimer expiry={whatsAppExpiry} /> : <><WhatsAppIcon className="mr-2" /> Share for 1M¢</>}
+                            {isWhatsAppOnCooldown ? <CooldownTimer expiry={whatsAppExpiry} /> : <><WhatsAppIcon className="h-5 w-5" /> <span className="font-bold">1M</span><Coins className="h-4 w-4 text-amber-300"/></>}
                         </Button>
                     </div>
                 </div>
@@ -568,4 +569,3 @@ export default function CaptainPage() {
     </div>
   );
 }
-
