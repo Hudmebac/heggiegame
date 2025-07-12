@@ -32,7 +32,6 @@ import ShareProgressDialog from '@/app/components/share-progress-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import CooldownTimer from '@/app/components/cooldown-timer';
-import AssetOverviewChart from '../components/asset-overview-chart';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import WhatsAppIcon from '@/app/components/icons/whatsapp-icon';
 
@@ -118,7 +117,6 @@ function PlayerProfile() {
     const isWhatsAppOnCooldown = now < whatsAppExpiry;
     
     const careerData = CAREER_DATA.find(c => c.id === gameState.playerStats.career);
-    const startingNetWorth = careerData?.startingNetWorth || 50000;
 
     return (
         <Card className="h-full flex flex-col">
@@ -231,11 +229,6 @@ function PlayerProfile() {
                         </Link>
                     </Button>
                 </div>
-
-                 <div className="pt-4 border-t border-border/50 flex-grow flex flex-col h-[200px]">
-                    <AssetOverviewChart assetHistory={playerStats.assetHistory || []} />
-                </div>
-
             </CardContent>
              <Dialog open={isAvatarDialogOpen} onOpenChange={setIsAvatarDialogOpen}>
                 <DialogContent className="max-w-3xl">
