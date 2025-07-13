@@ -121,6 +121,11 @@ function PlayerProfile() {
             });
     };
 
+    const onFacebookShareClick = () => {
+        handleCopyToClipboard();
+        handleShareToFacebook();
+    }
+
     const onShareToWhatsapp = () => {
         handleShareToWhatsapp();
         const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(shareText)}`;
@@ -254,7 +259,7 @@ function PlayerProfile() {
                                 </div>
                                 <AlertDialogFooter className="w-full grid grid-cols-2 gap-2">
                                     <Button onClick={handleCopyToClipboard}><Copy className="mr-2" /> Copy Text</Button>
-                                    <AlertDialogAction onClick={handleShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
+                                    <AlertDialogAction onClick={onFacebookShareClick} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
@@ -601,4 +606,3 @@ export default function CaptainPage() {
     </div>
   );
 }
-
