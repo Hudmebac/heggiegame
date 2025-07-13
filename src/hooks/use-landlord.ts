@@ -308,25 +308,27 @@ export function useLandlord(
             const offer = prev.playerStats.propertySaleOffers.find(o => o.offerId === offerId);
             if (!offer) return prev;
             
+            const propertySold = prev.playerStats.properties.find(p => p.id === offer.propertyId);
+
             const newPlayerStats = {
                 ...prev.playerStats,
                 netWorth: prev.playerStats.netWorth + offer.offerAmount,
                 properties: prev.playerStats.properties.filter(p => p.id !== offer.propertyId),
-                propertySaleOffers: prev.playerStats.propertySaleOffers.filter(o => o.propertyId !== offer.propertyId)
+                propertySaleOffers: prev.playerStats.propertySaleOffers.filter(o => o.propertyId !== offer.propertyId),
+                events: [
+                    ...prev.playerStats.events,
+                    {
+                        id: `evt_prop_sale_${offer.offerId}`,
+                        timestamp: Date.now(),
+                        type: 'Purchase' as const,
+                        description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
+                        value: offer.offerAmount,
+                        reputationChange: 2,
+                        isMilestone: true,
+                    },
+                ]
             };
             
-            const propertySold = prev.playerStats.properties.find(p => p.id === offer.propertyId);
-
-            newPlayerStats.events.push({
-                id: `evt_prop_sale_${offer.offerId}`,
-                timestamp: Date.now(),
-                type: 'Purchase', // Logged as a 'purchase' for the buyer, shows as income for player
-                description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
-                value: offer.offerAmount,
-                reputationChange: 2,
-                isMilestone: true,
-            });
-
             setTimeout(() => toast({ title: 'Property Sold!', description: `You sold "${propertySold?.name}" for ${offer.offerAmount.toLocaleString()}¢.` }), 0);
 
             return { ...prev, playerStats: newPlayerStats };
@@ -447,3 +449,5 @@ export function useLandlord(
         isGeneratingListings,
     };
 }
+
+    
