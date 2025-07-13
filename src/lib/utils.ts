@@ -5,7 +5,7 @@ import { twMerge } from "tailwind-merge"
 import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock, ItemRarity, Property } from "./types";
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from './upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, warehouseUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from './upgrades';
 import { propertyUpgrades } from "./property-upgrades";
 
 

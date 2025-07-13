@@ -262,7 +262,11 @@ export default function LandlordPage() {
     const idleProperties = properties.filter(p => p.status === 'Idle' && !activeLeases.some(l => l.propertyId === p.id));
     
     const getAssignableProperties = (lease: Lease) => {
-        return idleProperties.filter(p => p.type === lease.propertyType && p[`${p.type.toLowerCase()}Level` as keyof Property] >= lease.requiredLevel);
+        return idleProperties.filter(p => 
+            p.type === lease.propertyType && 
+            p.status === 'Idle' &&
+            (p[`${p.type.toLowerCase()}Level` as keyof Property] as number) >= lease.requiredLevel
+        );
     };
     
     const leaseCooldown = 60 * 1000;
@@ -419,7 +423,7 @@ export default function LandlordPage() {
                         {isLeaseOnCooldown ? <CooldownTimer expiry={leaseCooldownExpiry} /> : (idleProperties.length === 0 ? "No Available Properties" : "Find Tenants")}
                     </Button>
 
-                    <Accordion type="multiple" defaultValue={['active-leases']}>
+                    <Accordion type="multiple" defaultValue={['active-leases', 'available-leases']}>
                         {(activeLeases && activeLeases.length > 0) && (
                             <AccordionItem value="active-leases">
                                 <AccordionTrigger>Active Leases ({activeLeases.length})</AccordionTrigger>
@@ -431,7 +435,7 @@ export default function LandlordPage() {
                                             <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
                                             <div className="flex justify-between items-center text-xs text-muted-foreground">
                                                 <span>Rent: {lease.rent.toLocaleString()}¢ / 2 mins</span>
-                                                <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
+                                                <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
                                             </div>
                                         </div>
                                     )})}
