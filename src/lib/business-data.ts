@@ -108,8 +108,8 @@ export const businessData: BusinessData[] = [
         title: "Galactic Bank",
         description: "The ultimate seat of financial power. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio.",
         costs: [
-            { label: "Upgrade Infrastructure", starterPrice: 2000000, growth: 1.25, icon: ChevronsUp },
-            { label: "Deploy Financial Bot", starterPrice: 5000000, growth: 1.50, icon: Bot },
+            { label: "Upgrade Infrastructure", starterPrice: 2000000, growth: 0.85, icon: ChevronsUp },
+            { label: "Deploy Financial Bot", starterPrice: 5000000, growth: 0.95, icon: Bot },
         ]
     },
     {
