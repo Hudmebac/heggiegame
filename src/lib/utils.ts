@@ -6,7 +6,7 @@ import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, S
 import { STATIC_ITEMS } from "./items";
 import { SHIPS_FOR_SALE } from './ships';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from './upgrades';
-import { propertyUpgrades } from './property-upgrades';
+import { propertyUpgrades } from "./property-upgrades";
 
 
 export function cn(...inputs: ClassValue[]) {
