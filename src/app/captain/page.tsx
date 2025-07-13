@@ -13,7 +13,7 @@ import { constructionThemes } from '@/lib/construction-themes';
 import { recreationThemes } from '@/lib/recreation-themes';
 import { bankThemes } from '@/lib/bank-themes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
+import { calculateCargoValue, calculateShipValue, formatAbbreviatedNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CAREER_DATA } from '@/lib/careers';
@@ -108,7 +108,7 @@ function PlayerProfile() {
         setIsAvatarDialogOpen(false);
     };
     
-    const shareText = `I'm playing HEGGIE - Space Game 🪐 I'm a ${playerStats.career}, and my net worth’s already a cosmic-sized ${playerStats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
+    const shareText = `I'm playing HEGGIE - Space Game 🪐 I'm a ${playerStats.career}, and my net worth’s already a cosmic-sized ${formatAbbreviatedNumber(playerStats.netWorth)}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
 
     const handleCopyToClipboard = () => {
         navigator.clipboard.writeText(shareText)
@@ -398,11 +398,11 @@ export default function CaptainPage() {
                     <CardContent className="space-y-2">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">Cash on Hand</span>
-                            <span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()} ¢</span>
+                            <span className="font-mono text-amber-300">{formatAbbreviatedNumber(playerStats.netWorth)} ¢</span>
                         </div>
                         <div className="flex justify-between items-center font-semibold pt-2 border-t mt-2">
                             <span className="text-foreground">Total Net Worth</span>
-                            <span className="font-mono text-primary">{totalNetWorth.toLocaleString()} ¢</span>
+                            <span className="font-mono text-primary">{formatAbbreviatedNumber(totalNetWorth)} ¢</span>
                         </div>
                         <Link href="/bank" passHref>
                             <Button className="w-full mt-2" variant="outline">
@@ -543,7 +543,7 @@ export default function CaptainPage() {
                                     <span className="text-xs font-bold text-green-400 whitespace-nowrap">ACTIVE</span>
                                 ) : (
                                     <Button size="sm" onClick={() => handlePurchaseInsurance(policy.type)} disabled={playerStats.netWorth < policy.cost || (isHardcore && policy.type === 'health')}>
-                                        {policy.cost.toLocaleString()}¢
+                                        {formatAbbreviatedNumber(policy.cost)}¢
                                     </Button>
                                 )}
                             </div>
@@ -580,14 +580,14 @@ export default function CaptainPage() {
                                             </TableCell>
                                             <TableCell className="text-right font-mono">{asset.level}</TableCell>
                                             <TableCell className="text-right font-mono">{asset.bots}</TableCell>
-                                            <TableCell className="text-right font-mono text-amber-300">{asset.income.toLocaleString()}¢</TableCell>
+                                            <TableCell className="text-right font-mono text-amber-300">{formatAbbreviatedNumber(asset.income)}¢</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                                 <TableFooter>
                                     <TableRow>
                                         <TableCell colSpan={3} className="font-bold">Total Passive Income</TableCell>
-                                        <TableCell className="text-right font-bold font-mono text-amber-300">{totalPassiveIncome.toLocaleString()}¢</TableCell>
+                                        <TableCell className="text-right font-bold font-mono text-amber-300">{formatAbbreviatedNumber(totalPassiveIncome)}¢</TableCell>
                                     </TableRow>
                                 </TableFooter>
                             </Table>
@@ -601,3 +601,4 @@ export default function CaptainPage() {
     </div>
   );
 }
+

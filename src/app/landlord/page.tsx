@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { calculatePropertyValue } from '@/lib/utils';
+import { calculatePropertyValue, formatAbbreviatedNumber } from '@/lib/utils';
 
 
 const propertyTypeConfig: { type: PropertyType; icon: React.ElementType, cost: number }[] = [
@@ -62,7 +62,7 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
                         </div>
                         {isNext && (
                             <Button size="sm" onClick={() => handleUpgradeProperty(property.id, property.type)} disabled={!canAfford}>
-                                Upgrade ({cost.toLocaleString()}¢)
+                                Upgrade ({formatAbbreviatedNumber(cost)}¢)
                             </Button>
                         )}
                     </div>
@@ -88,9 +88,9 @@ const ListForSaleDialog = ({ property, onList }: { property: Property, onList: (
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-                 <div className="text-sm text-center">Estimated Market Value: <span className="font-mono text-amber-300">{estimatedValue.toLocaleString()}¢</span></div>
+                 <div className="text-sm text-center">Estimated Market Value: <span className="font-mono text-amber-300">{formatAbbreviatedNumber(estimatedValue)}¢</span></div>
                  <div>
-                    <Label htmlFor="asking-price">Asking Price (Max: {maxAskingPrice.toLocaleString()}¢)</Label>
+                    <Label htmlFor="asking-price">Asking Price (Max: {formatAbbreviatedNumber(maxAskingPrice)}¢)</Label>
                     <Input id="asking-price" type="number" value={askingPrice} onChange={(e) => setAskingPrice(Number(e.target.value))} />
                     {isPriceTooHigh && <p className="text-xs text-destructive mt-1">Asking price cannot exceed 20% of the estimated value.</p>}
                     {isPriceAmbitious && !isPriceTooHigh && <p className="text-xs text-amber-400 mt-1">Pricing aggressively may lead to lower offers.</p>}
@@ -319,7 +319,7 @@ export default function LandlordPage() {
                         <Button key={type} className="flex-col h-24" onClick={() => handlePurchaseProperty(type)} disabled={playerStats.netWorth < cost}>
                             <Icon className="h-8 w-8 mb-2" />
                             Buy {type}
-                            <span className="text-xs font-mono text-primary-foreground/80">({cost.toLocaleString()}¢)</span>
+                            <span className="text-xs font-mono text-primary-foreground/80">({formatAbbreviatedNumber(cost)}¢)</span>
                         </Button>
                     ))}
                 </CardContent>
@@ -346,7 +346,7 @@ export default function LandlordPage() {
                                             <p className="text-xs text-muted-foreground">Lvl {prop.level} - {prop.systemName}</p>
                                             <p className="text-xs text-muted-foreground mt-2 italic">"{prop.description}"</p>
                                             <div className="flex justify-between items-center mt-2 pt-2 border-t">
-                                                <span className="text-sm font-mono text-amber-300">{prop.askingPrice.toLocaleString()}¢</span>
+                                                <span className="text-sm font-mono text-amber-300">{formatAbbreviatedNumber(prop.askingPrice)}¢</span>
                                                 <Button size="sm" onClick={() => handlePurchaseNpcProperty(prop)} disabled={playerStats.netWorth < prop.askingPrice}>Purchase</Button>
                                             </div>
                                        </div>
@@ -376,9 +376,9 @@ export default function LandlordPage() {
                                     <p className="text-xs text-muted-foreground mt-2 italic">"{offer.narrative}"</p>
                                     <div className="flex justify-between items-center mt-2 pt-2 border-t">
                                         <div className="text-sm">
-                                            Offer: <span className="font-mono text-amber-300">{offer.offerAmount.toLocaleString()}¢</span>
+                                            Offer: <span className="font-mono text-amber-300">{formatAbbreviatedNumber(offer.offerAmount)}¢</span>
                                             <span className={cn("text-xs font-mono ml-2", valueDiff > 0 ? "text-green-400" : valueDiff < 0 ? "text-destructive" : "text-muted-foreground")}>
-                                                ({valueDiff >= 0 ? '+' : ''}{valueDiff.toLocaleString()}¢)
+                                                ({valueDiff >= 0 ? '+' : ''}{formatAbbreviatedNumber(valueDiff)}¢)
                                             </span>
                                         </div>
                                         <div className="flex gap-2">
@@ -447,7 +447,7 @@ export default function LandlordPage() {
                         {isLeaseOnCooldown ? <CooldownTimer expiry={leaseCooldownExpiry} /> : (idleProperties.length === 0 ? "No Available Properties" : "Find Tenants")}
                     </Button>
 
-                    <Accordion type="multiple">
+                    <Accordion type="multiple" className="w-full">
                         {(activeLeases && activeLeases.length > 0) && (
                             <AccordionItem value="active-leases">
                                 <AccordionTrigger>Active Leases ({activeLeases.length})</AccordionTrigger>
@@ -458,7 +458,7 @@ export default function LandlordPage() {
                                         <div key={`${lease.id}-${lease.propertyId}`} className="p-3 rounded-md border bg-background/50">
                                             <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
                                             <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                                <span>Rent: {lease.rent.toLocaleString()}¢ / 2 mins</span>
+                                                <span>Rent: {formatAbbreviatedNumber(lease.rent)}¢ / 2 mins</span>
                                                 <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
                                             </div>
                                         </div>
@@ -478,7 +478,7 @@ export default function LandlordPage() {
                                             <div>
                                                 <p className="font-semibold text-sm">{lease.tenantName}</p>
                                                 <p className="text-xs text-muted-foreground">{lease.description}</p>
-                                                <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/2mins | Term: {lease.duration}h</p>
+                                                <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {formatAbbreviatedNumber(lease.rent)}¢/2mins | Term: {lease.duration}h</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
