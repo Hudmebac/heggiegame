@@ -538,7 +538,7 @@ export function useGameState() {
                 const activeLeases = newPlayerStats.activeLeases || [];
                 const newlyCompletedLeases: Lease[] = [];
                 let stillActiveLeases: Lease[] = [];
-
+    
                 if(activeLeases.length > 0) {
                     stillActiveLeases = activeLeases.map(lease => {
                          const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
@@ -559,7 +559,7 @@ export function useGameState() {
                             const newReputation = { ...newPlayerStats.factionReputation };
                             FACTIONS_DATA.forEach(faction => {
                                 if (faction.id !== 'Independent') {
-                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
+                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.01 * intervalsToPay;
                                 }
                             });
                             newPlayerStats.factionReputation = newReputation;
@@ -567,10 +567,10 @@ export function useGameState() {
                             eventsToAdd.push({
                                 id: `evt_rent_${lease.propertyId}_${now}_${Math.random()}`,
                                 timestamp: now,
-                                type: 'Lease',
+                                type: 'Lease' as const,
                                 description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
                                 value: rentToCollect,
-                                reputationChange: 0.5 * intervalsToPay,
+                                reputationChange: 0.01 * intervalsToPay,
                                 isMilestone: false,
                             });
                             
