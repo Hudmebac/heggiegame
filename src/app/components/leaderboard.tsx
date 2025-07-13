@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trophy, Ship } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatAbbreviatedNumber } from '@/lib/utils';
 
 
 interface LeaderboardProps {
@@ -50,7 +51,7 @@ export default function Leaderboard({ data, playerName, onTraderClick }: Leaderb
                     <TableCell className="font-medium font-mono text-center">{entry.rank}</TableCell>
                     <TableCell>{entry.trader}</TableCell>
                     <TableCell className="text-right font-mono text-amber-300">
-                        {new Intl.NumberFormat('en-US').format(entry.netWorth)} ¢
+                        {formatAbbreviatedNumber(entry.netWorth)} ¢
                     </TableCell>
                     <TableCell className="text-right font-mono text-sky-300 flex items-center justify-end gap-2">
                         <Ship className="h-4 w-4" />

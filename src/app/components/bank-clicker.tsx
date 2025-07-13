@@ -9,7 +9,7 @@ import { Landmark, Coins, ChevronsUp, DollarSign, Bot } from 'lucide-react';
 import { bankThemes } from '@/lib/bank-themes';
 import BankContracts from './bank-contracts';
 import type { SystemEconomy } from '@/lib/types';
-import { PLANET_TYPE_MODIFIERS } from '@/lib/utils';
+import { PLANET_TYPE_MODIFIERS, formatAbbreviatedNumber } from '@/lib/utils';
 import { businessData, calculateCost } from '@/lib/business-data';
 import VaultBreachMinigame from './vault-breach-minigame';
 
@@ -85,14 +85,14 @@ export default function BankClicker() {
                             onClick={handleClick}
                             className="w-full h-24 text-xl font-bold bg-black border-2 border-primary text-primary hover:bg-primary/10 hover:shadow-[0_0_25px] hover:shadow-primary/70 transition-all duration-300 relative overflow-hidden animate-pulse-glow"
                         >
-                            {theme.buttonText} (+{incomePerClick.toLocaleString()}¢)
+                            {theme.buttonText} (+{formatAbbreviatedNumber(incomePerClick)}¢)
                             {feedbackMessages.map(msg => (
                                 <span 
                                     key={msg.id}
                                     className="absolute font-mono text-lg text-amber-300 animate-ping-up"
                                     style={{ left: `${msg.x}px`, top: `${msg.y}px`, pointerEvents: 'none' }}
                                 >
-                                    +{msg.amount.toLocaleString()}¢
+                                    +{formatAbbreviatedNumber(msg.amount)}¢
                                 </span>
                             ))}
                         </Button>
@@ -102,7 +102,7 @@ export default function BankClicker() {
                         <p className="text-muted-foreground">Current Net Worth</p>
                         <p className="text-3xl font-mono text-amber-300 flex items-center justify-center gap-2">
                             <Coins />
-                            {(playerStats.netWorth || 0).toLocaleString()} ¢
+                            {formatAbbreviatedNumber(playerStats.netWorth || 0)} ¢
                         </p>
                     </div>
                 </CardContent>
@@ -124,10 +124,10 @@ export default function BankClicker() {
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground flex items-center gap-1.5"><DollarSign className="h-4 w-4"/> Income Per Transaction</span>
-                            <span className="font-mono text-amber-300">{incomePerClick.toLocaleString()}¢</span>
+                            <span className="font-mono text-amber-300">{formatAbbreviatedNumber(incomePerClick)}¢</span>
                         </div>
                         <Button className="w-full" onClick={handleUpgradeBank} disabled={!canAffordUpgrade}>
-                            {isBankLevelMaxed ? 'Max Bank Level' : `Upgrade Bank (${upgradeCost.toLocaleString()}¢)`}
+                            {isBankLevelMaxed ? 'Max Bank Level' : `Upgrade Bank (${formatAbbreviatedNumber(upgradeCost)}¢)`}
                         </Button>
                         
                         <div className="pt-4 border-t border-border/50"></div>
@@ -138,12 +138,12 @@ export default function BankClicker() {
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground flex items-center gap-1.5"><Bot className="h-4 w-4"/> Income Per Second</span>
-                            <span className="font-mono text-amber-300">{incomePerSecond.toLocaleString()}¢</span>
+                            <span className="font-mono text-amber-300">{formatAbbreviatedNumber(incomePerSecond)}¢</span>
                         </div>
                         
                         {!isBotLimitReached && (
                             <Button className="w-full" onClick={handleUpgradeBankAutoClicker} disabled={!canAffordBot}>
-                                Deploy Bot ({botCost.toLocaleString()}¢)
+                                Deploy Bot ({formatAbbreviatedNumber(botCost)}¢)
                             </Button>
                         )}
                     </CardContent>

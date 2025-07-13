@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Coins, User, Rocket, LineChart, Map, ScrollText, Trophy, Sigma, Users, BookOpen, Martini, Home, Landmark, Factory, Building2, Ticket, Spade, Briefcase, LucideIcon, Truck, CarTaxiFront, Shield, Sword, Scale, Clipboard, Info, CandlestickChart, LandPlot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CAREER_DATA } from '@/lib/careers';
+import { formatAbbreviatedNumber } from '@/lib/utils';
 
 function HeggieIcon() {
   return (
@@ -93,7 +94,7 @@ export default function Header({ playerStats, onLinkClick }: {playerStats: Playe
             <div className="flex items-center gap-2 font-mono">
               <Coins className="h-5 w-5 text-amber-400" />
               <span className="text-lg font-semibold text-slate-200">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 0 }).format(netWorth).replace('$', '¢')}
+                {formatAbbreviatedNumber(netWorth)}¢
               </span>
             </div>
              <div className="hidden sm:flex items-center gap-2 font-mono text-slate-300">

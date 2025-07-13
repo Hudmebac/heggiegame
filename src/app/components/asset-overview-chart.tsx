@@ -10,7 +10,7 @@ import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart,
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatCompactNumber } from '@/lib/utils';
+import { formatAbbreviatedNumber } from '@/lib/utils';
 
 interface AssetOverviewChartProps {
   assetHistory: AssetSnapshot[];
@@ -68,10 +68,10 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.5)" />
                         <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={{stroke: 'hsl(var(--muted-foreground))'}} />
-                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatCompactNumber(Number(value))}`} />
+                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`} />
                         <ChartTooltip
                             cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
-                            content={<ChartTooltipContent indicator="dot" />}
+                            content={<ChartTooltipContent indicator="dot" formatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`}/>}
                         />
                          {(Object.keys(chartConfig) as ActiveKeys[]).map(key => (
                             activeKeys.includes(key) &&

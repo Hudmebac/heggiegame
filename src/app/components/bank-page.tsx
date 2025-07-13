@@ -15,6 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import CooldownTimer from './cooldown-timer';
 import BankValueChart from './bank-value-chart';
+import { formatAbbreviatedNumber } from '@/lib/utils';
 
 const TransactionDialog = ({ type, onConfirm, maxAmount, currentBalance }: { type: 'Deposit' | 'Withdraw', onConfirm: (amount: number) => void, maxAmount: number, currentBalance: number }) => {
     const [amount, setAmount] = useState(0);
@@ -28,8 +29,8 @@ const TransactionDialog = ({ type, onConfirm, maxAmount, currentBalance }: { typ
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-                <div className="flex justify-between text-sm"><span>{type === 'Deposit' ? 'Wallet' : 'Bank Account'}:</span> <span className="font-mono">{maxAmount.toLocaleString()}¢</span></div>
-                <div className="flex justify-between text-sm"><span>{type === 'Deposit' ? 'Bank Account' : 'Wallet'}:</span> <span className="font-mono">{currentBalance.toLocaleString()}¢</span></div>
+                <div className="flex justify-between text-sm"><span>{type === 'Deposit' ? 'Wallet' : 'Bank Account'}:</span> <span className="font-mono">{formatAbbreviatedNumber(maxAmount)}¢</span></div>
+                <div className="flex justify-between text-sm"><span>{type === 'Deposit' ? 'Bank Account' : 'Wallet'}:</span> <span className="font-mono">{formatAbbreviatedNumber(currentBalance)}¢</span></div>
                 <div>
                     <Label htmlFor="amount">Amount</Label>
                     <Input id="amount" type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
@@ -57,15 +58,15 @@ const ShareTransactionDialog = ({ type, onConfirm, price, maxShares, playerShare
             <DialogHeader>
                 <DialogTitle>{type} Bank Shares</DialogTitle>
                 <DialogDescription>
-                    Current share price: {price.toLocaleString()}¢. {type === 'Buy' ? `You can afford ${maxAffordable.toLocaleString()} share(s).` : `You own ${maxShares.toLocaleString()} share(s).`}
+                    Current share price: {formatAbbreviatedNumber(price)}¢. {type === 'Buy' ? `You can afford ${formatAbbreviatedNumber(maxAffordable)} share(s).` : `You own ${formatAbbreviatedNumber(maxShares)} share(s).`}
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
                  <div>
-                    <Label htmlFor="share-amount">Amount (Max: {maxCanTransact.toLocaleString()})</Label>
+                    <Label htmlFor="share-amount">Amount (Max: {formatAbbreviatedNumber(maxCanTransact)})</Label>
                     <Input id="share-amount" type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
                 </div>
-                 <div className="text-sm text-muted-foreground">Total Cost: {(amount * price).toLocaleString()}¢</div>
+                 <div className="text-sm text-muted-foreground">Total Cost: {formatAbbreviatedNumber(amount * price)}¢</div>
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
@@ -91,13 +92,13 @@ const LoanDialog = ({ onConfirm, netWorth }: { onConfirm: (amount: number) => vo
             </DialogHeader>
             <div className="space-y-4 py-4 text-sm">
                 <div>
-                    <Label htmlFor="loan-amount">Loan Amount (Max: {maxLoan.toLocaleString()}¢)</Label>
+                    <Label htmlFor="loan-amount">Loan Amount (Max: {formatAbbreviatedNumber(maxLoan)}¢)</Label>
                     <Input id="loan-amount" type="number" value={amount} onChange={e => setAmount(Math.max(0, Math.min(maxLoan, Number(e.target.value))))} />
                 </div>
                 <div className="p-3 rounded-md bg-background/50 border">
-                    <div className="flex justify-between"><span>Interest (10%):</span> <span className="font-mono">{interest.toLocaleString()}¢</span></div>
-                    <div className="flex justify-between"><span>Total Repayable:</span> <span className="font-mono">{totalRepayable.toLocaleString()}¢</span></div>
-                    <div className="flex justify-between"><span>Installments:</span> <span className="font-mono">{repayments} x {repaymentAmount.toLocaleString()}¢</span></div>
+                    <div className="flex justify-between"><span>Interest (10%):</span> <span className="font-mono">{formatAbbreviatedNumber(interest)}¢</span></div>
+                    <div className="flex justify-between"><span>Total Repayable:</span> <span className="font-mono">{formatAbbreviatedNumber(totalRepayable)}¢</span></div>
+                    <div className="flex justify-between"><span>Installments:</span> <span className="font-mono">{repayments} x {formatAbbreviatedNumber(repaymentAmount)}¢</span></div>
                 </div>
             </div>
             <DialogFooter>
@@ -159,10 +160,10 @@ export default function BankPageComponent() {
                             <CardTitle className="font-headline text-lg flex items-center gap-2"><PiggyBank className="text-primary"/> Account Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="flex justify-between text-sm"><span>Cash on Hand:</span><span className="font-mono text-amber-300">{playerStats.netWorth.toLocaleString()}¢</span></div>
-                            <div className="flex justify-between text-sm"><span>Bank Balance:</span><span className="font-mono text-amber-300">{bankAccount.balance.toLocaleString()}¢</span></div>
+                            <div className="flex justify-between text-sm"><span>Cash on Hand:</span><span className="font-mono text-amber-300">{formatAbbreviatedNumber(playerStats.netWorth)}¢</span></div>
+                            <div className="flex justify-between text-sm"><span>Bank Balance:</span><span className="font-mono text-amber-300">{formatAbbreviatedNumber(bankAccount.balance)}¢</span></div>
                             <div className="flex justify-between text-sm"><span>Interest Rate:</span><span className="font-mono text-amber-300">{bankAccount.interestRate.toFixed(2)}%</span></div>
-                            <div className="flex justify-between text-lg font-bold pt-2 border-t"><span>Total Wealth:</span><span className="font-mono text-primary">{totalWealth.toLocaleString()}¢</span></div>
+                            <div className="flex justify-between text-lg font-bold pt-2 border-t"><span>Total Wealth:</span><span className="font-mono text-primary">{formatAbbreviatedNumber(totalWealth)}¢</span></div>
                             <div className="flex gap-2 pt-4">
                                 <Button className="w-full" onClick={() => setDialog('deposit')}>Deposit</Button>
                                 <Button variant="outline" className="w-full" onClick={() => setDialog('withdraw')}>Withdraw</Button>
@@ -178,7 +179,7 @@ export default function BankPageComponent() {
                             {loan ? (
                                 <div className="text-sm space-y-2">
                                     <p className="font-semibold">Active Loan</p>
-                                    <div className="flex justify-between"><span>Principal:</span><span className="font-mono">{loan.principal.toLocaleString()}¢</span></div>
+                                    <div className="flex justify-between"><span>Principal:</span><span className="font-mono">{formatAbbreviatedNumber(loan.principal)}¢</span></div>
                                     <div className="flex justify-between"><span>Next Payment:</span><span className="font-mono"><CooldownTimer expiry={loan.nextDueDate} /></span></div>
                                     <div className="flex justify-between"><span>Repayments:</span><span className="font-mono">{loan.repaymentsMade} / {loan.totalRepayments}</span></div>
                                 </div>
@@ -187,7 +188,7 @@ export default function BankPageComponent() {
                             )}
                              <div className="flex justify-between text-sm pt-4 border-t">
                                 <span className="text-destructive flex items-center gap-2"><AlertTriangle/> Outstanding Debt:</span>
-                                <span className="font-mono text-destructive">{debt.toLocaleString()}¢</span>
+                                <span className="font-mono text-destructive">{formatAbbreviatedNumber(debt)}¢</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -201,11 +202,11 @@ export default function BankPageComponent() {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p className="text-muted-foreground">Shares Owned</p>
-                                    <p className="font-mono text-xl">{bankShares.toLocaleString()} / 10,000</p>
+                                    <p className="font-mono text-xl">{formatAbbreviatedNumber(bankShares)} / 10K</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-muted-foreground">Share Price</p>
-                                    <p className="font-mono text-xl text-amber-300">{bankAccount.sharePrice.toLocaleString()}¢</p>
+                                    <p className="font-mono text-xl text-amber-300">{formatAbbreviatedNumber(bankAccount.sharePrice)}¢</p>
                                 </div>
                             </div>
                             <Progress value={(bankShares / 10000) * 100} />
@@ -235,7 +236,7 @@ export default function BankPageComponent() {
                             </CardHeader>
                             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Button variant="destructive" className="w-full" onClick={handleAcquireBank} disabled={!canAffordAcquisition}>
-                                    Acquire Bank and Convert to Private Business ({acquisitionCost.toLocaleString()}¢)
+                                    Acquire Bank and Convert to Private Business ({formatAbbreviatedNumber(acquisitionCost)}¢)
                                 </Button>
                             </CardContent>
                         </Card>

@@ -1,5 +1,4 @@
 
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { InventoryItem, PlanetType, PlayerShip, MarketItem, ItemCategory, SystemEconomy, SimulateMarketPricesOutput, PlayerStats, Stock, ItemRarity, Property } from "./types";
@@ -13,15 +12,39 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCompactNumber(number: number) {
-    if (Math.abs(number) < 1000000) {
-        return number.toLocaleString();
-    }
-    return new Intl.NumberFormat('en-US', {
-        notation: 'compact',
-        compactDisplay: 'short',
-        maximumFractionDigits: 1,
-    }).format(number);
+export function formatAbbreviatedNumber(number: number): string {
+  if (number === null || number === undefined) return '0';
+  if (Math.abs(number) < 1000) {
+    return number.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  const tiers = [
+    { value: 1e33, symbol: "Dc" },
+    { value: 1e30, symbol: "No" },
+    { value: 1e27, symbol: "Oc" },
+    { value: 1e24, symbol: "Sp" },
+    { value: 1e21, symbol: "Sx" },
+    { value: 1e18, symbol: "Qi" },
+    { value: 1e15, symbol: "Qa" },
+    { value: 1e12, symbol: "T" },
+    { value: 1e9, symbol: "B" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e3, symbol: "K" }
+  ];
+
+  const tier = tiers.find(t => Math.abs(number) >= t.value);
+
+  if (tier) {
+    const value = number / tier.value;
+    // Show 1 decimal place for values less than 10, otherwise show whole numbers.
+    const fractionDigits = Math.abs(value) < 10 ? 1 : 0;
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }) + tier.symbol;
+  }
+  
+  return number.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
 export const ECONOMY_MULTIPLIERS: Record<ItemCategory, Record<SystemEconomy, number>> = {

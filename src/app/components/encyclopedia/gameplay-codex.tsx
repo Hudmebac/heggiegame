@@ -1,7 +1,8 @@
 
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package, Spade, Rocket, Circle, Globe, Dice5, Gem, Ticket, Trophy, LandPlot } from 'lucide-react';
+import { Skull, Shield, Star, Landmark, Heart, Briefcase, AlertTriangle, Package, Spade, Rocket, Circle, Globe, Dice5, Gem, Ticket, Trophy, LandPlot, Coins } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const difficultyLevels = [
     {
@@ -33,9 +34,50 @@ const casinoGames = [
     { icon: Ticket, title: 'Daily Lottery', description: 'A daily chance to win a massive, life-changing grand prize.' },
 ];
 
+const currencyAbbreviations = [
+    { symbol: 'K', name: 'Thousand', value: '1,000' },
+    { symbol: 'M', name: 'Million', value: '1,000,000' },
+    { symbol: 'B', name: 'Billion', value: '1,000,000,000' },
+    { symbol: 'T', name: 'Trillion', value: '1,000,000,000,000' },
+    { symbol: 'Qa', name: 'Quadrillion', value: '1,000,000,000,000,000' },
+    { symbol: 'Qi', name: 'Quintillion', value: '1,000,000,000,000,000,000' },
+    { symbol: 'Sx', name: 'Sextillion', value: '1E+21' },
+    { symbol: 'Sp', name: 'Septillion', value: '1E+24' },
+    { symbol: 'Oc', name: 'Octillion', value: '1E+27' },
+    { symbol: 'No', name: 'Nonillion', value: '1E+30' },
+    { symbol: 'Dc', name: 'Decillion', value: '1E+33' },
+];
+
 export default function GameplayCodex() {
     return (
         <div className="space-y-6">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2"><Coins className="text-primary"/>Currency Abbreviations</CardTitle>
+                    <CardDescription>To keep the interface clean, large numbers are abbreviated. Here is a table of common abbreviations.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Abbreviation</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead className="text-right">Value</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {currencyAbbreviations.map(abbr => (
+                                <TableRow key={abbr.symbol}>
+                                    <TableCell className="font-bold text-primary">{abbr.symbol}</TableCell>
+                                    <TableCell>{abbr.name}</TableCell>
+                                    <TableCell className="text-right font-mono">{abbr.value}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+            
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg flex items-center gap-2">Difficulty Levels</CardTitle>

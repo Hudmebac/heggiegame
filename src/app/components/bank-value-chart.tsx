@@ -4,6 +4,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { formatAbbreviatedNumber } from '@/lib/utils';
 
 interface BankValueChartProps {
   valueHistory: number[];
@@ -29,7 +30,7 @@ export default function BankValueChart({ valueHistory }: BankValueChartProps) {
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.5)" />
               <XAxis dataKey="time" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={{stroke: 'hsl(var(--muted-foreground))'}} />
-              <YAxis domain={['dataMin - 10000', 'dataMax + 10000']} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${Number(value).toLocaleString(undefined, {notation: 'compact'})}`} />
+              <YAxis domain={['dataMin - 10000', 'dataMax + 10000']} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`} />
               <ChartTooltip
                 cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
                 content={<ChartTooltipContent indicator="dot" formatter={(value) => `${Number(value).toLocaleString()}¢`} />}

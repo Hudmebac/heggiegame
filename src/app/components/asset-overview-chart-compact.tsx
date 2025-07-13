@@ -10,7 +10,7 @@ import { TrendingUp, Coins, LandPlot, Ship, Package, Landmark, CandlestickChart,
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatCompactNumber } from '@/lib/utils';
+import { formatAbbreviatedNumber } from '@/lib/utils';
 
 interface AssetOverviewChartCompactProps {
   assetHistory: AssetSnapshot[];
@@ -67,10 +67,10 @@ export default function AssetOverviewChartCompact({ assetHistory }: AssetOvervie
                             ))}
                         </defs>
                         <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatCompactNumber(Number(value))}`} />
+                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`} />
                         <ChartTooltip
                             cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
-                            content={<ChartTooltipContent indicator="dot" />}
+                            content={<ChartTooltipContent indicator="dot" formatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`}/>}
                         />
                          {(Object.keys(chartConfig) as ActiveKeys[]).map(key => (
                             <Area
@@ -126,4 +126,3 @@ export default function AssetOverviewChartCompact({ assetHistory }: AssetOvervie
         </div>
     );
 }
-
