@@ -39,11 +39,11 @@ const initialInsuranceState: InsurancePolicies = {
 
 const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes' | 'systems' > & { playerStats: Partial<PlayerStats>, routes: [], systems: [] } = {
   playerStats: {
-    name: 'You',
+    name: 'Ree Nayme',
     bio: 'A mysterious trader with a past yet to be written. The galaxy is full of opportunity, and your story is just beginning.',
     netWorth: 10000,
     stardate: formatStardate(new Date()),
-    avatarUrl: '/images/avatars/avatar_01.png',
+    avatarUrl: '/images/avatars/avatar_18.png',
     faction: 'Independent',
     factionReputation: {
         'Independent': 100,
