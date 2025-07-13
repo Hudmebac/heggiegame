@@ -42,9 +42,9 @@ export const businessData: BusinessData[] = [
         title: "Bar",
         description: "The social and economic cornerstone of any starport. Serve drinks, gather intel, and build a reputation. Upgrades increase income per patron, while bots automate service for passive revenue. A well-run bar can be expanded into a galactic franchise, influencing trade and culture across systems.",
         costs: [
-            { label: "Upgrade Bar", starterPrice: 200, growth: 1.25, icon: ChevronsUp },
-            { label: "Bot Deployment", starterPrice: 400, growth: 1.50, icon: Bot },
-            { label: "Establishment", starterPrice: 100000, growth: 2.50, icon: Coins, isEstablishment: true },
+            { label: "Upgrade Bar", starterPrice: 200, growth: 1, icon: ChevronsUp },
+            { label: "Bot Deployment", starterPrice: 400, growth: 1, icon: Bot },
+            { label: "Establishment", starterPrice: 100000, growth: 2, icon: Coins, isEstablishment: true },
         ]
     },
     {
@@ -53,9 +53,9 @@ export const businessData: BusinessData[] = [
         title: "Residence",
         description: "A stable, long-term investment. Collect rent from tenants across the galaxy. Upgrades improve property value and rental income, while service bots handle automated collection. Successful property management can lead to the development of a vast galactic estate.",
         costs: [
-            { label: "Upgrade Residence", starterPrice: 250, growth: 1.25, icon: ChevronsUp },
-            { label: "Bot Deployment", starterPrice: 300, growth: 1.50, icon: Bot },
-            { label: "Deed Issuance", starterPrice: 400000, growth: 2.50, icon: Coins, isEstablishment: true },
+            { label: "Upgrade Residence", starterPrice: 250, growth: 1, icon: ChevronsUp },
+            { label: "Bot Deployment", starterPrice: 300, growth: 1, icon: Bot },
+            { label: "Deed Issuance", starterPrice: 400000, growth: 2, icon: Coins, isEstablishment: true },
         ]
     },
     {
@@ -64,9 +64,9 @@ export const businessData: BusinessData[] = [
         title: "Commerce Hub",
         description: "The heart of interstellar trade. Broker deals between factions, manage complex logistics, and profit from every transaction. Hub upgrades increase deal value, while trading bots automate transactions. A powerful hub can be developed into a galaxy-spanning commercial conglomerate.",
         costs: [
-            { label: "Upgrade Hub", starterPrice: 300, growth: 1.25, icon: ChevronsUp },
-            { label: "Bot Deployment", starterPrice: 400, growth: 1.50, icon: Bot },
-            { label: "Expansion", starterPrice: 800000, growth: 2.50, icon: Coins, isEstablishment: true },
+            { label: "Upgrade Hub", starterPrice: 300, growth: 1, icon: ChevronsUp },
+            { label: "Bot Deployment", starterPrice: 400, growth: 1, icon: Bot },
+            { label: "Expansion", starterPrice: 800000, growth: 2, icon: Coins, isEstablishment: true },
         ]
     },
     {
@@ -75,9 +75,9 @@ export const businessData: BusinessData[] = [
         title: "Industrial Facility",
         description: "The engine of production. Manufacture goods from raw materials, fulfilling large-scale orders for factions and markets. Upgrades boost production speed and efficiency, while assembly bots ensure the facility runs 24/7. Can be expanded into a massive industrial complex, dominating the supply chain.",
         costs: [
-            { label: "Upgrade Facility", starterPrice: 350, growth: 1.25, icon: ChevronsUp },
-            { label: "Bot Deployment", starterPrice: 200, growth: 1.50, icon: Bot },
-            { label: "Permit", starterPrice: 1200000, growth: 2.50, icon: Coins, isEstablishment: true },
+            { label: "Upgrade Facility", starterPrice: 350, growth: 1, icon: ChevronsUp },
+            { label: "Bot Deployment", starterPrice: 200, growth: 1, icon: Bot },
+            { label: "Permit", starterPrice: 1200000, growth: 2, icon: Coins, isEstablishment: true },
         ]
     },
     {
@@ -86,9 +86,9 @@ export const businessData: BusinessData[] = [
         title: "Construction Project",
         description: "Shape the galaxy itself. Undertake massive building projects, from planetary habitats to orbital megastructures. A high-capital venture where each upgrade increases project scope and payout. Can be developed into a legendary megastructure project.",
         costs: [
-            { label: "Upgrade Project", starterPrice: 400, growth: 1.25, icon: ChevronsUp },
-            { label: "Bot Deployment", starterPrice: 750, growth: 1.50, icon: Bot },
-            { label: "Deed Licensing", starterPrice: 2400000, growth: 2.50, icon: Coins, isEstablishment: true },
+            { label: "Upgrade Project", starterPrice: 400, growth: 1, icon: ChevronsUp },
+            { label: "Bot Deployment", starterPrice: 750, growth: 1, icon: Bot },
+            { label: "Deed Licensing", starterPrice: 2400000, growth: 2, icon: Coins, isEstablishment: true },
         ]
     },
     {
@@ -97,9 +97,9 @@ export const businessData: BusinessData[] = [
         title: "Recreation Facility",
         description: "The galaxy's escape from the void. Operate entertainment venues, from vibrant arcades to luxurious holo-theaters. Upgrades enhance the quality of attractions, drawing more patrons. Can be expanded into a premier galactic resort, a destination for the wealthy and influential.",
         costs: [
-            { label: "Upgrade Facility", starterPrice: 500, growth: 1.25, icon: ChevronsUp },
-            { label: "Bot Deployment", starterPrice: 1000, growth: 1.50, icon: Bot },
-            { label: "Facility Expansion", starterPrice: 3000000, growth: 2.50, icon: Coins, isEstablishment: true },
+            { label: "Upgrade Facility", starterPrice: 500, growth: 1, icon: ChevronsUp },
+            { label: "Bot Deployment", starterPrice: 1000, growth: 1, icon: Bot },
+            { label: "Facility Expansion", starterPrice: 3000000, growth: 2, icon: Coins, isEstablishment: true },
         ]
     },
     {
@@ -108,8 +108,8 @@ export const businessData: BusinessData[] = [
         title: "Galactic Bank",
         description: "The ultimate seat of financial power. As owner, you manage vast capital flows, underwrite galactic ventures, and offer loans, turning it into the most powerful income-generating asset in your portfolio.",
         costs: [
-            { label: "Upgrade Infrastructure", starterPrice: 2000000, growth: 1.25, icon: ChevronsUp },
-            { label: "Deploy Financial Bot", starterPrice: 5000000, growth: 1.50, icon: Bot },
+            { label: "Upgrade Infrastructure", starterPrice: 2000000, growth: 1, icon: ChevronsUp },
+            { label: "Deploy Financial Bot", starterPrice: 5000000, growth: 1, icon: Bot },
         ]
     },
     {
