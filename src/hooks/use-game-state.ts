@@ -264,8 +264,7 @@ export function useGameState() {
                         difficulty: difficulty,
                         isGameOver: false,
                     };
-        
-                    setGameState(newGameState);
+                     setGameState(newGameState);
                     toast({ title: "New Game Started", description: `Your career as a ${career} begins on ${difficulty} difficulty!`, duration: 5000 });
                     resolve();
                 } catch(e) {
