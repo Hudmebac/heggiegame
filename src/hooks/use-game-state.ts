@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useTransition } from 'react';
-import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, PropertyType, Lease, PropertySaleOffer } from '@/lib/types';
+import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCategory, SystemEconomy, PlayerShip, CasinoState, Difficulty, InsurancePolicies, Loan, CreditCard, Career, TaxiMission, Warehouse, EscortMission, MilitaryMission, DiplomaticMission, FactionId, GameEvent, AssetSnapshot, Stock, Property, PropertyType, Lease, PropertySaleOffer, NpcPropertySale } from '@/lib/types';
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, warehouseUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
@@ -17,6 +17,7 @@ import { INITIAL_STOCKS } from '@/lib/stocks';
 import { useToast } from '@/hooks/use-toast';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, calculatePrice, ECONOMY_MULTIPLIERS, RARITY_SUPPLY_RANGES } from '@/lib/utils';
 import pako from 'pako';
+import { FACTIONS_DATA } from '@/lib/factions';
 
 const formatStardate = (date: Date): string => {
     const year = date.getFullYear().toString().slice(-2);
@@ -556,7 +557,7 @@ export function useGameState() {
                             newPlayerStats.factionReputation = newReputation;
     
                             eventsToAdd.push({
-                                id: `evt_rent_${lease.propertyId}_${performance.now()}`,
+                                id: `evt_rent_${lease.propertyId}_${now}_${Math.random()}`,
                                 timestamp: now,
                                 type: 'Lease',
                                 description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
