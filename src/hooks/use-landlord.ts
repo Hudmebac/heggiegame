@@ -275,14 +275,28 @@ export function useLandlord(
             const property = newProperties.find(p => p.id === propertyId);
             if (!property) return prev;
 
+            const estimatedValue = calculatePropertyValue(property);
             const offerCount = 2 + Math.floor(Math.random() * 3); // 2-4 offers
+            
+            const isAmbitious = askingPrice > estimatedValue * 1.1;
+            const offerPriceCap = isAmbitious ? estimatedValue * 1.05 : Infinity;
+            
             const newOffers: PropertySaleOffer[] = Array.from({ length: offerCount }).map((_, i) => {
-                const offerModifier = 0.8 + Math.random() * 0.4; // Offer between 80% and 120% of asking price
+                const offerModifier = isAmbitious
+                    ? 0.8 + Math.random() * 0.25 // Offer between 80% and 105% of estimated value
+                    : 0.8 + Math.random() * 0.4; // Offer between 80% and 120% of asking price
+                
+                const basePriceForOffer = isAmbitious ? estimatedValue : askingPrice;
+                let offerAmount = Math.round(basePriceForOffer * offerModifier);
+                if (isAmbitious) {
+                    offerAmount = Math.min(offerAmount, Math.round(offerPriceCap));
+                }
+                
                 return {
                     offerId: `offer_${propertyId}_${Date.now()}_${i}`,
                     propertyId: propertyId,
                     buyerName: traderNames[Math.floor(Math.random() * traderNames.length)],
-                    offerAmount: Math.round(askingPrice * offerModifier),
+                    offerAmount: offerAmount,
                     askingPrice: askingPrice,
                     narrative: "A compelling offer for a prime piece of real estate."
                 }
@@ -318,7 +332,7 @@ export function useLandlord(
                 events: [
                     ...prev.playerStats.events,
                     {
-                        id: `evt_prop_sale_${offer.offerId}`,
+                        id: `evt_prop_sale_${offer.propertyId}`,
                         timestamp: Date.now(),
                         type: 'Purchase' as const,
                         description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
@@ -449,5 +463,3 @@ export function useLandlord(
         isGeneratingListings,
     };
 }
-
-    

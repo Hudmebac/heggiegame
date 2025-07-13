@@ -75,6 +75,9 @@ const UpgradeDialog = ({ property }: { property: Property }) => {
 const ListForSaleDialog = ({ property, onList }: { property: Property, onList: (id: number, price: number) => void }) => {
     const estimatedValue = calculatePropertyValue(property);
     const [askingPrice, setAskingPrice] = useState(estimatedValue);
+    const maxAskingPrice = Math.round(estimatedValue * 1.2);
+    const isPriceTooHigh = askingPrice > maxAskingPrice;
+    const isPriceAmbitious = askingPrice > estimatedValue * 1.1;
 
     return (
          <DialogContent>
@@ -87,13 +90,15 @@ const ListForSaleDialog = ({ property, onList }: { property: Property, onList: (
             <div className="space-y-4 py-4">
                  <div className="text-sm text-center">Estimated Market Value: <span className="font-mono text-amber-300">{estimatedValue.toLocaleString()}¢</span></div>
                  <div>
-                    <Label htmlFor="asking-price">Asking Price</Label>
+                    <Label htmlFor="asking-price">Asking Price (Max: {maxAskingPrice.toLocaleString()}¢)</Label>
                     <Input id="asking-price" type="number" value={askingPrice} onChange={(e) => setAskingPrice(Number(e.target.value))} />
+                    {isPriceTooHigh && <p className="text-xs text-destructive mt-1">Asking price cannot exceed 20% of the estimated value.</p>}
+                    {isPriceAmbitious && !isPriceTooHigh && <p className="text-xs text-amber-400 mt-1">Pricing aggressively may lead to lower offers.</p>}
                 </div>
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <DialogClose asChild><Button onClick={() => onList(property.id, askingPrice)}>List Property</Button></DialogClose>
+                <DialogClose asChild><Button onClick={() => onList(property.id, askingPrice)} disabled={isPriceTooHigh}>List Property</Button></DialogClose>
             </DialogFooter>
         </DialogContent>
     )
