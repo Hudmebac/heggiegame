@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare, X, Tag } from 'lucide-react';
+import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare, X, Tag, ListCollapse, ListTree } from 'lucide-react';
 import type { Property, PropertyType, Lease, PropertySaleOffer, NpcPropertySale } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
@@ -181,6 +181,7 @@ const PropertyCard = ({ property, onRenameClick, onListClick }: { property: Prop
 
 const AssignLeaseDialog = ({ lease, properties, onAssign, isOpen, onOpenChange }: { lease: Lease, properties: Property[], onAssign: (propertyId: number) => void, isOpen: boolean, onOpenChange: (open: boolean) => void }) => {
     const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
+    const idleProperties = properties.filter(p => p.status === 'Idle');
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -196,7 +197,7 @@ const AssignLeaseDialog = ({ lease, properties, onAssign, isOpen, onOpenChange }
                             <SelectValue placeholder="Select a property..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {properties.map(prop => (
+                            {idleProperties.map(prop => (
                                 <SelectItem key={prop.id} value={String(prop.id)}>
                                     {prop.name} (Lvl {prop[`${prop.type.toLowerCase()}Level` as keyof Property] as number}) - {prop.systemName}
                                 </SelectItem>
@@ -254,7 +255,8 @@ export default function LandlordPage() {
     const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
     const [renamingProperty, setRenamingProperty] = useState<Property | null>(null);
     const [listingProperty, setListingProperty] = useState<Property | null>(null);
-
+    const [openPortfolioSections, setOpenPortfolioSections] = useState<string[]>([]);
+    
     if (!gameState) return null;
 
     const { playerStats } = gameState;
@@ -276,9 +278,17 @@ export default function LandlordPage() {
     const leaseCooldownExpiry = lastLeaseGeneration + leaseCooldown;
     
     const listingCooldown = 20 * 60 * 1000;
-    const lastListingGeneration = playerStats.lastNpcPropertyGeneration || 0;
-    const isListingOnCooldown = Date.now() < lastListingGeneration + listingCooldown;
-    const listingCooldownExpiry = lastListingGeneration + listingCooldown;
+    const lastNpcPropertyGeneration = playerStats.lastNpcPropertyGeneration || 0;
+    const isListingOnCooldown = Date.now() < lastNpcPropertyGeneration + listingCooldown;
+    const listingCooldownExpiry = lastNpcPropertyGeneration + listingCooldown;
+    
+    const toggleAllSections = () => {
+        if (openPortfolioSections.length > 0) {
+            setOpenPortfolioSections([]);
+        } else {
+            setOpenPortfolioSections(propertyTypeConfig.map(p => p.type));
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -380,12 +390,20 @@ export default function LandlordPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline text-lg">Your Portfolio</CardTitle>
-                    <CardDescription>An overview of all properties you own, grouped by type.</CardDescription>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle className="font-headline text-lg">Your Portfolio</CardTitle>
+                            <CardDescription>An overview of all properties you own, grouped by type.</CardDescription>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={toggleAllSections}>
+                           {openPortfolioSections.length > 0 ? <ListCollapse className="mr-2"/> : <ListTree className="mr-2"/>}
+                           {openPortfolioSections.length > 0 ? 'Collapse All' : 'Expand All'}
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {properties.length > 0 ? (
-                        <Accordion type="multiple" defaultValue={propertyTypeConfig.map(p => p.type)}>
+                        <Accordion type="multiple" value={openPortfolioSections} onValueChange={setOpenPortfolioSections}>
                            {propertyTypeConfig.map(({ type, icon: Icon }) => {
                                const propertiesOfType = properties.filter(p => p.type === type);
                                if (propertiesOfType.length === 0) return null;
