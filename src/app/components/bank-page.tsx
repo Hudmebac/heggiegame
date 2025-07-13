@@ -6,7 +6,7 @@ import { useGame } from '@/app/components/game-provider';
 import BankClicker from './bank-clicker';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, FileSignature } from 'lucide-react';
+import { Landmark, Coins, Briefcase, PiggyBank, CreditCard as CreditCardIcon, HandCoins, AlertTriangle, FileSignature, Percent } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -231,6 +231,32 @@ export default function BankPageComponent() {
                     {hasMajority && (
                         <Card className="lg:col-span-3">
                             <CardHeader>
+                                <CardTitle className="font-headline text-lg flex items-center gap-2"><Percent className="text-primary"/> Bank Management</CardTitle>
+                                <CardDescription>As a majority shareholder, you can set the bank's interest rate policy. Higher rates attract more deposits but may lower share price.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <Label>Interest Rate: {newInterestRate.toFixed(2)}%</Label>
+                                        <span>Current: {bankAccount.interestRate.toFixed(2)}%</span>
+                                    </div>
+                                    <Slider
+                                        defaultValue={[bankAccount.interestRate]}
+                                        value={[newInterestRate]}
+                                        onValueChange={(value) => setNewInterestRate(value[0])}
+                                        min={0.01}
+                                        max={5}
+                                        step={0.01}
+                                    />
+                                </div>
+                                <Button onClick={() => handleSetInterestRate(newInterestRate)}>Set New Rate</Button>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {hasFullOwnership && (
+                        <Card className="lg:col-span-3">
+                            <CardHeader>
                                 <CardTitle className="font-headline text-lg flex items-center gap-2">Full Ownership</CardTitle>
                                 <CardDescription>You own all outstanding shares of the Galactic Bank. You can now nationalize it as your own private enterprise for a final fee.</CardDescription>
                             </CardHeader>
@@ -286,4 +312,3 @@ export default function BankPageComponent() {
         </div>
     )
 }
-
