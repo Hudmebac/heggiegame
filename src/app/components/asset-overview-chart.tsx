@@ -67,7 +67,6 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
                             ))}
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.5)" />
-                        <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={{stroke: 'hsl(var(--muted-foreground))'}} />
                         <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`} />
                         <ChartTooltip
                             cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
