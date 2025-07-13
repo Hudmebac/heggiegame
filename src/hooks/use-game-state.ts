@@ -455,7 +455,6 @@ export function useGameState() {
     
                 let newPlayerStats = { ...prev.playerStats };
                 let stateChanged = false;
-                let bankruptcyTriggered = false;
                 const now = Date.now();
                 let toastsToFire: { variant?: "default" | "destructive", title: string, description: string }[] = [];
                 let eventsToAdd: GameEvent[] = [];
