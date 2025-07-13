@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { generateLeaseProposals, generatePropertyListings } from '@/app/actions';
 import { FACTIONS_DATA } from '@/lib/factions';
-import { calculatePropertyValue } from '@/lib/utils';
+import { calculatePropertyValue, formatAbbreviatedNumber } from '@/lib/utils';
 import { traderNames } from '@/lib/traders';
 
 export function useLandlord(
@@ -446,6 +446,107 @@ export function useLandlord(
         });
     }, [setGameState, toast]);
 
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setGameState(prev => {
+                if (!prev || prev.isGameOver) return prev;
+    
+                let newPlayerStats = { ...prev.playerStats };
+                let stateChanged = false;
+                const now = Date.now();
+                let eventsToAdd: GameEvent[] = [];
+                
+                // Handle property upgrades/purchases
+                const newProperties = newPlayerStats.properties.map(prop => {
+                    if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
+                        stateChanged = true;
+                        const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
+                        if (prop.upgradingComponent === 'Purchase') {
+                            const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                            (newProp as any)[upgradeKey] = 1;
+                            setTimeout(() => toast({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` }), 0);
+                        } else {
+                            const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
+                            (newProp as any)[upgradeKey] = ((newProp[upgradeKey] as number) || 0) + 1;
+                            setTimeout(() => toast({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` }), 0);
+                        }
+                        return newProp;
+                    }
+                    return prop;
+                });
+    
+                if (stateChanged) {
+                    newPlayerStats.properties = newProperties;
+                }
+                
+                // Handle lease payments and expirations
+                const activeLeases = newPlayerStats.activeLeases || [];
+                const newlyCompletedLeases: Lease[] = [];
+                let stillActiveLeases: Lease[] = [];
+    
+                if(activeLeases.length > 0) {
+                    stillActiveLeases = activeLeases.map(lease => {
+                         const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
+                        if (now >= leaseEndTime) {
+                            newlyCompletedLeases.push(lease);
+                            stateChanged = true;
+                            return null;
+                        }
+    
+                        const rentIntervalMs = 2 * 60 * 1000;
+                        const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
+                        const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
+                        
+                        if (intervalsToPay > 0) {
+                            const rentToCollect = intervalsToPay * lease.rent;
+                            newPlayerStats.netWorth += rentToCollect;
+                            
+                            const newReputation = { ...newPlayerStats.factionReputation };
+                            FACTIONS_DATA.forEach(faction => {
+                                if (faction.id !== 'Independent') {
+                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.01 * intervalsToPay;
+                                }
+                            });
+                            newPlayerStats.factionReputation = newReputation;
+    
+                            eventsToAdd.push({
+                                id: `evt_rent_${lease.propertyId}_${now}_${Math.random()}`,
+                                timestamp: now,
+                                type: 'Lease' as const,
+                                description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
+                                value: rentToCollect,
+                                reputationChange: 0.01 * intervalsToPay,
+                                isMilestone: false,
+                            });
+                            
+                            lease.lastRentCollection = (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs;
+                            stateChanged = true;
+                        }
+                        return lease;
+                    }).filter(Boolean) as Lease[];
+    
+                    if (newlyCompletedLeases.length > 0) {
+                        stateChanged = true;
+                        const completedPropertyIds = new Set(newlyCompletedLeases.map(l => l.propertyId));
+                        newPlayerStats.properties = newPlayerStats.properties.map(p => 
+                            completedPropertyIds.has(p.id) ? { ...p, status: 'Idle' } : p
+                        );
+                    }
+                    newPlayerStats.activeLeases = stillActiveLeases;
+                }
+    
+                if (eventsToAdd.length > 0) {
+                    newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
+                }
+    
+                return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
+            });
+        }, 1000); // Check every second for lease/upgrade logic
+    
+        return () => clearInterval(interval);
+    }, [setGameState, toast]);
+    
 
     return {
         handlePurchaseProperty,
