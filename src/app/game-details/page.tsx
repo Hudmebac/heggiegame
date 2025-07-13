@@ -9,7 +9,7 @@ import Link from "next/link";
 
 const changelogData = [
     {
-        version: "v1.4.0 - 'Foundations'",
+        version: "v1.3.4 - 'Foundations'",
         date: "Startdate: Echo 4525.07.12",
         changes: [
             "Introduced the 'Landlord' career path, allowing players to build a real estate empire.",

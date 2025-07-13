@@ -111,8 +111,14 @@ function PlayerProfile() {
     const shareText = `I'm playing HEGGIE - Space Game 🪐 I'm a ${playerStats.career}, and my net worth’s already a cosmic-sized ${playerStats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
 
     const handleCopyToClipboard = () => {
-        navigator.clipboard.writeText(shareText);
-        toast({ title: 'Copied to Clipboard!', description: 'You can now paste this message into your post.' });
+        navigator.clipboard.writeText(shareText)
+            .then(() => {
+                toast({ title: 'Copied to Clipboard!', description: 'You can now paste this message into your post.' });
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+                toast({ title: 'Copy Failed', description: 'Could not automatically copy the text. Please copy it manually from the box below.', variant: 'destructive' });
+            });
     };
 
     const onShareToWhatsapp = () => {
@@ -239,7 +245,9 @@ function PlayerProfile() {
                             <AlertDialogContent>
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Share to Facebook</AlertDialogTitle>
-                                    <AlertDialogDescription>Copy the message below and paste it into your Facebook post to receive 1,000,000 tokens!</AlertDialogDescription>
+                                    <AlertDialogDescription>
+                                        Copy the message below and paste it into your Facebook post to receive 1,000,000 tokens! If the copy button doesn't work, please copy the text manually from the box below.
+                                    </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <div className="p-4 bg-muted rounded-md text-sm italic border">
                                     {shareText}

@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
-import type { GameState, Property, PropertyType, Lease, GameEvent, FactionId, PropertySaleOffer } from '@/lib/types';
+import type { GameState, Property, PropertyType, Lease, GameEvent, FactionId, PropertySaleOffer, NpcPropertySale } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { generateLeaseProposals, generatePropertyListings } from '@/app/actions';
@@ -16,6 +16,8 @@ export function useLandlord(
 ) {
     const { toast } = useToast();
     const [isGeneratingLeases, setIsGeneratingLeases] = useState(false);
+    const [isGeneratingListings, setIsGeneratingListings] = useState(false);
+
 
     const handlePurchaseProperty = useCallback((type: PropertyType) => {
         setGameState(prev => {
@@ -321,6 +323,7 @@ export function useLandlord(
                 type: 'Purchase', // Logged as a 'purchase' for the buyer, shows as income for player
                 description: `Sold property "${propertySold?.name}" to ${offer.buyerName}.`,
                 value: offer.offerAmount,
+                reputationChange: 2,
                 isMilestone: true,
             });
 
@@ -349,21 +352,58 @@ export function useLandlord(
         });
     }, [setGameState]);
 
-    const handlePurchaseNpcProperty = useCallback((property: Property) => {
+    const handleScoutForListings = useCallback(async () => {
+        if (!gameState) return;
+
+        const cooldown = 20 * 60 * 1000;
+        const lastGeneration = gameState.playerStats.lastNpcPropertyGeneration || 0;
+        if (Date.now() - lastGeneration < cooldown) {
+            toast({ variant: 'destructive', title: 'On Cooldown', description: 'Can only scout for new listings every 20 minutes.' });
+            return;
+        }
+
+        setIsGeneratingListings(true);
+        try {
+            const result = await generatePropertyListings({ count: 3 + Math.floor(Math.random() * 3), systemName: gameState.currentSystem });
+            setGameState(prev => {
+                if (!prev) return null;
+                const newPlayerStats = {
+                    ...prev.playerStats,
+                    npcPropertySales: result.properties as NpcPropertySale[],
+                    lastNpcPropertyGeneration: Date.now(),
+                };
+                return { ...prev, playerStats: newPlayerStats };
+            });
+            toast({ title: 'Market Scanned', description: 'New property listings are available in this system.' });
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Network Error', description: 'Could not fetch property listings at this time.' });
+        } finally {
+            setIsGeneratingListings(false);
+        }
+    }, [gameState, setGameState, toast]);
+
+    const handlePurchaseNpcProperty = useCallback((property: NpcPropertySale) => {
         setGameState(prev => {
             if (!prev) return null;
 
-            const cost = calculatePropertyValue(property);
+            const cost = property.askingPrice;
              if (prev.playerStats.netWorth < cost) {
                 setTimeout(() => toast({ variant: 'destructive', title: 'Purchase Failed', description: 'Insufficient funds.' }), 0);
                 return prev;
             }
 
             const newProperty: Property = {
-                ...property,
                 id: Date.now(),
+                name: property.name,
+                type: property.type,
+                systemName: property.systemName,
+                residentialLevel: property.type === 'Residential' ? property.level : 0,
+                commercialLevel: property.type === 'Commercial' ? property.level : 0,
+                industrialLevel: property.type === 'Industrial' ? property.level : 0,
+                recreationalLevel: property.type === 'Recreational' ? property.level : 0,
+                militaryLevel: property.type === 'Military' ? property.level : 0,
                 status: 'Idle',
-                systemName: prev.currentSystem,
             };
 
             const newPlayerStats = {
@@ -377,7 +417,7 @@ export function useLandlord(
                 id: `evt_prop_purchase_${Date.now()}_${Math.random()}`,
                 timestamp: Date.now(),
                 type: 'Purchase' as const,
-                description: `Purchased "${property.name}" in ${prev.currentSystem}.`,
+                description: `Purchased "${property.name}" in ${property.systemName}.`,
                 value: -cost,
                 reputationChange: 1,
                 isMilestone: true,
@@ -390,113 +430,6 @@ export function useLandlord(
         });
     }, [setGameState, toast]);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setGameState(prev => {
-                if (!prev || prev.isGameOver) return prev;
-    
-                let newPlayerStats = { ...prev.playerStats };
-                let stateChanged = false;
-                const now = Date.now();
-                let eventsToAdd: GameEvent[] = [];
-                let toastsToFire: { title: string, description: string }[] = [];
-                
-                const activeLeases = newPlayerStats.activeLeases || [];
-                const newlyCompletedLeases: Lease[] = [];
-                const stillActiveLeases: Lease[] = [];
-
-                if(activeLeases.length > 0) {
-                    activeLeases.forEach(lease => {
-                        const leaseEndTime = lease.startTime + lease.duration * 3600 * 1000;
-                        if (now >= leaseEndTime) {
-                            newlyCompletedLeases.push(lease);
-                            stateChanged = true;
-                            return;
-                        }
-    
-                        const rentIntervalMs = 2 * 60 * 1000;
-                        const timeSinceLastRent = now - (lease.lastRentCollection || lease.startTime);
-                        const intervalsToPay = Math.floor(timeSinceLastRent / rentIntervalMs);
-                        
-                        if (intervalsToPay > 0) {
-                            const rentToCollect = intervalsToPay * lease.rent;
-                            newPlayerStats.netWorth += rentToCollect;
-                            
-                            const newReputation = { ...newPlayerStats.factionReputation };
-                            FACTIONS_DATA.forEach(faction => {
-                                if (faction.id !== 'Independent') {
-                                    newReputation[faction.id] = (newReputation[faction.id] || 0) + 0.5 * intervalsToPay;
-                                }
-                            });
-                            newPlayerStats.factionReputation = newReputation;
-    
-                            eventsToAdd.push({
-                                id: `evt_rent_${lease.propertyId}_${performance.now()}`,
-                                timestamp: now,
-                                type: 'Lease',
-                                description: `Collected ${rentToCollect.toLocaleString()}¢ in rent from ${lease.tenantName}.`,
-                                value: rentToCollect,
-                                reputationChange: 0.5 * intervalsToPay,
-                                isMilestone: false,
-                            });
-                            
-                            lease.lastRentCollection = (lease.lastRentCollection || lease.startTime) + intervalsToPay * rentIntervalMs;
-                            stateChanged = true;
-                        }
-                        stillActiveLeases.push(lease);
-                    });
-    
-                    if (newlyCompletedLeases.length > 0) {
-                        stateChanged = true;
-                        newlyCompletedLeases.forEach(lease => {
-                            const propIndex = newPlayerStats.properties.findIndex(p => p.id === lease.propertyId);
-                            if(propIndex > -1) {
-                                newPlayerStats.properties[propIndex].status = 'Idle';
-                            }
-                            toastsToFire.push({ title: 'Lease Expired', description: `The lease with ${lease.tenantName} has ended.` });
-                        });
-                    }
-                    newPlayerStats.activeLeases = stillActiveLeases;
-                }
-                
-                if (eventsToAdd.length > 0) {
-                    newPlayerStats.events = [...newPlayerStats.events, ...eventsToAdd];
-                }
-    
-                let propStateChanged = false;
-                const newProperties = [...newPlayerStats.properties].map(prop => {
-                    if (prop.status === 'Upgrading' && prop.upgradeStartTime && prop.upgradeDuration && now > prop.upgradeStartTime + prop.upgradeDuration) {
-                        stateChanged = true;
-                        propStateChanged = true;
-                        const newProp = { ...prop, status: 'Idle' as const, upgradeStartTime: undefined, upgradeDuration: undefined };
-                        if(prop.upgradingComponent === 'Purchase') {
-                            const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
-                            (newProp as any)[upgradeKey] = 1;
-                            toastsToFire.push({ title: "Property Acquired!", description: `Your new ${newProp.type} property in ${newProp.systemName} is ready.` });
-                        } else {
-                             const upgradeKey = `${newProp.type.toLowerCase()}Level` as keyof Property;
-                             (newProp as any)[upgradeKey] = (newProp[upgradeKey] as number) + 1;
-                             toastsToFire.push({ title: "Upgrade Complete!", description: `Your ${newProp.name} has been upgraded.` });
-                        }
-                        return newProp;
-                    }
-                    return prop;
-                });
-    
-                if (propStateChanged) {
-                    newPlayerStats.properties = newProperties;
-                }
-
-                if (toastsToFire.length > 0) {
-                    setTimeout(() => toastsToFire.forEach(t => toast(t)), 0);
-                }
-                
-                return stateChanged ? { ...prev, playerStats: newPlayerStats } : prev;
-            });
-        }, 1000); // Check every second
-    
-        return () => clearInterval(interval);
-    }, [setGameState, toast]);
 
     return {
         handlePurchaseProperty,
@@ -508,7 +441,9 @@ export function useLandlord(
         handleListPropertyForSale,
         handleAcceptPropertyOffer,
         handleDeclinePropertyOffer,
+        handleScoutForListings,
         handlePurchaseNpcProperty,
         isGeneratingLeases,
+        isGeneratingListings,
     };
 }

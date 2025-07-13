@@ -44,6 +44,11 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
   
   const fbShareText = `I'm playing HEGGIE - Space Game 🪐 I'm a ${stats.career}, and my net worth’s already a cosmic-sized ${stats.netWorth.toLocaleString()}¢. Think you can top that?\n\n🎮 Start your own adventure now: 🌍 https://heggiegame.netlify.app/captain\n\n💥 Use promo code STARTERBOOST for a boost of 100,000,000¢ — it’s my little gift to you.`;
 
+  const handleFacebookShare = () => {
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://heggiegame.netlify.app/captain')}&quote=${encodeURIComponent(fbShareText)}`;
+ window.open(shareUrl, '_blank');
+  };
+
   return (
     <>
         <Card className="h-full">
@@ -122,7 +127,7 @@ export default function PlayerProfile({ stats, onSetAvatar, onGenerateBio, isGen
                                 {fbShareText}
                             </div>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel onClick={() => setIsFBConsentOpen(false)}>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={onShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Share</AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
