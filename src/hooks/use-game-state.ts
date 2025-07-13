@@ -7,7 +7,7 @@ import type { GameState, InventoryItem, PlayerStats, System, MarketItem, ItemCat
 import { runTraderGeneration, runQuestGeneration } from '@/app/actions';
 import { STATIC_ITEMS } from '@/lib/items';
 import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, warehouseUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
-import { propertyUpgrades } from '@/lib/property-upgrades';
+import { propertyUpgrades } from "@/lib/property-upgrades";
 import { SYSTEMS, ROUTES } from '@/lib/systems';
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
@@ -458,6 +458,7 @@ export function useGameState() {
                 const now = Date.now();
                 let toastsToFire: { variant?: "default" | "destructive", title: string, description: string }[] = [];
                 let eventsToAdd: GameEvent[] = [];
+                let bankruptcyTriggered = false;
     
                 if (newPlayerStats.loan && now > newPlayerStats.loan.nextDueDate) {
                     stateChanged = true;
@@ -609,3 +610,4 @@ export function useGameState() {
     
     return { gameState, setGameState, isClient, isGeneratingNewGame, startNewGame, loadGameStateFromKey, generateShareKey };
 }
+
