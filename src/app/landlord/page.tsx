@@ -5,7 +5,7 @@ import { useGame } from '@/app/components/game-provider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LandPlot, Home, Briefcase, Factory, Ticket, Shield, ChevronsUp, UserPlus, FileText, Loader2, Hourglass, PenSquare, X, Tag } from 'lucide-react';
-import type { Property, PropertyType, Lease, PropertySaleOffer } from '@/lib/types';
+import type { Property, PropertyType, Lease, PropertySaleOffer, NpcPropertySale } from '@/lib/types';
 import { propertyUpgrades } from '@/lib/property-upgrades';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -249,7 +249,7 @@ const RenamePropertyDialog = ({ property, onRename, isOpen, onOpenChange }: { pr
 }
 
 export default function LandlordPage() {
-    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty, handleIgnoreLease, handleListPropertyForSale, handleAcceptPropertyOffer, handleDeclinePropertyOffer } = useGame();
+    const { gameState, handlePurchaseProperty, handleFindTenants, handleAssignLease, isGeneratingLeases, handleRenameProperty, handleIgnoreLease, handleListPropertyForSale, handleAcceptPropertyOffer, handleDeclinePropertyOffer, handleScoutForListings, isGeneratingListings, handlePurchaseNpcProperty } = useGame();
     const [selectedLease, setSelectedLease] = useState<Lease | null>(null);
     const [renamingProperty, setRenamingProperty] = useState<Property | null>(null);
     const [listingProperty, setListingProperty] = useState<Property | null>(null);
@@ -257,7 +257,7 @@ export default function LandlordPage() {
     if (!gameState) return null;
 
     const { playerStats } = gameState;
-    const { properties, availableLeases, activeLeases, propertySaleOffers } = playerStats;
+    const { properties, availableLeases, activeLeases, propertySaleOffers, npcPropertySales } = playerStats;
     
     const idleProperties = properties.filter(p => p.status === 'Idle' && !activeLeases.some(l => l.propertyId === p.id));
     
@@ -265,10 +265,15 @@ export default function LandlordPage() {
         return idleProperties.filter(p => p.type === lease.propertyType && p[`${p.type.toLowerCase()}Level` as keyof Property] >= lease.requiredLevel);
     };
     
-    const cooldown = 60 * 1000;
-    const lastGeneration = playerStats.lastLeaseGeneration || 0;
-    const isCooldownActive = Date.now() < lastGeneration + cooldown;
-    const cooldownExpiry = lastGeneration + cooldown;
+    const leaseCooldown = 60 * 1000;
+    const lastLeaseGeneration = playerStats.lastLeaseGeneration || 0;
+    const isLeaseOnCooldown = Date.now() < lastLeaseGeneration + leaseCooldown;
+    const leaseCooldownExpiry = lastLeaseGeneration + leaseCooldown;
+    
+    const listingCooldown = 20 * 60 * 1000;
+    const lastListingGeneration = playerStats.lastNpcPropertyGeneration || 0;
+    const isListingOnCooldown = Date.now() < lastListingGeneration + listingCooldown;
+    const listingCooldownExpiry = lastListingGeneration + listingCooldown;
 
     return (
         <div className="space-y-6">
@@ -300,10 +305,43 @@ export default function LandlordPage() {
                 </CardContent>
             </Card>
             
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg">Property Market</CardTitle>
+                    <CardDescription>Scout for properties being sold by other entities in this system.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <Button onClick={handleScoutForListings} disabled={isGeneratingListings || isListingOnCooldown}>
+                        {isGeneratingListings ? <Loader2 className="animate-spin mr-2"/> : <UserPlus className="mr-2"/>}
+                        {isListingOnCooldown ? <CooldownTimer expiry={listingCooldownExpiry} /> : "Scout for Listings"}
+                    </Button>
+                    {(npcPropertySales || []).length > 0 && (
+                        <Accordion type="single" collapsible defaultValue="npc-listings" className="w-full">
+                           <AccordionItem value="npc-listings">
+                               <AccordionTrigger>View {npcPropertySales?.length} Available Listings</AccordionTrigger>
+                               <AccordionContent className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                                   {(npcPropertySales || []).map(prop => (
+                                       <div key={prop.id} className="p-4 rounded-md border bg-background/50">
+                                            <p className="font-semibold text-sm">{prop.name} ({prop.type})</p>
+                                            <p className="text-xs text-muted-foreground">Lvl {prop.level} - {prop.systemName}</p>
+                                            <p className="text-xs text-muted-foreground mt-2 italic">"{prop.description}"</p>
+                                            <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                                                <span className="text-sm font-mono text-amber-300">{prop.askingPrice.toLocaleString()}¢</span>
+                                                <Button size="sm" onClick={() => handlePurchaseNpcProperty(prop)} disabled={playerStats.netWorth < prop.askingPrice}>Purchase</Button>
+                                            </div>
+                                       </div>
+                                   ))}
+                               </AccordionContent>
+                           </AccordionItem>
+                        </Accordion>
+                    )}
+                </CardContent>
+            </Card>
+
             {(propertySaleOffers || []).length > 0 && (
                  <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-lg">Property Market Offers</CardTitle>
+                        <CardTitle className="font-headline text-lg">Incoming Offers</CardTitle>
                         <CardDescription>Review and respond to incoming offers for your listed properties.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -376,52 +414,58 @@ export default function LandlordPage() {
                     <CardDescription>Find tenants and manage your leases. New proposals are generated based on your property portfolio.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                     <Button onClick={handleFindTenants} disabled={isGeneratingLeases || idleProperties.length === 0 || isCooldownActive}>
+                     <Button onClick={handleFindTenants} disabled={isGeneratingLeases || idleProperties.length === 0 || isLeaseOnCooldown}>
                         {isGeneratingLeases ? <Loader2 className="animate-spin mr-2"/> : <UserPlus className="mr-2"/>}
-                        {isCooldownActive ? <CooldownTimer expiry={cooldownExpiry} /> : (idleProperties.length === 0 ? "No Available Properties" : "Find Tenants")}
+                        {isLeaseOnCooldown ? <CooldownTimer expiry={leaseCooldownExpiry} /> : (idleProperties.length === 0 ? "No Available Properties" : "Find Tenants")}
                     </Button>
 
-                    {activeLeases && activeLeases.length > 0 && (
-                        <div className="space-y-2 pt-4">
-                            <h4 className="font-semibold">Active Leases</h4>
-                            {activeLeases.map(lease => {
-                                const property = properties.find(p => p.id === lease.propertyId);
-                                return (
-                                <div key={`${lease.id}-${lease.propertyId}`} className="p-3 rounded-md border bg-background/50">
-                                    <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
-                                    <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                        <span>Rent: {lease.rent.toLocaleString()}¢ / 2 mins</span>
-                                        <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
-                                    </div>
-                                </div>
-                            )})}
-                        </div>
-                    )}
-                    
-                    {availableLeases && availableLeases.length > 0 && (
-                        <div className="space-y-2 pt-4">
-                            <h4 className="font-semibold">Available Lease Proposals</h4>
-                             {availableLeases.map(lease => {
-                                const assignableProps = getAssignableProperties(lease);
-                                return (
-                                <div key={lease.id} className="p-3 rounded-md border bg-background/50 flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold text-sm">{lease.tenantName}</p>
-                                        <p className="text-xs text-muted-foreground">{lease.description}</p>
-                                        <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/2mins | Term: {lease.duration}h</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
-                                            Assign
-                                        </Button>
-                                        <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleIgnoreLease(lease.id)}>
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            )})}
-                        </div>
-                    )}
+                    <Accordion type="multiple" defaultValue={['active-leases']}>
+                        {(activeLeases && activeLeases.length > 0) && (
+                            <AccordionItem value="active-leases">
+                                <AccordionTrigger>Active Leases ({activeLeases.length})</AccordionTrigger>
+                                <AccordionContent className="space-y-2 pt-4">
+                                    {activeLeases.map(lease => {
+                                        const property = properties.find(p => p.id === lease.propertyId);
+                                        return (
+                                        <div key={`${lease.id}-${lease.propertyId}`} className="p-3 rounded-md border bg-background/50">
+                                            <p className="font-semibold text-sm">{lease.tenantName} @ {property?.name}</p>
+                                            <div className="flex justify-between items-center text-xs text-muted-foreground">
+                                                <span>Rent: {lease.rent.toLocaleString()}¢ / 2 mins</span>
+                                                <span className="flex items-center gap-1"><Hourglass className="h-3 w-3"/> <CooldownTimer expiry={lease.startTime + lease.duration * 3600 * 1000} /></span>
+                                            </div>
+                                        </div>
+                                    )})}
+                                </AccordionContent>
+                            </AccordionItem>
+                        )}
+                        
+                        {(availableLeases && availableLeases.length > 0) && (
+                           <AccordionItem value="available-leases">
+                                <AccordionTrigger>Available Lease Proposals ({availableLeases.length})</AccordionTrigger>
+                                <AccordionContent className="space-y-2 pt-4">
+                                     {availableLeases.map(lease => {
+                                        const assignableProps = getAssignableProperties(lease);
+                                        return (
+                                        <div key={lease.id} className="p-3 rounded-md border bg-background/50 flex justify-between items-center">
+                                            <div>
+                                                <p className="font-semibold text-sm">{lease.tenantName}</p>
+                                                <p className="text-xs text-muted-foreground">{lease.description}</p>
+                                                <p className="text-xs mt-1">Requires: Lvl {lease.requiredLevel}+ {lease.propertyType} | Rent: {lease.rent.toLocaleString()}¢/2mins | Term: {lease.duration}h</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button size="sm" onClick={() => setSelectedLease(lease)} disabled={assignableProps.length === 0}>
+                                                    Assign
+                                                </Button>
+                                                <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => handleIgnoreLease(lease.id)}>
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )})}
+                                </AccordionContent>
+                            </AccordionItem>
+                        )}
+                    </Accordion>
                 </CardContent>
             </Card>
 
