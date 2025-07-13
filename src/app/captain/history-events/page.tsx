@@ -176,7 +176,7 @@ export default function HistoryEventsPage() {
                         ))}
                     </div>
                     {dateKeys.length > 0 ? (
-                        <Accordion type="single" collapsible defaultValue={dateKeys[0]}>
+                        <Accordion type="single" collapsible>
                             {dateKeys.map(dateKey => {
                                 const day = groupedEvents[dateKey];
                                 const hourKeys = Object.keys(day.hours).sort((a,b) => new Date(b).getTime() - new Date(a).getTime());
