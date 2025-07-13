@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { Difficulty, Career as CareerType } from '@/lib/types';
 import { CAREER_DATA } from '@/lib/careers';
 import { useRouter } from 'next/navigation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const difficultyLevels: Record<Difficulty, { title: string; description: string; icon: React.ElementType }> = {
     Easy: {
@@ -80,42 +81,46 @@ const DifficultySelector = ({ onSelect }: { onSelect: (difficulty: Difficulty) =
 );
 
 const CareerSelector = ({ onSelect }: { onSelect: (career: CareerType) => void }) => (
-    <Card className="w-full max-w-6xl">
+    <Card className="w-full max-w-6xl flex flex-col h-full max-h-[90vh]">
         <CardHeader className="text-center">
             <CardTitle className="font-headline text-3xl">Select Your Career</CardTitle>
             <CardDescription>Your choice will determine your starting conditions and unlock unique gameplay opportunities.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {CAREER_DATA.map((career) => {
-                const CareerIcon = career.icon as LucideIcon;
-                return (
-                <Card key={career.id} className="flex flex-col">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 font-headline text-lg">
-                            <CareerIcon className="text-primary" />
-                            {career.name}
-                        </CardTitle>
-                        <CardDescription className="text-xs">{career.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-xs flex-grow">
-                        <div>
-                            <h4 className="font-semibold text-primary/90">Perks:</h4>
-                            <ul className="list-disc list-inside text-muted-foreground">
-                                {career.perks.map((perk, i) => <li key={i}>{perk}</li>)}
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold text-destructive/90">Risks:</h4>
-                            <ul className="list-disc list-inside text-muted-foreground">
-                                {career.risks.map((risk, i) => <li key={i}>{risk}</li>)}
-                            </ul>
-                        </div>
-                    </CardContent>
-                    <CardContent>
-                        <Button className="w-full" onClick={() => onSelect(career.id)}>Choose {career.name}</Button>
-                    </CardContent>
-                </Card>
-            )})}
+        <CardContent className="flex-grow overflow-hidden">
+            <ScrollArea className="h-full pr-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {CAREER_DATA.map((career) => {
+                        const CareerIcon = career.icon as LucideIcon;
+                        return (
+                        <Card key={career.id} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 font-headline text-lg">
+                                    <CareerIcon className="text-primary" />
+                                    {career.name}
+                                </CardTitle>
+                                <CardDescription className="text-xs">{career.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-3 text-xs flex-grow">
+                                <div>
+                                    <h4 className="font-semibold text-primary/90">Perks:</h4>
+                                    <ul className="list-disc list-inside text-muted-foreground">
+                                        {career.perks.map((perk, i) => <li key={i}>{perk}</li>)}
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-destructive/90">Risks:</h4>
+                                    <ul className="list-disc list-inside text-muted-foreground">
+                                        {career.risks.map((risk, i) => <li key={i}>{risk}</li>)}
+                                    </ul>
+                                </div>
+                            </CardContent>
+                            <CardContent>
+                                <Button className="w-full" onClick={() => onSelect(career.id)}>Choose {career.name}</Button>
+                            </CardContent>
+                        </Card>
+                    )})}
+                </div>
+            </ScrollArea>
         </CardContent>
     </Card>
 );
@@ -149,7 +154,7 @@ export default function GameSetup() {
     }
 
     return (
-        <div className="flex h-screen w-full items-start justify-center overflow-y-auto bg-background p-4 pt-8 md:items-center md:py-4">
+        <div className="flex h-screen w-full items-center justify-center bg-background p-4">
             {step === 'difficulty' && <DifficultySelector onSelect={handleDifficultySelect} />}
             {step === 'career' && <CareerSelector onSelect={handleCareerSelect} />}
         </div>
