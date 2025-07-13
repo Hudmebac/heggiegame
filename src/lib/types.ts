@@ -522,6 +522,7 @@ export interface Quest {
 }
 
 export interface ActiveObjective extends Quest {
+    id: string;
     progress: { [key in QuestTask['type']]?: number };
     startTime: number;
 }

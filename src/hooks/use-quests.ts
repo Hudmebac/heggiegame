@@ -77,6 +77,7 @@ export function useQuests(
 
             const newObjective: ActiveObjective = {
                 ...quest,
+                id: `${quest.title}-${Date.now()}`,
                 progress: {},
                 startTime: Date.now(),
             };

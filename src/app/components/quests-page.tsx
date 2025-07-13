@@ -148,7 +148,7 @@ export default function QuestsPage() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {activeObjectives.map(obj => <ActiveObjectiveCard key={obj.title} objective={obj} />)}
+                            {activeObjectives.map(obj => <ActiveObjectiveCard key={obj.id} objective={obj} />)}
                         </CardContent>
                     </Card>
                 )}

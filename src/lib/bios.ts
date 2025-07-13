@@ -90,6 +90,7 @@ export const bios = [
     "{Captain} swears their reactor hums in rhythm when profit’s near.",
     "Every mission briefing ends the same: ‘Avoid becoming {Captain}’s competition.’",
     "They gave a trade seminar once. Three factions rewrote policy by morning.",
+    "{Captain} speaks nine dialects, insults five of them with poetic cruelty, and once convinced a translator to rewrite itself mid-sentence out of sheer embarrassment.",
     "In Veritas scrolls, {Captain} appears as both a lesson and a test.",
     "{Captain}'s cargo hold once held stardust, laughter, and one very polite ghost.",
     "They never dock quiet. And they never leave empty.",
