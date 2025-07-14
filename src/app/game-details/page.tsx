@@ -9,8 +9,13 @@ import Link from "next/link";
 
 const changelogData = [
     {
+<<<<<<< HEAD
         version: "v1.3.4 - 'Foundations'",
         date: "Startdate: Echo 4525.07.12",
+=======
+        version: "v1.4.0 - 'Foundations'",
+        date: "Startdate: Epsilon 4525.07.13",
+>>>>>>> parent of 7bd54e2 (Landlord Upgrade)
         changes: [
             "Introduced the 'Landlord' career path, allowing players to build a real estate empire.",
             "Players can now purchase various types of properties (Residential, Commercial, etc.) in different systems.",

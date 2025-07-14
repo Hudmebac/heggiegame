@@ -48,7 +48,7 @@ const HireStaffDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
     const { gameState, handleHireStaff } = useGame();
     if (!gameState) return null;
     
-    const hiredIds = new Set(gameState.playerStats.staff.map(s => s.id));
+    const hiredIds = new Set((gameState.playerStats.staff || []).map(s => s.id));
     const availableStaff = AVAILABLE_STAFF.filter(s => !hiredIds.has(s.id));
 
     return (
@@ -82,7 +82,7 @@ const HireStaffDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
                                     <Button onClick={() => handleHireStaff(staff.id)} disabled={gameState.playerStats.netWorth < staff.hiringFee}>
                                         Hire
                                     </Button>
-                                </div>
+                                 </div>
                             </CardContent>
                         </Card>
                     )) : <p className="text-center text-muted-foreground p-4">No staff available for recruitment at this time.</p>}
@@ -133,7 +133,7 @@ const AssignStaffDialog = ({ isOpen, onOpenChange, mission, onAssign }: { isOpen
 
 
 export default function OfficialPage() {
-    const { gameState, handleGenerateDiplomaticMissions, handleAcceptDiplomaticMission, handleFireStaff } = useGame();
+    const { gameState, handleGenerateDiplomaticMissions, handleAcceptDiplomaticMission, isGeneratingMissions } = useGame();
     const [isHiringOpen, setIsHiringOpen] = useState(false);
     const [assignMission, setAssignMission] = useState<DiplomaticMission | null>(null);
 

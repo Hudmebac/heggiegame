@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
@@ -13,12 +12,12 @@ import { constructionThemes } from '@/lib/construction-themes';
 import { recreationThemes } from '@/lib/recreation-themes';
 import { bankThemes } from '@/lib/bank-themes';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { calculateCargoValue, calculateShipValue } from '@/lib/utils';
+import { calculateCargoValue, calculateShipValue, formatAbbreviatedNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CAREER_DATA } from '@/lib/careers';
-import ChangeCareerDialog from '../components/change-career-dialog';
-import FactionDialog from '../components/faction-dialog';
+import ChangeCareerDialog from '@/app/components/change-career-dialog';
+import FactionDialog from '@/app/components/faction-dialog';
 import { FACTIONS_DATA } from '@/lib/factions';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -37,7 +36,6 @@ import FacebookIcon from '@/app/components/icons/facebook-icon';
 import AssetOverviewChartCompact from '@/app/components/asset-overview-chart-compact';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Difficulty } from '@/lib/types';
-import { formatAbbreviatedNumber } from '@/lib/utils';
 
 
 const reputationTiers: Record<string, { label: string; color: string; progressColor: string }> = {
@@ -121,6 +119,11 @@ function PlayerProfile() {
                 toast({ title: 'Copy Failed', description: 'Could not automatically copy the text. Please copy it manually from the box below.', variant: 'destructive' });
             });
     };
+
+    const onFacebookShareClick = () => {
+        handleCopyToClipboard();
+        handleShareToFacebook();
+    }
 
     const onShareToWhatsapp = () => {
         handleShareToWhatsapp();
@@ -255,7 +258,7 @@ function PlayerProfile() {
                                 </div>
                                 <AlertDialogFooter className="w-full grid grid-cols-2 gap-2">
                                     <Button onClick={handleCopyToClipboard}><Copy className="mr-2" /> Copy Text</Button>
-                                    <AlertDialogAction onClick={handleShareToFacebook} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
+                                    <AlertDialogAction onClick={onFacebookShareClick} className="bg-blue-600 hover:bg-blue-700">Open Facebook</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>

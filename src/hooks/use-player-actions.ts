@@ -3,16 +3,17 @@
 'use client';
 
 import { useCallback, useTransition, useEffect, useState } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType, Property } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType, Property, Staff } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, warehouseUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, syncActiveShipStats } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
 import { CAREER_DATA } from '@/lib/careers';
 import { FACTIONS_DATA } from '@/lib/factions';
+import { AVAILABLE_STAFF } from '@/lib/staff';
 
 function formatUpgradeType(type: ShipUpgradeType): string {
     // Converts camelCase to Title Case, e.g., 'passengerSecurity' -> 'Passenger Security'
@@ -246,6 +247,34 @@ export function usePlayerActions(
         });
     }, [setGameState, toast]);
 
+    const handleHireStaff = useCallback((staffId: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const staffToHire = AVAILABLE_STAFF.find(s => s.id === staffId);
+            if (!staffToHire) return prev;
+            if (prev.playerStats.netWorth < staffToHire.hiringFee) {
+                setTimeout(() => toast({ variant: "destructive", title: "Hiring Failed", description: "Insufficient funds." }), 0);
+                return prev;
+            }
+            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - staffToHire.hiringFee };
+            const newStaff = [...(prev.playerStats.staff || []), staffToHire];
+            setTimeout(() => toast({ title: "Staff Member Hired", description: `${staffToHire.name} has joined your diplomatic corps.` }), 0);
+            
+            return { ...prev, playerStats: { ...newPlayerStats, staff: newStaff } };
+        });
+    }, [setGameState, toast]);
+
+    const handleFireStaff = useCallback((staffId: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const staffToFire = (prev.playerStats.staff || []).find(s => s.id === staffId);
+            if (!staffToFire) return prev;
+            const newStaff = (prev.playerStats.staff || []).filter(s => s.id !== staffId);
+            setTimeout(() => toast({ title: "Staff Member Dismissed", description: `${staffToFire.name} has left your service.` }), 0);
+            return { ...prev, playerStats: { ...prev.playerStats, staff: newStaff } };
+        });
+    }, [setGameState, toast]);
+
     const handlePurchaseShip = useCallback((ship: ShipForSale) => {
         setGameState(prev => {
             if (!prev) return null;
@@ -253,17 +282,42 @@ export function usePlayerActions(
                 setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Not enough credits." }), 0);
                 return prev;
             }
+            const startingCargoLevel = cargoUpgrades.find(u => u.capacity >= ship.baseCargo)?.level || 1;
+            const startingFuelLevel = fuelUpgrades.find(u => u.capacity >= ship.baseFuel)?.level || 1;
+            const startingHullLevel = hullUpgrades.find(u => u.health >= ship.baseHealth)?.level || 1;
+
             const newShip: PlayerShip = {
                 instanceId: Date.now(),
                 shipId: ship.id,
                 name: ship.name,
-                cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
-                powerCoreLevel: 1, passengerComfortLevel: 1, passengerSecurityLevel: 1, passengerPacksLevel: 1, 
+                health: ship.baseHealth,
+                status: 'operational',
+                cargoLevel: startingCargoLevel,
+                hullLevel: startingHullLevel,
+                fuelLevel: startingFuelLevel,
+                weaponLevel: 1, 
+                shieldLevel: 1, 
+                sensorLevel: 1, 
+                droneLevel: 1,
+                powerCoreLevel: 1, 
+                passengerComfortLevel: 1, 
+                passengerSecurityLevel: 1, 
+                passengerPacksLevel: 1, 
                 overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
                 gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
-                health: hullUpgrades[0].health,
-                status: 'operational',
             };
+
+            // Apply special loadouts for specific ships
+            if (ship.id === 'leviathan-freighter') {
+                newShip.cargoLevel = 30;
+            }
+            if (ship.id === 'viper-escort') {
+                newShip.weaponLevel = 10;
+                newShip.shieldLevel = 5;
+                newShip.droneLevel = 5;
+                newShip.sensorLevel = 2;
+            }
+
             const newCash = prev.playerStats.netWorth - ship.cost;
             let newPlayerStats = { 
                 ...prev.playerStats, 
@@ -979,7 +1033,8 @@ export function usePlayerActions(
         handleRepairFleetShip,
         handleRefuelFleetShip,
         handleHireCrew,
-        handleFireCrew,
+        handleHireStaff,
+        handleFireStaff,
         handlePurchaseShip,
         handleSellShip,
         handleUpgradeShip,

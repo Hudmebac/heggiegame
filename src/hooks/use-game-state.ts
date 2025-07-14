@@ -94,6 +94,7 @@ const initialGameState: Omit<GameState, 'marketItems' | 'playerStats' | 'routes'
     lastWhatsappShare: 0,
     portfolio: [],
     stocks: INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
+    lastDividendPayment: Date.now(),
   },
   inventory: [{ name: 'Silicon Nuggets (Standard)', owned: 5 }],
   priceHistory: Object.fromEntries(STATIC_ITEMS.map(item => [item.name, [item.basePrice]])),
@@ -133,7 +134,7 @@ const logAssetSnapshot = (playerStats: PlayerStats): PlayerStats => {
         const costMap: Record<PropertyType, number> = {
             'Residential': 250000, 'Commercial': 1000000, 'Industrial': 1750000, 'Recreational': 2250000, 'Military': 5000000,
         };
-        value += costMap[prop.type];
+        value += costMap[property.type];
         
         return acc + value;
     }, 0);
@@ -240,6 +241,7 @@ export function useGameState() {
                         negotiationCooldowns: {},
                         portfolio: [],
                         stocks: INITIAL_STOCKS.map(s => ({ ...s, lastUpdated: 0 })),
+                        lastDividendPayment: Date.now(),
                     }
 
                     let basePlayerStats = syncActiveShipStats(newPlayerStats as PlayerStats);
@@ -381,6 +383,7 @@ export function useGameState() {
                     properties: savedProgress.playerStats.properties || [],
                     activeLeases: savedProgress.playerStats.activeLeases || [],
                     availableLeases: savedProgress.playerStats.availableLeases || [],
+                    lastDividendPayment: savedProgress.playerStats.lastDividendPayment || Date.now(),
                 };
                 
                 if (mergedPlayerStats.fleet && Array.isArray(mergedPlayerStats.fleet)) {
@@ -503,6 +506,25 @@ export function useGameState() {
                     return stock;
                 });
                 newPlayerStats.stocks = newStocks;
+
+                // Dividend Payouts
+                const dividendInterval = 10 * 60 * 1000; // 10 minutes
+                if (newPlayerStats.portfolio.length > 0 && now > (newPlayerStats.lastDividendPayment || 0) + dividendInterval) {
+                    stateChanged = true;
+                    let totalDividend = 0;
+                    newPlayerStats.portfolio.forEach(holding => {
+                        const stock = newPlayerStats.stocks.find(s => s.id === holding.id);
+                        if (stock) {
+                            const dividendPerShare = stock.price * 0.01;
+                            totalDividend += Math.round(dividendPerShare * holding.shares);
+                        }
+                    });
+                    if (totalDividend > 0) {
+                        newPlayerStats.netWorth += totalDividend;
+                        toastsToFire.push({ title: "Dividends Paid", description: `You received ${totalDividend.toLocaleString()}¢ from your stock portfolio.` });
+                    }
+                    newPlayerStats.lastDividendPayment = now;
+                }
     
                 const lastSnapshot = newPlayerStats.assetHistory[newPlayerStats.assetHistory.length - 1];
                 if (!lastSnapshot || now - lastSnapshot.timestamp > 5000) {
@@ -528,7 +550,7 @@ export function useGameState() {
                     }
                     return prop;
                 });
-
+    
                 if (stateChanged) {
                     newPlayerStats.properties = newProperties;
                 }

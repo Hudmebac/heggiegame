@@ -12,8 +12,8 @@ import {
     ChevronRight, ArrowRight, ShieldCheck, Sword, Scale, CarTaxiFront, Truck, LandPlot, Building, CandlestickChart, Clipboard 
 } from "lucide-react";
 
-const Section = ({ title, icon: Icon, summary, children, link }: { title: string, icon: React.ElementType, summary: string, children: React.ReactNode, link?: string }) => (
-    <AccordionItem value={title}>
+const Section = ({ id, title, icon: Icon, summary, children, link }: { id?: string, title: string, icon: React.ElementType, summary: string, children: React.ReactNode, link?: string }) => (
+    <AccordionItem value={title} id={id}>
         <AccordionTrigger>
             <div className="flex items-center gap-3 text-left">
                 <Icon className="h-6 w-6 text-primary" />
@@ -58,6 +58,7 @@ export default function HowToPlayCodex() {
             <CardContent>
                 <Accordion type="single" collapsible className="w-full">
                     <Section 
+                        id="getting-started"
                         title="Getting Started: Your First Steps"
                         icon={GraduationCap}
                         summary="Welcome to the High End Galactic Goods Interstellar Exchange (HEGGIE). This guide will help you begin your journey from a rookie captain to a galactic legend."
@@ -82,6 +83,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="captain-guide"
                         title="The Captain"
                         icon={User}
                         summary="Your identity in the galaxy. Manage your profile, finances, reputation, career, and faction allegiance."
@@ -99,6 +101,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="ship-guide"
                         title="Ship & Fleet"
                         icon={Rocket}
                         summary="Manage your active ship's systems and oversee your entire fleet. Your ship is your lifeline."
@@ -115,6 +118,7 @@ export default function HowToPlayCodex() {
                     </Section>
                     
                     <Section
+                        id="crew-guide"
                         title="Crew"
                         icon={Users}
                         summary="Hire specialists to provide passive bonuses and enhance your ship's capabilities."
@@ -131,6 +135,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="market-guide"
                         title="Market & Trading"
                         icon={LineChart}
                         summary="The heart of galactic commerce. Buy low, sell high, and watch the market trends to make your fortune."
@@ -146,12 +151,30 @@ export default function HowToPlayCodex() {
 
                         <h4>Core Trading Principles</h4>
                         <ul>
-                            <li><strong>Economic Specialization:</strong> Pay attention to a system's economy type (e.g., 'Industrial', 'Agricultural'). A system will produce goods related to its economy, meaning those goods will have high supply and low prices. Conversely, they will have high demand and high prices for goods they need to import. For example, buy 'Food Rations' cheap in an 'Agricultural' system and sell them for a large profit in an 'Industrial' system.</li>
+                            <li><strong>Economic Specialization:</strong> Pay attention to a system's economy type (e.g., 'Industrial', 'Agricultural'). A system will produce goods related to its economy, meaning those goods will have high supply and low prices. Conversely, they will have high demand and high prices for goods they need to import. For example, buy 'Food Rations' cheap in an 'Agricultural' system and sell them for a high profit in an 'Industrial' system.</li>
                             <li><strong>Events:</strong> Random galactic events can drastically shift market prices. A "trade embargo" could make certain goods skyrocket in value, while a "mineral rush" could crash the price of ores. React quickly to these events to maximize your profits.</li>
+                        </ul>
+                    </Section>
+                    
+                    <Section
+                        id="trader-guide"
+                        title="Trader Career: Warehouses"
+                        icon={CandlestickChart}
+                        summary="For the Trader career, build warehouses to stockpile goods and manipulate markets on a galactic scale."
+                        link="/market"
+                    >
+                        <h4>Mastering Logistics</h4>
+                        <p>As a Trader, you gain the unique ability to construct and manage a network of private warehouses in any system you visit. This transforms trading from simple arbitrage into a complex logistical puzzle.</p>
+                        <ul>
+                            <li><strong>Building Warehouses:</strong> On the Market page, you can build a warehouse in your current system for an initial fee. This gives you a local base of operations.</li>
+                            <li><strong>Storing Goods:</strong> Transfer goods from your active ship's cargo hold into your warehouse. This allows you to stockpile commodities bought at a low price, freeing up your cargo hold for more immediate opportunities.</li>
+                            <li><strong>Fulfilling Demand:</strong> When you travel to a system where a stored commodity is in high demand, you can retrieve it from your local warehouse and sell it on the market for massive profits, without needing to haul it across the galaxy.</li>
+                            <li><strong>Upgrading:</strong> Warehouses can be upgraded to increase their storage capacity, allowing you to control larger quantities of goods and exert more significant influence on market prices.</li>
                         </ul>
                     </Section>
 
                     <Section
+                        id="stocks-guide"
                         title="Stock Exchange"
                         icon={CandlestickChart}
                         summary="Engage in high-stakes trading by buying and selling shares in galactic corporations. A volatile but potentially lucrative venture."
@@ -169,6 +192,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="galaxy-guide"
                         title="Galaxy & Travel"
                         icon={Map}
                         summary="Navigate the stars. Travel between systems to find new markets, missions, and opportunities."
@@ -184,6 +208,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="business-guide"
                         title="Business Ventures"
                         icon={Briefcase}
                         summary="Establish and upgrade various businesses to generate passive income streams across the galaxy."
@@ -197,6 +222,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="bank-guide"
                         title="The Galactic Bank"
                         icon={Landmark}
                         summary="Secure your funds, play the market, and eventually acquire the bank itself for ultimate financial power."
@@ -211,7 +237,40 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
-                        title="Property Management & Real Estate"
+                        id="hauler-guide"
+                        title="Hauler Career: Fleet Logistics"
+                        icon={Truck}
+                        summary="As a Hauler, your success depends on managing a fleet of ships to complete lucrative transport contracts."
+                        link="/hauler"
+                    >
+                        <h4>Managing Your Fleet</h4>
+                        <p>Unlike other careers that focus on a single active ship, the Hauler career is about logistics. You will acquire multiple ships and assign them to contracts based on their capabilities.</p>
+                        <ul>
+                            <li><strong>The Contract Board:</strong> The <Link href="/hauler">Hauler</Link> page is your mission control. Here, you can scan for available trade route contracts. These contracts have specific requirements, such as cargo capacity, fuel, and even minimum ship component levels.</li>
+                            <li><strong>Assigning Ships:</strong> When you accept a contract, the system automatically assigns the best-suited, available ship from your fleet. A ship is considered 'best-suited' if it meets all contract requirements with the most efficiency.</li>
+                            <li><strong>Wear and Tear:</strong> Completing contracts takes a toll on your ships. They will consume fuel and suffer minor hull damage (wear-and-tear) upon completion. You must manage your fleet's condition on the <Link href="/ship">Ship</Link> page to keep them operational for future contracts.</li>
+                             <li><strong>Risk vs. Reward:</strong> Contracts in more dangerous systems offer higher payouts but come with increased risk of pirate interdiction. A strong combat ship in your fleet might be necessary to protect your assets, even if it's not the one hauling the cargo.</li>
+                        </ul>
+                    </Section>
+                     <Section
+                        id="taxi-pilot-guide"
+                        title="Taxi Pilot Career: Passenger Transport"
+                        icon={CarTaxiFront}
+                        summary="As a Taxi Pilot, you ferry passengers across the galaxy, from tourists to high-risk VIPs."
+                        link="/taxi"
+                    >
+                        <h4>The Dispatch Network</h4>
+                        <p>Your success as a Taxi Pilot relies on your reputation, speed, and the quality of your vessels. You'll manage a fleet of passenger-focused ships to take on a variety of fares.</p>
+                        <ul>
+                             <li><strong>Finding Fares:</strong> On the <Link href="/taxi">Taxi</Link> page, you can scan the dispatch network for available passengers. Each fare will list the destination, the payout, and any specific requirements the passenger has.</li>
+                             <li><strong>Passenger Demands:</strong> Some passengers are pickier than others. A high-paying VIP might require a ship with high levels of 'Passenger Comfort' or 'Passenger Security' upgrades. You must have a ship in your fleet that meets these requirements to accept the fare.</li>
+                             <li><strong>Fleet Management:</strong> You can assign any available, suitable ship from your fleet to a fare. Smaller, faster ships are great for time-sensitive bonuses, while more luxurious ships can take on the high-paying clients.</li>
+                             <li><strong>Time Bonuses:</strong> Many fares offer a significant bonus for timely arrival. The travel duration is affected by your assigned ship's engine and power core levels, rewarding investment in high-performance vessels.</li>
+                        </ul>
+                    </Section>
+                     <Section
+                        id="landlord-guide"
+                        title="Landlord Career: Property Management"
                         icon={LandPlot}
                         summary="Build a real estate empire by acquiring, upgrading, leasing, and selling properties across the galaxy."
                         link="/landlord"
@@ -237,6 +296,24 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="galactic-official-guide"
+                        title="Galactic Official: Diplomacy & Staff"
+                        icon={Scale}
+                        summary="Manage diplomatic relations by hiring staff and undertaking sensitive missions to grow your influence."
+                        link="/official"
+                    >
+                        <h4>Building Your Diplomatic Corps</h4>
+                        <p>As a Galactic Official, your power comes not just from your own actions, but from the team you build. Your primary goal is to increase your "Influence" score.</p>
+                        <ul>
+                            <li><strong>Hiring Staff:</strong> On the <Link href="/official">Galactic Official</Link> page, you can recruit diplomatic staff. Each staff member has a hiring fee, an ongoing salary, and a unique success rate for missions. A more skilled diplomat costs more but is more likely to succeed.</li>
+                            <li><strong>Staff Limits:</strong> You cannot hire an unlimited number of staff. The size of your diplomatic corps is tied directly to your Influence. The higher your influence, the more staff members you can have on your payroll.</li>
+                            <li><strong>Requesting Mandates:</strong> Use the "Request New Mandates" button to generate a list of available diplomatic missions. These missions range from simple treaty signings to high-stakes mediations between warring factions.</li>
+                            <li><strong>Assigning Missions:</strong> To accept a mission, you must assign an available staff member to it. The staff member's success rate will be a key factor in the mission's outcome. Once a mission is complete, your staff member becomes available for a new assignment.</li>
+                        </ul>
+                        <p>Managing your staff effectively is the key to rising through the ranks from a lowly Intern to a respected Ambassador.</p>
+                    </Section>
+                     <Section
+                        id="quests-guide"
                         title="Quests & Objectives"
                         icon={ScrollText}
                         summary="Take on missions from the quest board for large rewards and reputation gains."

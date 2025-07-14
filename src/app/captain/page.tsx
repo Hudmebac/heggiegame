@@ -17,8 +17,8 @@ import { calculateCargoValue, calculateShipValue, formatAbbreviatedNumber } from
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CAREER_DATA } from '@/lib/careers';
-import ChangeCareerDialog from '../components/change-career-dialog';
-import FactionDialog from '../components/faction-dialog';
+import ChangeCareerDialog from '@/app/components/change-career-dialog';
+import FactionDialog from '@/app/components/faction-dialog';
 import { FACTIONS_DATA } from '@/lib/factions';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
