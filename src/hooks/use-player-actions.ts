@@ -3,16 +3,17 @@
 'use client';
 
 import { useCallback, useTransition, useEffect, useState } from 'react';
-import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType, Property } from '@/lib/types';
+import type { GameState, PlayerStats, ShipForSale, CrewMember, PlayerShip, Career, FactionId, GameEvent, AssetSnapshot, MarketItem, ShipUpgradeType, Property, Staff } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { SHIPS_FOR_SALE, initialShip } from '@/lib/ships';
 import { AVAILABLE_CREW } from '@/lib/crew';
-import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, AdvancedToggleableUpgrade, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
+import { cargoUpgrades, weaponUpgrades, shieldUpgrades, hullUpgrades, fuelUpgrades, sensorUpgrades, droneUpgrades, powerCoreUpgrades, advancedUpgrades, warehouseUpgrades, passengerComfortUpgrades, passengerSecurityUpgrades, passengerPacksUpgrades } from '@/lib/upgrades';
 import { bios } from '@/lib/bios';
 import { calculateCurrentCargo, calculateShipValue, calculateCargoValue, syncActiveShipStats } from '@/lib/utils';
 import { redeemPromoCode } from '@/app/actions';
 import { CAREER_DATA } from '@/lib/careers';
 import { FACTIONS_DATA } from '@/lib/factions';
+import { AVAILABLE_STAFF } from '@/lib/staff';
 
 function formatUpgradeType(type: ShipUpgradeType): string {
     // Converts camelCase to Title Case, e.g., 'passengerSecurity' -> 'Passenger Security'
@@ -243,6 +244,34 @@ export function usePlayerActions(
             const newCrew = prev.crew.filter(c => c.id !== crewId);
             setTimeout(() => toast({ title: "Crew Member Fired", description: `${crewToFire.name} has left your crew.` }), 0);
             return { ...prev, crew: newCrew };
+        });
+    }, [setGameState, toast]);
+
+    const handleHireStaff = useCallback((staffId: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const staffToHire = AVAILABLE_STAFF.find(s => s.id === staffId);
+            if (!staffToHire) return prev;
+            if (prev.playerStats.netWorth < staffToHire.hiringFee) {
+                setTimeout(() => toast({ variant: "destructive", title: "Hiring Failed", description: "Insufficient funds." }), 0);
+                return prev;
+            }
+            const newPlayerStats = { ...prev.playerStats, netWorth: prev.playerStats.netWorth - staffToHire.hiringFee };
+            const newStaff = [...(prev.playerStats.staff || []), staffToHire];
+            setTimeout(() => toast({ title: "Staff Member Hired", description: `${staffToHire.name} has joined your diplomatic corps.` }), 0);
+            
+            return { ...prev, playerStats: { ...newPlayerStats, staff: newStaff } };
+        });
+    }, [setGameState, toast]);
+
+    const handleFireStaff = useCallback((staffId: string) => {
+        setGameState(prev => {
+            if (!prev) return null;
+            const staffToFire = (prev.playerStats.staff || []).find(s => s.id === staffId);
+            if (!staffToFire) return prev;
+            const newStaff = (prev.playerStats.staff || []).filter(s => s.id !== staffId);
+            setTimeout(() => toast({ title: "Staff Member Dismissed", description: `${staffToFire.name} has left your service.` }), 0);
+            return { ...prev, playerStats: { ...prev.playerStats, staff: newStaff } };
         });
     }, [setGameState, toast]);
 
@@ -979,7 +1008,8 @@ export function usePlayerActions(
         handleRepairFleetShip,
         handleRefuelFleetShip,
         handleHireCrew,
-        handleFireCrew,
+        handleHireStaff,
+        handleFireStaff,
         handlePurchaseShip,
         handleSellShip,
         handleUpgradeShip,
