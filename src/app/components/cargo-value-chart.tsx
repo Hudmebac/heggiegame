@@ -36,6 +36,7 @@ export default function CargoValueChart({ valueHistory }: CargoValueChartProps) 
           <ChartContainer config={chartConfig} className="h-[250px] w-full">
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border) / 0.5)" />
+              <XAxis dataKey="time" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={{stroke: 'hsl(var(--muted-foreground))'}} label={{ value: 'Time', position: 'insideBottom', offset: -5, fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}/>
               <YAxis domain={['dataMin - 500', 'dataMax + 500']} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${Number(value).toLocaleString(undefined, {notation: 'compact'})}`} />
               <ChartTooltip
                 cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
