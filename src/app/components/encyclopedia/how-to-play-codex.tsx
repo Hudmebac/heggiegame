@@ -150,6 +150,22 @@ export default function HowToPlayCodex() {
                             <li><strong>Events:</strong> Random galactic events can drastically shift market prices. A "trade embargo" could make certain goods skyrocket in value, while a "mineral rush" could crash the price of ores. React quickly to these events to maximize your profits.</li>
                         </ul>
                     </Section>
+                    
+                    <Section
+                        title="Trader Career: Warehouses"
+                        icon={CandlestickChart}
+                        summary="For the Trader career, build warehouses to stockpile goods and manipulate markets on a galactic scale."
+                        link="/market"
+                    >
+                        <h4>Mastering Logistics</h4>
+                        <p>As a Trader, you gain the unique ability to construct and manage a network of private warehouses in any system you visit. This transforms trading from simple arbitrage into a complex logistical puzzle.</p>
+                        <ul>
+                            <li><strong>Building Warehouses:</strong> On the Market page, you can build a warehouse in your current system for an initial fee. This gives you a local base of operations.</li>
+                            <li><strong>Storing Goods:</strong> Transfer goods from your active ship's cargo hold into your warehouse. This allows you to stockpile commodities bought at a low price, freeing up your cargo hold for more immediate opportunities.</li>
+                            <li><strong>Fulfilling Demand:</strong> When you travel to a system where a stored commodity is in high demand, you can retrieve it from your local warehouse and sell it on the market for massive profits, without needing to haul it across the galaxy.</li>
+                            <li><strong>Upgrading:</strong> Warehouses can be upgraded to increase their storage capacity, allowing you to control larger quantities of goods and exert more significant influence on market prices.</li>
+                        </ul>
+                    </Section>
 
                     <Section
                         title="Stock Exchange"
@@ -211,7 +227,37 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
-                        title="Property Management & Real Estate"
+                        title="Hauler Career: Fleet Logistics"
+                        icon={Truck}
+                        summary="As a Hauler, your success depends on managing a fleet of ships to complete lucrative transport contracts."
+                        link="/hauler"
+                    >
+                        <h4>Managing Your Fleet</h4>
+                        <p>Unlike other careers that focus on a single active ship, the Hauler career is about logistics. You will acquire multiple ships and assign them to contracts based on their capabilities.</p>
+                        <ul>
+                            <li><strong>The Contract Board:</strong> The <Link href="/hauler">Hauler</Link> page is your mission control. Here, you can scan for available trade route contracts. These contracts have specific requirements, such as cargo capacity, fuel, and even minimum ship component levels.</li>
+                            <li><strong>Assigning Ships:</strong> When you accept a contract, the system automatically assigns the best-suited, available ship from your fleet. A ship is considered 'best-suited' if it meets all contract requirements with the most efficiency.</li>
+                            <li><strong>Wear and Tear:</strong> Completing contracts takes a toll on your ships. They will consume fuel and suffer minor hull damage (wear-and-tear) upon completion. You must manage your fleet's condition on the <Link href="/ship">Ship</Link> page to keep them operational for future contracts.</li>
+                             <li><strong>Risk vs. Reward:</strong> Contracts in more dangerous systems offer higher payouts but come with increased risk of pirate interdiction. A strong combat ship in your fleet might be necessary to protect your assets, even if it's not the one hauling the cargo.</li>
+                        </ul>
+                    </Section>
+                     <Section
+                        title="Taxi Pilot Career: Passenger Transport"
+                        icon={CarTaxiFront}
+                        summary="As a Taxi Pilot, you ferry passengers across the galaxy, from tourists to high-risk VIPs."
+                        link="/taxi"
+                    >
+                        <h4>The Dispatch Network</h4>
+                        <p>Your success as a Taxi Pilot relies on your reputation, speed, and the quality of your vessels. You'll manage a fleet of passenger-focused ships to take on a variety of fares.</p>
+                        <ul>
+                             <li><strong>Finding Fares:</strong> On the <Link href="/taxi">Taxi</Link> page, you can scan the dispatch network for available passengers. Each fare will list the destination, the payout, and any specific requirements the passenger has.</li>
+                             <li><strong>Passenger Demands:</strong> Some passengers are pickier than others. A high-paying VIP might require a ship with high levels of 'Passenger Comfort' or 'Passenger Security' upgrades. You must have a ship in your fleet that meets these requirements to accept the fare.</li>
+                             <li><strong>Fleet Management:</strong> You can assign any available, suitable ship from your fleet to a fare. Smaller, faster ships are great for time-sensitive bonuses, while more luxurious ships can take on the high-paying clients.</li>
+                             <li><strong>Time Bonuses:</strong> Many fares offer a significant bonus for timely arrival. The travel duration is affected by your assigned ship's engine and power core levels, rewarding investment in high-performance vessels.</li>
+                        </ul>
+                    </Section>
+                     <Section
+                        title="Landlord Career: Property Management"
                         icon={LandPlot}
                         summary="Build a real estate empire by acquiring, upgrading, leasing, and selling properties across the galaxy."
                         link="/landlord"
@@ -270,3 +316,6 @@ export default function HowToPlayCodex() {
         </Card>
     );
 }
+
+
+    
