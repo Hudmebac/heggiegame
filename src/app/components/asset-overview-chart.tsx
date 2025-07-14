@@ -71,7 +71,18 @@ export default function AssetOverviewChart({ assetHistory }: AssetOverviewChartP
                         <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`} />
                         <ChartTooltip
                             cursor={{stroke: 'hsl(var(--accent))', strokeWidth: 1, strokeDasharray: "3 3"}}
-                            content={<ChartTooltipContent indicator="dot" formatter={(value) => `¢${formatAbbreviatedNumber(Number(value))}`}/>}
+                             content={
+                                <ChartTooltipContent 
+                                    indicator="dot" 
+                                    labelFormatter={(label, payload) => format(new Date(payload[0]?.payload.timestamp), 'MMM d, HH:mm')}
+                                    formatter={(value, name) => (
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-muted-foreground">{name}:</span>
+                                            <span className="font-mono font-semibold">¢{formatAbbreviatedNumber(Number(value))}</span>
+                                        </div>
+                                    )}
+                                />
+                            }
                         />
                          {(Object.keys(chartConfig) as ActiveKeys[]).map(key => (
                             activeKeys.includes(key) &&
