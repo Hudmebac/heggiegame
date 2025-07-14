@@ -48,7 +48,7 @@ const HireStaffDialog = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenChan
     const { gameState, handleHireStaff } = useGame();
     if (!gameState) return null;
     
-    const hiredIds = new Set(gameState.playerStats.staff.map(s => s.id));
+    const hiredIds = new Set((gameState.playerStats.staff || []).map(s => s.id));
     const availableStaff = AVAILABLE_STAFF.filter(s => !hiredIds.has(s.id));
 
     return (
