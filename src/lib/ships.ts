@@ -11,7 +11,7 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     designation: "S-Class",
     manufacturer: 'Corellian Transport Guild',
     description: "A small, reliable shuttle perfect for quick cargo runs in secure space. Not built for a fight, but she's cheap to maintain.",
-    cost: 25000,
+    cost: 2500000,
     baseFuel: 110,
     baseHealth: 80,
     crewCapacity: 2,
@@ -35,7 +35,7 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     designation: "Mk. II",
     manufacturer: 'Lakon Spaceways',
     description: "The workhorse of the galaxy. This vessel boasts a large cargo capacity for its class, making it a favorite of bulk traders.",
-    cost: 125000,
+    cost: 12500000,
     baseFuel: 100,
     baseHealth: 150,
     crewCapacity: 6,
@@ -59,7 +59,7 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     designation: "Viper",
     manufacturer: 'Faulcon deLacy',
     description: "Fast, agile, and packing a punch. The Viper is designed for bounty hunters and security forces who need to end a fight quickly.",
-    cost: 350000,
+    cost: 35000000,
     baseFuel: 150,
     baseHealth: 120,
     crewCapacity: 2,
@@ -83,7 +83,7 @@ export const SHIPS_FOR_SALE: ShipForSale[] = [
     designation: "Leviathan",
     manufacturer: 'Gallofree Yards, Inc.',
     description: "A true giant of the spacelanes. The Leviathan can move entire inventories between systems, but its size makes it a tempting target.",
-    cost: 1200000,
+    cost: 120000000,
     baseFuel: 300,
     baseHealth: 500,
     crewCapacity: 22,
@@ -116,5 +116,7 @@ export const initialShip: PlayerShip = {
     health: hullUpgrades[0].health,
     status: 'operational',
 };
+
+    
 
     

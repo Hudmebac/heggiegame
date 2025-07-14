@@ -282,16 +282,29 @@ export function usePlayerActions(
                 setTimeout(() => toast({ variant: "destructive", title: "Purchase Failed", description: "Not enough credits." }), 0);
                 return prev;
             }
+            const startingCargoLevel = cargoUpgrades.find(u => u.capacity >= ship.baseCargo)?.level || 1;
+            const startingFuelLevel = fuelUpgrades.find(u => u.capacity >= ship.baseFuel)?.level || 1;
+            const startingHullLevel = hullUpgrades.find(u => u.health >= ship.baseHealth)?.level || 1;
+
             const newShip: PlayerShip = {
                 instanceId: Date.now(),
                 shipId: ship.id,
                 name: ship.name,
-                cargoLevel: 1, weaponLevel: 1, shieldLevel: 1, hullLevel: 1, fuelLevel: 1, sensorLevel: 1, droneLevel: 1,
-                powerCoreLevel: 1, passengerComfortLevel: 1, passengerSecurityLevel: 1, passengerPacksLevel: 1, 
+                health: ship.baseHealth,
+                status: 'operational',
+                cargoLevel: startingCargoLevel,
+                hullLevel: startingHullLevel,
+                fuelLevel: startingFuelLevel,
+                weaponLevel: 1, 
+                shieldLevel: 1, 
+                sensorLevel: 1, 
+                droneLevel: 1,
+                powerCoreLevel: 1, 
+                passengerComfortLevel: 1, 
+                passengerSecurityLevel: 1, 
+                passengerPacksLevel: 1, 
                 overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
                 gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
-                health: hullUpgrades[0].health,
-                status: 'operational',
             };
             const newCash = prev.playerStats.netWorth - ship.cost;
             let newPlayerStats = { 
@@ -1033,3 +1046,5 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
+
+    

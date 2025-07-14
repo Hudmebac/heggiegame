@@ -28,9 +28,9 @@ export default function ShipCodex() {
                             </div>
                             <div className="pt-4 border-t border-border/50 text-xs">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 font-mono">
-                                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: {ship.cargo}t</span></div>
-                                    <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: {ship.fuel} SU</span></div>
-                                    <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Health: {ship.health}%</span></div>
+                                    <div className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-primary/70" /> <span>Cargo: {ship.baseCargo}t</span></div>
+                                    <div className="flex items-center gap-2"><Fuel className="h-4 w-4 text-primary/70" /> <span>Fuel: {ship.baseFuel} SU</span></div>
+                                    <div className="flex items-center gap-2"><HeartPulse className="h-4 w-4 text-primary/70" /> <span>Health: {ship.baseHealth}%</span></div>
                                     <div className="flex items-center gap-2"><GaugeCircle className="h-4 w-4 text-primary/70" /> <span>Speed: {ship.speedRating}</span></div>
                                     <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary/70" /> <span>Defense: {ship.defenseRating}</span></div>
                                     <div className="flex items-center gap-2"><Users className="h-4 w-4 text-primary/70" /> <span>Crew: {ship.crewCapacity}</span></div>
@@ -190,7 +190,7 @@ export default function ShipCodex() {
                         <h4 className="font-bold text-primary mb-2">Vessel Profile</h4>
                         <div className="space-y-2 text-sm border p-4 rounded-lg bg-background/30">
                             <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>Escort</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">Designation</span><span>Viper Combat Escort</span></div>
+                            <div className="flex justify-between"><span className="text-muted-foreground">Designation</span><span>Viper</span></div>
                             <div className="flex justify-between"><span className="text-muted-foreground">Manufacturer</span><span>Faulcon deLacy</span></div>
                             <div className="flex justify-between"><span className="text-muted-foreground">Length</span><span>32.7 meters</span></div>
                             <div className="flex justify-between"><span className="text-muted-foreground">Crew Capacity</span><span>2</span></div>
@@ -302,5 +302,7 @@ export default function ShipCodex() {
     )
 }
 
+
+    
 
     
