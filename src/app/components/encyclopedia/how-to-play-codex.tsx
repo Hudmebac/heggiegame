@@ -146,7 +146,7 @@ export default function HowToPlayCodex() {
 
                         <h4>Core Trading Principles</h4>
                         <ul>
-                            <li><strong>Economic Specialization:</strong> Pay attention to a system's economy type (e.g., 'Industrial', 'Agricultural'). A system will produce goods related to its economy, meaning those goods will have high supply and low prices. Conversely, they will have high demand and high prices for goods they need to import. For example, buy 'Food Rations' cheap in an 'Agricultural' system and sell them for a large profit in an 'Industrial' system.</li>
+                            <li><strong>Economic Specialization:</strong> Pay attention to a system's economy type (e.g., 'Industrial', 'Agricultural'). A system will produce goods related to its economy, meaning those goods will have high supply and low prices. Conversely, they will have high demand and high prices for goods they need to import. For example, buy 'Food Rations' cheap in an 'Agricultural' system and sell them for a high profit in an 'Industrial' system.</li>
                             <li><strong>Events:</strong> Random galactic events can drastically shift market prices. A "trade embargo" could make certain goods skyrocket in value, while a "mineral rush" could crash the price of ores. React quickly to these events to maximize your profits.</li>
                         </ul>
                     </Section>
@@ -235,6 +235,22 @@ export default function HowToPlayCodex() {
                              <li><strong>Listing on the Market:</strong> Instead of a simple sale, you can list your properties on the open market. Set an asking price and wait for offers.</li>
                              <li><strong>Managing Offers:</strong> You may receive multiple offers from different NPC buyers. These offers can be above, at, or below your asking price. You have the power to accept the best deal or decline them all and wait for a better opportunity.</li>
                         </ul>
+                    </Section>
+                     <Section
+                        title="Galactic Official: Diplomacy & Staff"
+                        icon={Scale}
+                        summary="Manage diplomatic relations by hiring staff and undertaking sensitive missions to grow your influence."
+                        link="/official"
+                    >
+                        <h4>Building Your Diplomatic Corps</h4>
+                        <p>As a Galactic Official, your power comes not just from your own actions, but from the team you build. Your primary goal is to increase your "Influence" score.</p>
+                        <ul>
+                            <li><strong>Hiring Staff:</strong> On the <Link href="/official">Galactic Official</Link> page, you can recruit diplomatic staff. Each staff member has a hiring fee, an ongoing salary, and a unique success rate for missions. A more skilled diplomat costs more but is more likely to succeed.</li>
+                            <li><strong>Staff Limits:</strong> You cannot hire an unlimited number of staff. The size of your diplomatic corps is tied directly to your Influence. The higher your influence, the more staff members you can have on your payroll.</li>
+                            <li><strong>Requesting Mandates:</strong> Use the "Request New Mandates" button to generate a list of available diplomatic missions. These missions range from simple treaty signings to high-stakes mediations between warring factions.</li>
+                            <li><strong>Assigning Missions:</strong> To accept a mission, you must assign an available staff member to it. The staff member's success rate will be a key factor in the mission's outcome. Once a mission is complete, your staff member becomes available for a new assignment.</li>
+                        </ul>
+                        <p>Managing your staff effectively is the key to rising through the ranks from a lowly Intern to a respected Ambassador.</p>
                     </Section>
                      <Section
                         title="Quests & Objectives"
