@@ -306,6 +306,18 @@ export function usePlayerActions(
                 overdriveEngine: false, warpStabilizer: false, stealthPlating: false, targetingMatrix: false, anomalyAnalyzer: false, fabricatorBay: false,
                 gravAnchor: false, aiCoreInterface: false, bioDomeModule: false, flakDispensers: false, boardingTubeSystem: false, terraformToolkit: false, thermalRegulator: false, diplomaticUplink: false,
             };
+
+            // Apply special loadouts for specific ships
+            if (ship.id === 'leviathan-freighter') {
+                newShip.cargoLevel = 30;
+            }
+            if (ship.id === 'viper-escort') {
+                newShip.weaponLevel = 10;
+                newShip.shieldLevel = 5;
+                newShip.droneLevel = 5;
+                newShip.sensorLevel = 2;
+            }
+
             const newCash = prev.playerStats.netWorth - ship.cost;
             let newPlayerStats = { 
                 ...prev.playerStats, 
@@ -1046,5 +1058,3 @@ export function usePlayerActions(
         handleRenameShip,
     };
 }
-
-    
