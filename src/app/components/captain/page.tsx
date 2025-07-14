@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useGame } from '@/app/components/game-provider';
@@ -606,7 +605,3 @@ export default function CaptainPage() {
     </div>
   );
 }
-
-    
-
-    
