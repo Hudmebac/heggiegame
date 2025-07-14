@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CAREER_DATA } from "@/lib/careers";
 import type { LucideIcon } from 'lucide-react';
-import { Briefcase, Zap, AlertTriangle, Video, PlayCircle } from 'lucide-react';
+import { Briefcase, Zap, AlertTriangle, Video, PlayCircle, BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import type { Career } from '@/lib/types';
+import Link from 'next/link';
 
 const careerAvatars: Record<Career, string> = {
     'Heggie Contractor': '/images/avatars/avatar_09.png',
@@ -33,6 +34,14 @@ const careerVideos: Partial<Record<Career, string>> = {
     'Galactic Official': '/videos/galactic_official.mp4',
 };
 
+const careerGuideLinks: Partial<Record<Career, string>> = {
+    'Heggie Contractor': 'getting-started',
+    'Hauler': 'hauler-guide',
+    'Taxi Pilot': 'taxi-pilot-guide',
+    'Landlord': 'landlord-guide',
+    'Trader': 'trader-guide',
+    'Galactic Official': 'galactic-official-guide',
+};
 
 export default function CareerCodex() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -48,6 +57,7 @@ export default function CareerCodex() {
                     const Icon = career.icon as LucideIcon;
                     const videoSrc = careerVideos[career.id];
                     const posterSrc = careerAvatars[career.id];
+                    const guideLink = careerGuideLinks[career.id];
                     return (
                         <Dialog key={career.id} onOpenChange={(open) => !open && setSelectedVideo(null)}>
                             <Card className="flex flex-col">
@@ -96,12 +106,21 @@ export default function CareerCodex() {
                                             </DialogTrigger>
                                         </div>
                                     )}
+                                    {guideLink && (
+                                        <div className="pt-2 border-t border-border/50">
+                                            <Link href={`/encyclopedia?tab=how-to-play#${guideLink}`} passHref>
+                                                <p className="text-xs text-primary hover:underline flex items-center gap-2">
+                                                   <BookOpen className="h-4 w-4"/> Read Gameplay Guide
+                                                </p>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </CardContent>
                                 <DialogContent className="max-w-4xl p-0">
                                      <DialogHeader className="sr-only">
                                         <DialogTitle>Gameplay Preview: {career.name}</DialogTitle>
                                         <DialogDescription>A video showcasing the gameplay for the {career.name} career.</DialogDescription>
-                                    </DialogHeader>
+                                     </DialogHeader>
                                     {selectedVideo === videoSrc && (
                                         <video
                                             src={selectedVideo}

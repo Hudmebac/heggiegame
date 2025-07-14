@@ -12,8 +12,8 @@ import {
     ChevronRight, ArrowRight, ShieldCheck, Sword, Scale, CarTaxiFront, Truck, LandPlot, Building, CandlestickChart, Clipboard 
 } from "lucide-react";
 
-const Section = ({ title, icon: Icon, summary, children, link }: { title: string, icon: React.ElementType, summary: string, children: React.ReactNode, link?: string }) => (
-    <AccordionItem value={title}>
+const Section = ({ id, title, icon: Icon, summary, children, link }: { id?: string, title: string, icon: React.ElementType, summary: string, children: React.ReactNode, link?: string }) => (
+    <AccordionItem value={title} id={id}>
         <AccordionTrigger>
             <div className="flex items-center gap-3 text-left">
                 <Icon className="h-6 w-6 text-primary" />
@@ -58,6 +58,7 @@ export default function HowToPlayCodex() {
             <CardContent>
                 <Accordion type="single" collapsible className="w-full">
                     <Section 
+                        id="getting-started"
                         title="Getting Started: Your First Steps"
                         icon={GraduationCap}
                         summary="Welcome to the High End Galactic Goods Interstellar Exchange (HEGGIE). This guide will help you begin your journey from a rookie captain to a galactic legend."
@@ -82,6 +83,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="captain-guide"
                         title="The Captain"
                         icon={User}
                         summary="Your identity in the galaxy. Manage your profile, finances, reputation, career, and faction allegiance."
@@ -99,6 +101,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="ship-guide"
                         title="Ship & Fleet"
                         icon={Rocket}
                         summary="Manage your active ship's systems and oversee your entire fleet. Your ship is your lifeline."
@@ -115,6 +118,7 @@ export default function HowToPlayCodex() {
                     </Section>
                     
                     <Section
+                        id="crew-guide"
                         title="Crew"
                         icon={Users}
                         summary="Hire specialists to provide passive bonuses and enhance your ship's capabilities."
@@ -131,6 +135,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="market-guide"
                         title="Market & Trading"
                         icon={LineChart}
                         summary="The heart of galactic commerce. Buy low, sell high, and watch the market trends to make your fortune."
@@ -152,6 +157,7 @@ export default function HowToPlayCodex() {
                     </Section>
                     
                     <Section
+                        id="trader-guide"
                         title="Trader Career: Warehouses"
                         icon={CandlestickChart}
                         summary="For the Trader career, build warehouses to stockpile goods and manipulate markets on a galactic scale."
@@ -168,6 +174,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="stocks-guide"
                         title="Stock Exchange"
                         icon={CandlestickChart}
                         summary="Engage in high-stakes trading by buying and selling shares in galactic corporations. A volatile but potentially lucrative venture."
@@ -185,6 +192,7 @@ export default function HowToPlayCodex() {
                     </Section>
 
                     <Section
+                        id="galaxy-guide"
                         title="Galaxy & Travel"
                         icon={Map}
                         summary="Navigate the stars. Travel between systems to find new markets, missions, and opportunities."
@@ -200,6 +208,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="business-guide"
                         title="Business Ventures"
                         icon={Briefcase}
                         summary="Establish and upgrade various businesses to generate passive income streams across the galaxy."
@@ -213,6 +222,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="bank-guide"
                         title="The Galactic Bank"
                         icon={Landmark}
                         summary="Secure your funds, play the market, and eventually acquire the bank itself for ultimate financial power."
@@ -227,6 +237,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="hauler-guide"
                         title="Hauler Career: Fleet Logistics"
                         icon={Truck}
                         summary="As a Hauler, your success depends on managing a fleet of ships to complete lucrative transport contracts."
@@ -242,6 +253,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="taxi-pilot-guide"
                         title="Taxi Pilot Career: Passenger Transport"
                         icon={CarTaxiFront}
                         summary="As a Taxi Pilot, you ferry passengers across the galaxy, from tourists to high-risk VIPs."
@@ -257,6 +269,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="landlord-guide"
                         title="Landlord Career: Property Management"
                         icon={LandPlot}
                         summary="Build a real estate empire by acquiring, upgrading, leasing, and selling properties across the galaxy."
@@ -283,6 +296,7 @@ export default function HowToPlayCodex() {
                         </ul>
                     </Section>
                      <Section
+                        id="galactic-official-guide"
                         title="Galactic Official: Diplomacy & Staff"
                         icon={Scale}
                         summary="Manage diplomatic relations by hiring staff and undertaking sensitive missions to grow your influence."
@@ -299,6 +313,7 @@ export default function HowToPlayCodex() {
                         <p>Managing your staff effectively is the key to rising through the ranks from a lowly Intern to a respected Ambassador.</p>
                     </Section>
                      <Section
+                        id="quests-guide"
                         title="Quests & Objectives"
                         icon={ScrollText}
                         summary="Take on missions from the quest board for large rewards and reputation gains."
@@ -316,6 +331,3 @@ export default function HowToPlayCodex() {
         </Card>
     );
 }
-
-
-    
