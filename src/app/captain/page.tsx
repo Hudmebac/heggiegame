@@ -606,7 +606,3 @@ export default function CaptainPage() {
     </div>
   );
 }
-
-    
-
-    
