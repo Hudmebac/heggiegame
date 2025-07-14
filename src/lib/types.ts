@@ -363,6 +363,7 @@ export interface PlayerStats {
   stardate: string;
   portfolio: PortfolioItem[];
   stocks: Stock[];
+  lastDividendPayment?: number;
 
   fleet: PlayerShip[];
 
@@ -572,3 +573,4 @@ export interface NegotiateTradeRouteOutput {
     cost: number;
     narrative: string;
 }
+
